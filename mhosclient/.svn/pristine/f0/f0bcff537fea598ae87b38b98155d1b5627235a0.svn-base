@@ -1,0 +1,41 @@
+package com.catic.mobilehos.pay.biz.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.catic.mobilehos.pay.biz.BaseBiz;
+import com.catic.mobilehos.pay.biz.ICheckRecordBiz;
+import com.catic.mobilehos.pay.entity.CheckRecord;
+import com.catic.mobilehos.utils.Page;
+@Service("checkRecordBiz")
+public class CheckRecordBizImpl extends BaseBiz implements ICheckRecordBiz {
+
+	@Override
+	public List<CheckRecord> findAll(Page page, CheckRecord check) {
+		try {
+			return checkRecordDao.findAll(page, check);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public Boolean save(CheckRecord check) throws Exception {
+		try {
+			return checkRecordDao.save(check);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public CheckRecord find(Integer transType, String transactionNum)
+			throws Exception {
+		return checkRecordDao.find(transType, transactionNum);
+	}
+
+}

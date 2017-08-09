@@ -1,0 +1,28 @@
+package com.catic.mobilehos.dao;
+
+import java.util.List;
+
+import com.catic.mobilehos.po.ItemsList;
+import com.catic.mobilehos.po.ItemsPO;
+
+public interface ItemsDao {
+	ItemsPO findItemsById(String admRowid);
+	/**
+	 * 获取医嘱列表
+	 * @param admRowid
+	 * @return
+	 */
+	List<ItemsList> findItemsListsByParms(String admRowid, String tarOCCateDesc);
+	/**
+	 * 获取缴费列表
+	 * @param admRowid
+	 * @param startCreateTime
+	 * @param endCreateTime
+	 * @param offset
+	 * @param length
+	 * @return
+	 */
+	List<ItemsPO> findItemsPOsByParms(String cardNo, String patientname, String tarOCCateDesc, String admRowid, String startCreateTime, String endCreateTime, int offset, int length);
+	
+	int countItemsPOsByParms(String cardNo, String patientname, String tarOCCateDesc, String admRowid, String startCreateTime, String endCreateTime);
+}

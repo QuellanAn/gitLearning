@@ -1,0 +1,104 @@
+package com.catic.mobilehos.action;  
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import net.sf.json.JSONObject;
+
+import com.catic.mobilehos.po.TradePO;
+import com.catic.mobilehos.service.TradeService;
+import com.catic.mobilehos.utils.DateUtil;
+
+/**  
+ * 类说明:充值统计action
+ * @author 朱伟权
+ * 创建时间: 2017-5-9 下午5:22:26
+ */
+@Controller
+@Scope("prototype")
+public class RechargeStatisticsAction extends com.catic.mobilehos.pay.action.BaseAction {
+
+	private static final long serialVersionUID = 1L;
+	
+	@Resource
+	private TradeService tradeService;
+	
+	private String startTime;// 开始日期
+	private String endTime;// 结束日期
+	
+	public String getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(String startTime) {
+		this.startTime = startTime;
+	}
+
+	public String getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
+	}
+
+	/**
+	 * 获取按日期统计充值金额结果
+	 */
+	public void getSumByDate(){
+		try{
+			TradePO tradePO = new TradePO();
+			tradePO.setStartTime(startTime);
+			tradePO.setEndTime(endTime);
+			
+			// 保存统计的结果，key为统计日期
+			Map<String, TradePO> dateCountMap = new HashMap<String, TradePO>();
+			
+			// 查询时间区间的所有统计
+			List<TradePO> tradePOs = tradeService.getSumByDate(tradePO);
+			if(tradePOs != null && tradePOs.size() > 0){
+				for (TradePO po : tradePOs) {
+					dateCountMap.put(po.getCountDate(), po);
+				}
+			}
+			
+			Date sDate = DateUtil.str2Date(startTime, "yyyy-MM-dd");
+			Date eDate = DateUtil.str2Date(endTime, "yyyy-MM-dd");
+			// 准备返回的区间统计
+			List<TradePO> resultList = new ArrayList<TradePO>();
+			List<Date> dates = DateUtil.getBetweenDates(sDate, eDate, true);
+			for (Date date : dates) {// 循环开始日期和结束日期之间的所有日期，没有统计项的默认为0
+				String tmpDate = DateUtil.date2Str(date, "yyyy-MM-dd");
+				TradePO po = null;
+				if(dateCountMap.get(tmpDate) == null){
+					po = new TradePO();
+					po.setCountDate(tmpDate);
+					po.setTotalFee("0");
+				}else{
+					po = dateCountMap.get(tmpDate);
+				}
+				if(po != null){
+					po.setCountDate(po.getCountDate().substring(5));// 日期只截取月日，即“05-04”
+					resultList.add(po);
+				}
+			}
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("list", resultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
+}
+ 

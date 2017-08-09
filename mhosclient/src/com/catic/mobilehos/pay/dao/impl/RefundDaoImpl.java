@@ -1,0 +1,220 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.IRefundDao;
+import com.catic.mobilehos.pay.entity.Refund;
+import com.catic.mobilehos.utils.Page;
+
+@Repository("refundDao")
+public class RefundDaoImpl extends BaseDao implements IRefundDao{
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public List<Refund> findAll(Refund rf,Page page) throws Exception {
+		String sql;
+		if(page==null){
+			 sql="SELECT COUNT(0) AS count FROM pay_refund pr LEFT JOIN pay_order po ON pr.tradeNo=po.out_trade_no left join pay_yqinfo yq on po.districtId=yq.yqId WHERE 1=1";
+		}else{
+		//	 sql="SELECT * FROM pay_refund WHERE 1=1";
+			 sql="SELECT pr.tradeNo,pr.refundNo,pr.refundId,pr.refundFee,pr.operatorName,pr.createTime,pr.refundTime,pr.refundStatus,po.orderId,po.actualPay,po.patientName,po.pattern,po.payType,pr.refundType,po.updateTime,po.accountName,yq.name as yqName FROM pay_refund pr LEFT JOIN pay_order po ON pr.tradeNo=po.out_trade_no left join pay_yqinfo yq on po.districtId=yq.yqId WHERE 1=1";
+		}
+	
+		StringBuffer sb=new StringBuffer(sql);
+		List<Object> params=new ArrayList<Object>();
+		if(StringUtils.isNotBlank(rf.getTradeNo())){
+			sb.append(" AND pr.tradeNo LIKE ?");
+			params.add(rf.getTradeNo()+"%");
+		}
+		if(StringUtils.isNotBlank(rf.getRefundNo())){
+			sb.append(" AND pr.refundNo LIKE ?");
+			params.add(rf.getRefundNo()+"%");
+		}
+		if(StringUtils.isNotBlank(rf.getRefundId())){
+			sb.append(" AND pr.refundId LIKE ?");
+			params.add(rf.getRefundId()+"%");
+		}
+		if(rf.getPattern()!=null){
+			sb.append(" AND po.pattern=?");
+			params.add(rf.getPattern());
+		}
+		if(rf.getRefundType()!=null){
+			sb.append(" AND pr.refundType=?");
+			params.add(rf.getRefundType());
+		}
+		if(StringUtils.isNotBlank(rf.getAccount())){
+			sb.append(" AND po.assetAccount=?");
+			params.add(rf.getAccount());
+		}
+		if(StringUtils.isNotBlank(rf.getDistrictId())){
+			sb.append(" AND po.districtId=?");
+			params.add(rf.getDistrictId());
+		}
+		if(rf.getPattern()!=null){
+			sb.append(" AND po.pattern=?");
+			params.add(rf.getPattern());
+		}
+		if(StringUtils.isNotBlank(rf.getPatientName())){
+			sb.append(" AND po.patientName LIKE ?");
+			params.add(rf.getPatientName()+"%");
+		}
+		if(StringUtils.isNotBlank(rf.getOperatorName())){
+			sb.append(" AND pr.operatorName LIKE ?");
+			params.add(rf.getOperatorName()+"%");
+		}
+		if(StringUtils.isNotBlank(rf.getSq_startdate())){
+			sb.append(" AND pr.createTime >?");
+			params.add(rf.getSq_startdate());
+		}
+		if(StringUtils.isNotBlank(rf.getSq_enddate())){
+			sb.append(" AND pr.createTime <?");
+			params.add(rf.getSq_enddate()+"23:59:59");
+		}
+		if(StringUtils.isNotBlank(rf.getTk_startdate())){
+			sb.append(" AND pr.refundTime >?");
+			params.add(rf.getTk_startdate());
+		}
+		if(rf.getRefundStatus()!=null){
+			sb.append(" AND pr.refundStatus=?");
+			params.add(rf.getRefundStatus());
+		}
+		if(StringUtils.isNotBlank(rf.getTk_enddate())){
+			sb.append(" AND pr.refundTime <?");
+			params.add(rf.getTk_enddate()+"23:59:59");
+		}
+		if(page!=null){
+			sb.append(" ORDER BY pr.createTime DESC LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+	
+		List<Refund> rfList=jdbc.query(sb.toString(),params.toArray(),new BeanPropertyRowMapper(Refund.class));
+		return rfList;
+		
+	}
+	
+	/*
+	 * 查询详情
+	 */
+	
+	public List<Refund> findDetails(Refund refund)throws Exception{
+		
+		String  sql="SELECT pr.tradeNo,pr.refundNo,pr.refundId,pr.refundFee,pr.createTime,pr.operatorName," +
+				"pr.refundReason,pr.refundStatus,pr.refundTime,po.cardNo,po.orderCode,po.actualPay," +
+				"po.payStatus,po.hisStatus,po.patientName,po.pattern,po.payType,pr.refundType," +
+				"po.updateTime,po.body,po.patientId,po.total_fee,po.orderId,po.accountName,yq.name as yqName FROM pay_refund pr " +
+				"LEFT JOIN pay_order po ON pr.tradeNo=po.out_trade_no left JOIN pay_yqinfo yq on yq.yqId=po.districtId WHERE tradeNo=? ";
+		List<Object> params=new ArrayList<Object>();
+		params.add(refund.getTradeNo());
+		List<Refund> rfList=jdbc.query(sql,params.toArray(),new BeanPropertyRowMapper(Refund.class));
+		return rfList;
+		
+	}
+	
+	
+	/*
+	 * 查询未退账
+	 */
+	public List<Refund> findNotRefund(int from,int to) throws Exception {
+		List<Object> params=new ArrayList<Object>();
+		String sql="SELECT pr.tradeNo,pr.refundFee,po.cardNo,po.deviceInfo,po.pattern FROM pay_refund pr LEFT JOIN pay_order po ON pr.tradeNo=po.out_trade_no WHERE refundStatus=0 ORDER BY createTime LIMIT ?,?";
+		params.add(from);
+		params.add(to);
+		List<Refund> rfList=jdbc.query(sql,params.toArray(),new BeanPropertyRowMapper(Refund.class));
+		return rfList;
+	}
+	
+	
+	/*
+	 * 保存退賬
+	 */
+	public Boolean save(Refund refund) throws Exception {
+		List<Object> params=new ArrayList<Object>();
+		String sql="INSERT INTO pay_refund (id,tradeNo,refundFee,createTime,refundType,refundStatus,operatorId,operatorName)VALUES (?,?,?,NOW(),?,?,?,?)";
+		params.add(refund.getId());
+		params.add(refund.getTradeNo());
+		params.add(refund.getRefundFee());
+		params.add(refund.getRefundType());
+		params.add(refund.getRefundStatus());
+		params.add(refund.getOperatorId());
+		params.add(refund.getOperatorName());
+		int count=jdbc.update(sql,params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+	
+	
+	/*
+	 * 更新退賬表
+	 */
+	public Boolean update(Refund refund) throws Exception {
+		List<Object> params=new ArrayList<Object>();
+		String sql="UPDATE pay_refund SET ";
+		StringBuffer sb=new StringBuffer(sql);
+		if(StringUtils.isNotBlank(refund.getRefundNo())){
+			sb.append(" refundNo=?");
+			params.add(refund.getRefundNo());
+		}
+		if(refund.getRefundStatus()!=null){
+			sb.append(",refundStatus=?");
+			params.add(refund.getRefundStatus());
+		}
+		   sb.append(",refundTime=NOW()");
+		   
+		if(StringUtils.isNotBlank(refund.getTradeNo())){
+			sb.append(" WHERE tradeNo=?");
+			params.add(refund.getTradeNo());
+		}
+		int count=jdbc.update(sb.toString(),params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+	
+	/*
+	 * 通过商户订单号查询
+	 */	
+	public List<Refund> findByTradeNo(String tradeNo) throws Exception {
+		List<Object> params=new ArrayList<Object>();
+		String sql="SELECT * FROM pay_refund WHERE tradeNo='"+tradeNo+"'";	    
+		List<Refund>  refundList=jdbc.query(sql,params.toArray(),new BeanPropertyRowMapper(Refund.class));
+		return refundList;
+	}
+	/**
+	 * 通过退款日期查询
+	 */
+	public List<Refund> findByDate(String date)throws Exception{
+		List<Object> params=new ArrayList<Object>();
+		String sql="SELECT * FROM pay_refund WHERE refundTime LIKE ?";	 
+		params.add(date+"%");
+		List<Refund>  refundList=jdbc.query(sql,params.toArray(),new BeanPropertyRowMapper(Refund.class));
+		return refundList;
+	}
+	/**
+	 * 通过退款号查询
+	 * @param refundNo
+	 * @return
+	 * @throws Exception
+	 */
+	public Refund findByrefundNo(String refundNo)throws Exception{
+		List<Object> params=new ArrayList<Object>();
+		String sql="SELECT * FROM pay_refund WHERE refundNo=?";	 
+		params.add(refundNo);
+		List<Refund>  refundList=jdbc.query(sql,params.toArray(),new BeanPropertyRowMapper(Refund.class));
+		
+		if(refundList!=null&&refundList.size()>0){
+			return refundList.get(0);
+		}
+		
+		return null;
+		
+	}
+}

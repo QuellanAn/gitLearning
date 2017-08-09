@@ -1,0 +1,31 @@
+$(document).ready(function() {
+	var id = $("#id").val();
+	var upgradeType = $("#upgradeType").val();
+	var params = "&id=" + id + "&upgradeType" + upgradeType;
+	datalist_ctrl.loaddatalist("selfService/selfServiceUpgradeAction_versionHistoryList?pageNo="+$("#hid_pageNo").val() + params);
+});
+
+function refresh_totalcount(){
+	$("#totalcount").html($("#hid_totalcount").val());
+}
+
+var datalist_ctrl = {
+	loaddatalist : function(url) {
+		var cnt = $('#div_cnt_table');
+		$.get(url, function(data, status) {
+			if (data && data.msg) {
+				jBox.alert(data.msg, 'error');
+			} else if (data) {
+//				window.setTimeout(function() {
+					if (data != null) {
+						cnt.empty();
+						cnt.append(data);
+					}
+//				}, 500);
+			}
+		});
+	},
+	topage : function(url) {
+		this.loaddatalist(url);
+	}
+};

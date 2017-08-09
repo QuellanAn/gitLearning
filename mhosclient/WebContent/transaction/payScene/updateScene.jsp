@@ -1,0 +1,95 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<html>
+<head>
+<title>编辑支付场景</title>
+<base href="<%=basePath%>/" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css"
+	href="resources/css/introduction-edit.css" />
+<script charset="utf-8" src="kindeditor/kindeditor-min.js"></script>
+<script charset="utf-8" src="kindeditor/lang/zh_CN.js"></script>
+<script type="text/javascript"
+	src="resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="resources/js/common.js"></script>
+</head>
+<!-- <s:if
+	test="#session.userName==null">
+	<script type="text/javascript">
+		location.href = $('base').attr('href') + "login.jsp";
+	</script>
+</s:if> -->
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg">
+				<li class="tab-crt">编辑支付场景</li>
+			</ul>
+
+			<div class="tab-cnt" style="overflow: auto;margin-bottom: 10px;">
+
+			<s:form method="post" action="paySceneAction_Update"  id="form_modify" cssClass="introduction-fm">
+					<input name="code" type="hidden" value="${ps.SCode }"> 
+					<ul>
+						<li><span class="introduction-label f-fl"> <span
+								class="color-red">*</span>编号：</span>
+							<input id="sCode" type="text" value="${ps.SCode }" 
+							class="fm-text f-fl" style="width:240px;" disabled="disabled"> 
+						<li><span class="introduction-label f-fl"> <span
+								class="color-red">*</span>名称：</span> 
+								<input id="sName" name="name" type="text" value="${ps.SName }" 
+							class="fm-text f-fl" style="width:240px;"> 
+							<div class="f-clear"></div></li>
+
+						<li><span class="introduction-label f-fl"> <span
+								class="color-red">*</span>状态：</span>
+								<select id="sStatus" name="status" style="width: 120px;height: 28px;">
+									<c:if test="${ps.SStatus==0 }">
+										<option selected="selected" value="0">启用</option>
+										<option value="1">禁用</option>
+									</c:if>
+									<c:if test="${ps.SStatus==1 }">
+										<option value="0">启用</option>
+										<option selected="selected" value="1">禁用</option>
+									</c:if>
+								</select></td>
+							<div class="f-clear"></div></li>					
+					</ul>
+					<br />
+					<center>				
+						<input id="saveYQ" type="submit"  value="提交" style="margin-bottom: 10px;"
+							class="normal-btn" onclick="" />
+					</center>
+			</s:form>
+			</div>
+		</div>
+		<div class="f-clear"></div>
+	</div>
+</body>
+
+<script type="text/javascript">
+	$("#form_modify").submit(function(e){
+				
+		var sName=$("#sName").val();
+		var sStatus=$("#sStatus").val();
+		if($.trim(sName).length==0||$.trim(sStatus).length==0){
+		alert("请输出完整的信息");
+		return false;
+		}
+		return true;
+	});
+</script>
+</html>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<bean id="noticeAction" class="com.catic.mobilehos.action.NoticeAction">
+		<property name="noticeService" ref="noticeService"></property>
+	</bean>
+	
+	
+	<bean id="userMngAction" class="com.catic.mobilehos.action.UserMngAction">
+    	<property name="userMngService" ref="userMngService"></property>
+    </bean>
+	
+	<bean name="hosInfoMngAction" class="com.catic.mobilehos.action.HosInfoMngAction" >
+   		<property name="hospitalInfoService" ref="hospitalInfoService"></property>
+   	</bean>
+   	
+   	
+   	<bean name="hosPubInfoHtmlImgUploadAction" class="com.catic.mobilehos.action.HosPubInfoHtmlImgUploadAction">
+   		<property name="hospitalInfoService" ref="hospitalInfoService"></property>
+   	</bean>
+   	
+   	<bean name="msgBusMngAction" class="com.catic.mobilehos.action.MsgBusMngAction">
+   		<property name="msgMngService" ref="msgMngService"></property>
+   	</bean>
+   	<bean name="wechatMenuAction" class="com.catic.mobilehos.action.WechatMenuAction">
+   		<property name="wechatMenuService" ref="wechatMenuService"></property>
+   	</bean>
+   	
+   	<bean name="basicCntCfgImgUploadAction" class="com.catic.mobilehos.action.BasicCntCfgImgUploadAction">
+   		<property name="basicCntCfgService" ref="basicCntCfgService"></property>
+   	</bean>
+   	
+   	<bean name="hosIntroCfgAction" class="com.catic.mobilehos.action.HosIntroCfgAction">
+   		<property name="hospitalGuideService" ref="hospitalGuideService"></property>
+   	</bean>
+   	
+   	 <bean name="sysUsersAction" class="com.catic.mobilehos.action.SysUsersAction">
+   		<property name="sysUsersService" ref="sysUsersService"></property>
+   	</bean>
+   	
+   	<bean name="rolesAction" class="com.catic.mobilehos.action.RolesAction">
+   		<property name="rolesService" ref="rolesService"></property>
+   	</bean>
+	
+	
+<!-- 	<bean name="openFireUserAction" class="com.catic.mobilehos.action.OpenFireUserAction"> -->
+<!--    		<property name="openFireGroupService" ref="openFireGroupService"></property> -->
+<!--    		<property name="openFireUserService" ref="openFireUserService"></property> -->
+<!--    	</bean> -->
+   	
+   	
+   	 <bean name="questionnaireListAction" class="com.catic.mobilehos.action.QuestionnaireListAction">
+   		<property name="questionnaireService" ref="questionnaireService"></property>
+   	</bean>
+   	
+   	<bean name="serviceEvaluationAction" class="com.catic.mobilehos.action.ServiceEvaluationAction">
+   		<property name="serviceEvaluationService" ref="serviceEvaluationService"></property>
+   	</bean>
+   	
+   	<bean name="wechatCfgAction" class="com.catic.mobilehos.action.WechatCfgAction">
+   		<property name="wechatCfgService" ref="wechatCfgService"></property>
+   	</bean>
+   	
+   	<bean name="statisticsAction" class="com.catic.mobilehos.action.StatisticsAction">
+	<property name="statisticsService" ref="statisticsService"></property>
+   	</bean>
+   	<bean name="specialistAction" class="com.catic.mobilehos.action.SpecialistAction">
+	<property name="specialistService" ref="specialistService"></property>
+   	</bean>  	 	
+   	
+   	
+   	<bean name="haAction" class="com.catic.mobilehos.action.HelpAnswerAction">
+   		<property name="haService" ref="haService"></property>
+   	</bean>
+   	
+   	<bean name="tradeAction" class="com.catic.mobilehos.action.TradeAction">
+		<property name="tradeService" ref="tradeService"></property>
+   	</bean>
+   	<bean name="cardPayAction" class="com.catic.mobilehos.action.CardPayAction">
+		<property name="cardPayService" ref="cardPayService"></property>
+   	</bean>
+   	<bean name="patientsAction" class="com.catic.mobilehos.action.PatientsAction">
+		<property name="patientsService" ref="patientsService"></property>
+   	</bean>
+   	<bean name="itemsAction" class="com.catic.mobilehos.action.ItemsAction">
+		<property name="itemsService" ref="itemsService"></property>
+   	</bean>
+</beans>
+
+

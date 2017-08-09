@@ -1,0 +1,148 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.IAccountConfigDao;
+import com.catic.mobilehos.pay.entity.Account;
+import com.catic.mobilehos.pay.entity.YQInfo;
+import com.catic.mobilehos.utils.Page;
+
+@Repository("accountConfigDao")
+public class AccountConfigDaoImpl extends BaseDao implements IAccountConfigDao{
+
+	/**
+	 * 保存资金账户信息
+	 */
+	@Override
+	public Boolean save(Account account) throws Exception {
+		String sql="INSERT INTO pay_account (accountCode,accountName,outAccount,pattern,payType,yq_ac_id,operator,remark,createTime) VALUES (?,?,?,?,?,?,?,?,NOW())";
+		List<Object> param=new ArrayList<Object>();
+		param.add(account.getAccountCode());
+		param.add(account.getAccountName());
+		param.add(account.getOutAccount());
+		param.add(account.getPattern());
+		param.add(account.getPayType());
+		param.add(account.getYq_ac_id());
+		param.add(account.getOperator());
+		param.add(account.getRemark());
+		int count=jdbc.update(sql,param.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 查询所有账户
+	 */
+	@Override
+	public List<Account> findAll(Page page) throws Exception {
+		String sql;
+		if(page==null){
+			sql="SELECT COUNT(0) AS count FROM pay_account WHERE 1=1";
+		}else{
+			sql="SELECT * FROM pay_account  ORDER BY createTime DESC ";
+		}
+		
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> param=new ArrayList<Object>();
+		if(page!=null){
+			sb.append(" LIMIT ?,?");
+			param.add(page.getFirstIndex());
+			param.add(page.getPageSize());
+		}
+		List<Account> list=jdbc.query(sb.toString(),param.toArray(),new BeanPropertyRowMapper(Account.class));
+		return list;
+	}
+/**
+ * 删除账户
+ */
+	@Override
+	public Boolean delete(String accountCode) throws Exception {
+		String sql="UPDATE pay_account SET `status`=1 WHERE accountCode=?";
+		List<Object> param=new ArrayList<Object>();				
+		param.add(accountCode);
+	    int count=jdbc.update(sql,param.toArray());
+	    if(count>0){
+	    	return true;
+	    }
+		return false;
+	}
+
+	/**
+	 * 修改账户信息
+	 */
+	@Override
+	public Boolean modify(Account account) throws Exception {
+		String sql="UPDATE pay_account SET accountCode=?";
+		List<Object> param=new ArrayList<Object>();	
+		StringBuilder sb=new StringBuilder(sql);
+		param.add(account.getAccountCode());
+		if(StringUtils.isNotBlank(account.getAccountName())){
+			sb.append(",accountName=?");
+			param.add(account.getAccountName());
+		}
+		if(StringUtils.isNotBlank(account.getOutAccount())){
+			sb.append(",outAccount=?");
+			param.add(account.getOutAccount());
+		}
+		if(account.getPattern()!=null){
+			sb.append(",pattern=?");
+			param.add(account.getPattern());
+		}
+		if(StringUtils.isNotBlank(account.getPayType())){
+			sb.append(",payType=?");
+			param.add(account.getPayType());
+		}
+		if(StringUtils.isNotBlank(account.getOperator())){
+			sb.append(",operator=?");
+			param.add(account.getOperator());
+		}
+		if(StringUtils.isNotBlank(account.getRemark())){
+			sb.append(",remark=?");
+			param.add(account.getRemark());
+		}
+		if(account.getStatus()!=null){
+			sb.append(",status=?");
+			param.add(account.getStatus());
+		}
+		sb.append(" WHERE aid=?");
+		param.add(account.getAid());
+	    int count=jdbc.update(sb.toString(),param.toArray());
+	    if(count>0){
+	    	return true;
+	    }
+		return false;
+	}
+
+	/**
+	 * 通过编号查询
+	 */
+	@Override
+	public Account findByCode(String code) throws Exception {
+		String sql="SELECT * FROM pay_account WHERE accountCode=?";
+		List<Object> param=new ArrayList<Object>();	
+		param.add(code);
+		List<Account> list=jdbc.query(sql,param.toArray(),new BeanPropertyRowMapper(Account.class));
+		if(list!=null&&list.size()>0){
+			return list.get(0);
+		}
+		return null;
+	}
+	
+	/**
+	 * 查询所有
+	 */
+	public List<Account> findAll() throws Exception {
+		String sql="SELECT * FROM pay_account WHERE status=0 ORDER BY createTime DESC ";			
+		List<Account> list=jdbc.query(sql,new BeanPropertyRowMapper(Account.class));
+		return list;
+	}
+	
+}

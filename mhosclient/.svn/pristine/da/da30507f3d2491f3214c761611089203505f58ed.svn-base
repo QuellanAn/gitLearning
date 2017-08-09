@@ -1,0 +1,738 @@
+package com.catic.mobilehos.pay.action;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.entity.CheckBill;
+import com.catic.mobilehos.pay.entity.CheckBillDetails;
+import com.catic.mobilehos.pay.entity.CheckRecord;
+import com.catic.mobilehos.pay.entity.PayOrder;
+import com.catic.mobilehos.pay.entity.Refund;
+import com.catic.mobilehos.pay.util.Constant;
+import com.catic.mobilehos.pay.util.DateUtils;
+import com.catic.mobilehos.utils.Page;
+
+/*
+ * 对账
+ */
+
+@Controller
+@Scope("prototype")
+@SuppressWarnings("serial")
+public class CheckBillAction extends BaseAction {
+	
+private List<CheckBill> cbList;
+private CheckBill checkBill;
+private CheckBillDetails checkBillDetails;
+private List<CheckBillDetails> cbdList;
+private Page page;
+
+private String startdate;
+private String enddate;
+private String billStatus;
+private String pattern;
+private String createDate;
+private String id;
+private String tradeNos;
+private InputStream  excelStream;
+private String excelFileName;//下载文件名
+
+private String flag="0";//访问findAll():0-查询对账列表  1-查询对账详情   3：跳转对账单详情（交易）4:跳到对账单详情（退款）5:由对账单跳到退款
+
+private String outTradeNo;
+private PayOrder po;
+private String tradeState;
+private  String totalFee;
+private  String refundFee;
+private  String refundStatus;
+private  String refund_success_time;
+private  String refund_id;
+private Refund rf;
+private List<Refund> rfList;
+
+private String checkTime;
+private  String remark;
+private  String payStatus;
+@SuppressWarnings("finally")
+
+
+public String findAll(){
+	
+	try {
+		if(StringUtils.isBlank(pageNo)){
+			pageNo = "1";
+		}
+		
+		checkBill=new CheckBill();
+		checkBill.setStartdate(startdate);
+		checkBill.setEnddate(enddate);
+		if(StringUtils.isNotBlank(billStatus)){
+		checkBill.setBillStatus(Integer.parseInt(billStatus));	
+		}
+		if(StringUtils.isNotBlank(pattern)){
+			if(pattern.equals("0")){         //微信
+				cbList=checkBillBiz.findAll_WeChat(checkBill,null);
+				page=new Page(Integer.parseInt(pageNo),10, this.cbList.get(0).getCount());
+				cbList=checkBillBiz.findAll_WeChat(checkBill,page);	
+			}else{                           //支付宝
+				cbList=checkBillBiz.findAll_AliPay(checkBill, page);
+				page=new Page(Integer.parseInt(pageNo),10, this.cbList.get(0).getCount());
+				cbList=checkBillBiz.findAll_AliPay(checkBill, page);	
+			}
+		}else{
+			cbList=checkBillBiz.findAll(checkBill,null);
+			page=new Page(Integer.parseInt(pageNo),10, this.cbList.get(0).getCount());
+			cbList=checkBillBiz.findAll(checkBill,page);	
+		}
+		
+	} catch (Exception e) {
+		e.printStackTrace();
+	}finally{
+		if(flag.equals("1")){
+			 return "details";	
+		}else{
+			 return SUCCESS;	
+		}
+	}
+	   
+}
+
+public String toFindDetails(){
+	
+	return "toFindDetails";
+	
+}
+
+
+public String findDetails(){
+	
+	try {
+		if(StringUtils.isBlank(pageNo)){
+			pageNo = "1";
+		}		
+		checkBillDetails=new CheckBillDetails();
+		checkBillDetails.setBillDate(createDate);
+
+		if(StringUtils.isNotBlank(billStatus)){
+			checkBillDetails.setBillStatus(Integer.parseInt(billStatus));	
+			}
+		if(StringUtils.isNotBlank(pattern)){
+			checkBillDetails.setPattern(Integer.parseInt(pattern));	
+		}
+		
+		cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,null);	
+		if(cbdList!=null){
+			page=new Page(Integer.parseInt(pageNo),10, this.cbdList.get(0).getCount());
+			cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,page);	
+		} 
+	} catch (Exception e) {
+		e.printStackTrace();
+	}finally{
+			 return "details";	
+	}
+	   
+}
+
+public String exportExcel(){
+	
+	try {
+		if(StringUtils.isBlank(pageNo)){
+			pageNo = "1";
+		}	
+		checkBill=new CheckBill();
+		checkBill.setStartdate(startdate);
+		checkBill.setEnddate(enddate);
+		if(StringUtils.isNotBlank(billStatus)){
+		checkBill.setBillStatus(Integer.parseInt(billStatus));	
+		}
+		
+		cbList=checkBillBiz.findAll(checkBill,null);
+		page=new Page(Integer.parseInt(pageNo),this.cbList.get(0).getCount(), this.cbList.get(0).getCount());
+		cbList=checkBillBiz.findAll(checkBill,page);
+		excelStream=checkBillBiz.saveExport(cbList,null);
+		excelFileName="总对账单("+DateUtils.formatDate(new Date(), 1)+").xls";
+		excelFileName=new String(excelFileName.getBytes(),"ISO8859-1");
+		
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	return "export";
+	
+}
+
+
+public String exportDetailExcel(){
+	
+	try {
+		if(StringUtils.isBlank(pageNo)){
+			pageNo = "1";
+		}		
+		checkBillDetails=new CheckBillDetails();
+		checkBillDetails.setCreatDate(createDate);
+		if(StringUtils.isNotBlank(billStatus)){
+			checkBillDetails.setBillStatus(Integer.parseInt(billStatus));	
+			}
+		if(StringUtils.isNotBlank(pattern)){
+			checkBillDetails.setPattern(Integer.parseInt(pattern));	
+		}
+		cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,null);	
+		if(cbdList!=null){
+			page=new Page(Integer.parseInt(pageNo),this.cbdList.get(0).getCount(), this.cbdList.get(0).getCount());
+			cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,page);	
+		} 
+		excelStream=checkBillBiz.saveExport(null,cbdList);
+		excelFileName="对账单详情("+createDate+").xls";
+		System.out.println(createDate);
+		excelFileName=new String(excelFileName.getBytes(),"ISO8859-1");
+		
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	
+	return "export";
+	
+}
+
+/**
+ * 确认
+ */
+public String confirm(){
+	try {
+
+		checkBillBiz.updateStatus(id, 1);//更改确认状态
+		CheckRecord record=new CheckRecord();
+		record.setCheckTime(checkTime);
+		record.setTaskState("执行确认操作");
+		record.setOperator((String)getSession().getAttribute("userName"));
+		record.setRecordType(0);
+		checkRecodeBiz.save(record);//保存操作记录
+		
+		if(StringUtils.isBlank(pageNo)){
+			pageNo = "1";
+		}		
+		checkBill=new CheckBill();
+		checkBill.setStartdate(startdate);
+		checkBill.setEnddate(enddate);
+		if(StringUtils.isNotBlank(billStatus)){
+		checkBill.setBillStatus(Integer.parseInt(billStatus));	
+		}
+		cbList=checkBillBiz.findAll(checkBill,null);
+		page=new Page(Integer.parseInt(pageNo),10, this.cbList.get(0).getCount());
+		cbList=checkBillBiz.findAll(checkBill,page);
+		
+		
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	 return SUCCESS;	
+}
+
+/**
+* 校验
+*/
+public String verify(){
+	try {		
+		String[] trandNos=tradeNos.split(",");
+		
+		for(int i=0;i<trandNos.length;i++){
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httppost = null;
+			PayOrder payOrder=payOrderBiz.findByTradeNo(trandNos[i]);
+			if(trandNos[i].startsWith("01")){//微信
+				
+				 httppost = new HttpPost(Constant.URL_WXQUERYPAY);  
+				 
+				}else if(trandNos[i].startsWith("02")){//支付宝
+					httppost = new HttpPost(Constant.URL_ZFBUERYPAY);  
+			}
+			   // 创建参数队列    
+	        List<NameValuePair> formparams = new ArrayList<NameValuePair>();  
+	        formparams.add(new BasicNameValuePair("tradeNo",trandNos[i])); 
+	      
+	   	 UrlEncodedFormEntity  uefEntity = new UrlEncodedFormEntity(formparams, "UTF-8");  
+         httppost.setEntity(uefEntity);  
+         CloseableHttpResponse response = httpclient.execute(httppost);  
+         HttpEntity entity = response.getEntity();  
+         if (entity != null&&payOrder!=null) {          
+            JSONObject obj = JSONObject.fromObject(EntityUtils.toString(entity, "UTF-8"));      
+            if(obj.getString("code").equals("0")){//成功
+            JSONObject obj1 =JSONObject.fromObject( obj.getString("data"));
+            String tradeState= obj1.getString("tradeState");
+            String totalFee= obj1.getString("totalFee");
+            //SUCCESS—支付成功REFUND—转入退款 NOTPAY—未支付 CLOSED—已关闭 REVOKED—已撤销（刷卡支付） USERPAYING--用户支付中 PAYERROR--支付失败(其他原因，如银行返回失败)
+            	if(tradeState.equals("SUCCESS")){
+            		checkBillDetailsBiz.updateOutHis(trandNos[i], 1, null);//首先更改第三方状态
+            		if(StringUtils.isNotBlank(totalFee)){
+            			if(payOrder.getPayStatus()==1&&(int)(Double.parseDouble(totalFee)*100)==payOrder.getActualPay()){//总金额匹配
+            				checkBillDetailsBiz.reBillStatus(1,trandNos[i]);//更改对账单状态
+            			}
+            		}
+            	}else if(tradeState.equals("REFUND")){        		
+            	    String refundFee= obj1.getString("refundFee");
+                    String refundStatus= obj1.getString("refundStatus");               
+            		checkBillDetailsBiz.updateOutHis(trandNos[i], 3, null);
+            		List<Refund> list=refundBiz.findByTradeNo(trandNos[i]);     
+            		if(StringUtils.isNotBlank(refundFee)&&list!=null&&list.size()>0){           	
+            			if(payOrder.getPayStatus()==3&&list.get(0).getRefundFee()==Double.parseDouble(refundFee)/100){//退款金额匹配
+            				if(list.get(0).getRefundStatus()==1&&(refundStatus.equals("SUCCESS"))){//退款状态匹配
+            					checkBillDetailsBiz.reBillStatus(1,trandNos[i]);//更改对账单状态
+            				}           				
+            			}
+            		}
+            	}else if(tradeState.equals("NOTPAY")){
+            		checkBillDetailsBiz.updateOutHis(trandNos[i], 0, null);
+            		if(payOrder.getPayStatus()==0){//未支付
+            			checkBillDetailsBiz.reBillStatus(1,trandNos[i]);//更改对账单状态
+            		}
+            	}else if(tradeState.equals("CLOSED")||tradeState.equals("REVOKED")||tradeState.equals("USERPAYING")||tradeState.equals("PAYERROR")){
+            		checkBillDetailsBiz.updateOutHis(trandNos[i], 0, null);
+            		if(payOrder.getPayStatus()==0){//未支付
+            			checkBillDetailsBiz.reBillStatus(1,trandNos[i]);//更改对账单状态
+            		}
+            	}else if(tradeState.equals("FAILED")){//支付宝：查询返回该订单支付失败或被关闭!!!
+            		checkBillDetailsBiz.updateOutHis(trandNos[i], 0, null);
+            		if(payOrder.getPayStatus()==0){//未支付
+            			checkBillDetailsBiz.reBillStatus(1,trandNos[i]);//更改对账单状态
+            		}
+            	}
+            	
+             }
+         }  
+         response.close();  
+         httpclient.close();  
+         
+     	CheckRecord record=new CheckRecord();
+		record.setTransactionNum(trandNos[i]);
+		record.setTaskState("执行校验");
+		record.setOperator((String)getSession().getAttribute("userName"));
+		record.setRecordType(1);
+		if(StringUtils.isNotBlank(payStatus)){
+			if(payStatus.equals("3")){//已退款
+				record.setTradeType(1);
+			}else{
+				record.setTradeType(0);
+			}
+		}
+		checkRecodeBiz.save(record);//保存操作记录
+		}
+		
+	/*	if(StringUtils.isBlank(pageNo)){
+			pageNo = "1";
+		}		
+		checkBillDetails=new CheckBillDetails();
+		checkBillDetails.setBillDate(createDate);
+		if(StringUtils.isNotBlank(billStatus)){
+			
+			checkBillDetails.setBillStatus(Integer.parseInt(billStatus));	
+			}
+		if(StringUtils.isNotBlank(pattern)){
+			
+			checkBillDetails.setPattern(Integer.parseInt(pattern));	
+		}
+		
+		cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,null);	
+		if(cbdList!=null){
+			page=new Page(Integer.parseInt(pageNo),10, this.cbdList.get(0).getCount());
+			cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,page);	
+		} */
+		checkBillDetails=checkBillDetailsBiz.findByTrandeNo(tradeNos);
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	return  "handle";
+}
+/**
+ * 对账单详情——订单
+ * @return
+ */
+public String findCheckDetails(){
+	try {
+		po=payOrderBiz.findByTradeNo(outTradeNo);
+		if(po!=null){
+			po=payOrderBiz.findByOrderId(po.getOrderId());	
+		}
+		HashMap<String, String>  map=new OutOrderQuery().orderQuery(outTradeNo);
+		tradeState=map.get("tradeState");
+		if(tradeState.equals("REFUND")){
+			refundFee=map.get("refundFee");
+			refundStatus=map.get("refundStatus");
+			refund_success_time=map.get("refund_success_time");
+			refund_id=map.get("refund_id");
+		}
+		totalFee=map.get("totalFee");
+	} catch (Exception e) {
+		// TODO: handle exception
+	}
+	pattern=po.getPattern()+"";
+     flag="3";
+	return "findCheckDetails";	
+}
+/**
+ * 对账单详情——退款
+ * @return
+ */
+public String findCheckRefund(){
+	try {
+	rf=new Refund();
+	rf.setTradeNo(outTradeNo);
+		rfList=refundBiz.findDetails(rf);
+	if(rfList!=null){
+		rf=rfList.get(0);
+	}
+	rf.setOutStatus(rf.getPayStatus());
+	HashMap<String, String>  map=new OutOrderQuery().orderQuery(outTradeNo);
+	tradeState=map.get("tradeState");
+	if(tradeState.equals("REFUND")){
+		refundFee=map.get("refundFee");
+		refundStatus=map.get("refundStatus");
+		refund_success_time=map.get("refund_success_time");
+		refund_id=map.get("refund_id");
+	}
+	totalFee=map.get("totalFee");
+	}catch (Exception e){
+		e.printStackTrace();
+	}
+	 flag="4";
+	 pattern=rf.getPattern()+"";
+	 return "findCheckDetails";	
+}
+
+/**
+ * 更新处理状态
+ */
+public void upStatus(){
+	try {
+		if(checkBillDetailsBiz.updateStatus(id,"1",remark)){
+			
+		   	CheckRecord record=new CheckRecord();
+			record.setTransactionNum(tradeNos);
+			record.setTaskState("执行“更新处理状态”操作");
+			record.setOperator((String)getSession().getAttribute("userName"));
+			record.setRecordType(1);
+			if(StringUtils.isNotBlank(payStatus)){
+				if(payStatus.equals("3")){//已退款
+					record.setTradeType(1);
+				}else{
+					record.setTradeType(0);
+				}
+			}
+			checkRecodeBiz.save(record);//保存操作记录
+			
+			result=resultBiz.getResult(resultBiz.SUCCESS);
+		}else{
+			result=resultBiz.getResult(resultBiz.FAIL);
+		}
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	jsonObj(result.toJson());
+}
+
+//跳转到退款界面
+public String toRefund(){
+	try {
+		checkBillDetailsBiz.updateStatus(id, "0", remark);
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	return "toRefund";
+}
+
+	/**
+	 * 导出总对账记录
+	 * @return
+	 */
+	public String exportCheckBill(){
+		try {
+			if(StringUtils.isBlank(pageNo)){
+				pageNo = "1";
+			}	
+			checkBill=new CheckBill();
+			checkBill.setStartdate(startdate);
+			checkBill.setEnddate(enddate);
+			if(StringUtils.isNotBlank(billStatus)){
+				checkBill.setBillStatus(Integer.parseInt(billStatus));	
+			}
+			
+			cbList=checkBillBiz.findAll(checkBill,null);
+			page=new Page(Integer.parseInt(pageNo),this.cbList.get(0).getCount(), this.cbList.get(0).getCount());
+			cbList=checkBillBiz.findAll(checkBill,page);
+			// 导出报表
+			checkBillBiz.exportCheckBill(cbList, null, request, response);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 导出对账详情
+	 * @return
+	 */
+	public String exportCheckBillDetail(){
+		try {
+			if(StringUtils.isBlank(pageNo)){
+				pageNo = "1";
+			}
+			checkBillDetails=new CheckBillDetails();
+			checkBillDetails.setBillDate(createDate);
+			if(StringUtils.isNotBlank(billStatus)){
+				checkBillDetails.setBillStatus(Integer.parseInt(billStatus));	
+			}
+			if(StringUtils.isNotBlank(pattern)){
+				checkBillDetails.setPattern(Integer.parseInt(pattern));	
+			}
+			cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,null);	
+			if(cbdList!=null){
+				page=new Page(Integer.parseInt(pageNo),this.cbdList.get(0).getCount(), this.cbdList.get(0).getCount());
+				cbdList=checkBillDetailsBiz.findBillDetails(checkBillDetails,page);	
+			}
+			// 导出报表
+			checkBillBiz.exportCheckBill(null, cbdList, request, response);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+public List<CheckBill> getCbList() {
+	return cbList;
+}
+public void setCbList(List<CheckBill> cbList) {
+	this.cbList = cbList;
+}
+public CheckBill getCheckBill() {
+	return checkBill;
+}
+public void setCheckBill(CheckBill checkBill) {
+	this.checkBill = checkBill;
+}
+public Page getPage() {
+	return page;
+}
+public void setPage(Page page) {
+	this.page = page;
+}
+public String getStartdate() {
+	return startdate;
+}
+public void setStartdate(String startdate) {
+	this.startdate = startdate;
+}
+public String getEnddate() {
+	return enddate;
+}
+public void setEnddate(String enddate) {
+	this.enddate = enddate;
+}
+
+public String getBillStatus() {
+	return billStatus;
+}
+public void setBillStatus(String billStatus) {
+	this.billStatus = billStatus;
+}
+
+
+public String getPattern() {
+	return pattern;
+}
+
+
+public void setPattern(String pattern) {
+	this.pattern = pattern;
+}
+
+public CheckBillDetails getCheckBillDetails() {
+	return checkBillDetails;
+}
+
+public void setCheckBillDetails(CheckBillDetails checkBillDetails) {
+	this.checkBillDetails = checkBillDetails;
+}
+
+public List<CheckBillDetails> getCbdList() {
+	return cbdList;
+}
+
+public void setCbdList(List<CheckBillDetails> cbdList) {
+	this.cbdList = cbdList;
+}
+
+public String getCreateDate() {
+	return createDate;
+}
+
+public void setCreateDate(String createDate) {
+	this.createDate = createDate;
+}
+
+public InputStream getExcelStream() {
+	return excelStream;
+}
+
+public void setExcelStream(InputStream excelStream) {
+	this.excelStream = excelStream;
+}
+
+public String getExcelFileName() {
+	return excelFileName;
+}
+
+public void setExcelFileName(String excelFileName) {
+	this.excelFileName = excelFileName;
+}
+
+public String getId() {
+	return id;
+}
+
+public void setId(String id) {
+	this.id = id;
+}
+
+public String getTradeNos() {
+	return tradeNos;
+}
+
+public void setTradeNos(String tradeNos) {
+	this.tradeNos = tradeNos;
+}
+
+public String getOutTradeNo() {
+	return outTradeNo;
+}
+
+public void setOutTradeNo(String outTradeNo) {
+	this.outTradeNo = outTradeNo;
+}
+
+public PayOrder getPo() {
+	return po;
+}
+
+public void setPo(PayOrder po) {
+	this.po = po;
+}
+
+public String getTotalFee() {
+	return totalFee;
+}
+
+public void setTotalFee(String totalFee) {
+	this.totalFee = totalFee;
+}
+
+public String getRefundFee() {
+	return refundFee;
+}
+
+public void setRefundFee(String refundFee) {
+	this.refundFee = refundFee;
+}
+
+public String getRefundStatus() {
+	return refundStatus;
+}
+
+public void setRefundStatus(String refundStatus) {
+	this.refundStatus = refundStatus;
+}
+
+public String getRefund_success_time() {
+	return refund_success_time;
+}
+
+public void setRefund_success_time(String refund_success_time) {
+	this.refund_success_time = refund_success_time;
+}
+
+public String getRefund_id() {
+	return refund_id;
+}
+
+public void setRefund_id(String refund_id) {
+	this.refund_id = refund_id;
+}
+
+public String getTradeState() {
+	return tradeState;
+}
+
+public void setTradeState(String tradeState) {
+	this.tradeState = tradeState;
+}
+
+public Refund getRf() {
+	return rf;
+}
+
+public void setRf(Refund rf) {
+	this.rf = rf;
+}
+
+public List<Refund> getRfList() {
+	return rfList;
+}
+
+public void setRfList(List<Refund> rfList) {
+	this.rfList = rfList;
+}
+
+public String getFlag() {
+	return flag;
+}
+
+public void setFlag(String flag) {
+	this.flag = flag;
+}
+
+public String getCheckTime() {
+	return checkTime;
+}
+
+public void setCheckTime(String checkTime) {
+	this.checkTime = checkTime;
+}
+
+public String getRemark() {
+	return remark;
+}
+
+public void setRemark(String remark) {
+	this.remark = remark;
+}
+
+public String getPayStatus() {
+	return payStatus;
+}
+
+public void setPayStatus(String payStatus) {
+	this.payStatus = payStatus;
+}
+
+
+}

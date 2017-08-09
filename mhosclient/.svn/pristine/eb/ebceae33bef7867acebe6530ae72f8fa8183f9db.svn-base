@@ -1,0 +1,334 @@
+package com.catic.mobilehos.dao.jdbc;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+
+import com.catic.mobilehos.dao.ServiceEvaluationHosDAO;
+import com.catic.mobilehos.po.ServiceEvaluationHosPO;
+import com.catic.mobilehos.utils.CommonUtils;
+import com.catic.mobilehos.utils.DateUtil;
+
+/**
+ * 星级服务评价dao
+ * @author yjj
+ *
+ */
+public class ServiceEvaluationHosDAOImpl extends JdbcDaoSupport implements  ServiceEvaluationHosDAO{
+
+	private Log log = LogFactory.getLog(this.getClass());
+	
+	
+	@Override
+	public List<ServiceEvaluationHosPO> findListByParas(String doctorName,String departmentCode,
+			String overallEvaluation, java.sql.Date startDate, java.sql.Date endDate, int offset,
+			int length,String cardNumber,String patientname, String departmentName, String evaSource) {
+		try {
+		JdbcTemplate jt = this.getJdbcTemplate();
+		SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+		sql.setBaseSQL(
+				"select a.reg_source_name as sourceName,a.reg_source AS regSource,a.card_number AS cardNumber,a.patient_name AS patientName,a.department_name AS departmentName,a.doctor_name AS doctorName,a.doctor_date AS lookDate,s.* " +
+				"FROM service_evaluation_hos s LEFT JOIN app_reg_orders a ON s.app_reg_order_id=a.app_reg_order_id ",
+				true);
+		
+		//获取的区间
+		sql.setLimit(offset, length);
+		
+		if(StringUtils.isNotBlank(doctorName)){
+			sql.addPara("a.doctor_name", "like", "%" + doctorName + "%");
+		}
+		if(StringUtils.isNotBlank(departmentName)){
+			sql.addPara("a.department_name", "like", "%" + departmentName + "%");
+		}
+		if(StringUtils.isNotBlank(departmentCode)){
+			sql.addPara("a.department_id", "=", departmentCode);
+		}
+		if(StringUtils.isNotBlank(overallEvaluation)){
+			sql.addPara("s.overallEvaluation", "=", overallEvaluation);
+		}
+		if(startDate!=null){
+			Date start=CommonUtils.addTime(startDate, 0, 0, 0);
+			startDate= new java.sql.Date(start.getTime());
+			sql.addPara("s.createDate", ">=", startDate);
+		}
+		if(endDate!=null){
+			Date d = CommonUtils.addTime(endDate, 23, 59, 59);
+			endDate = new java.sql.Date(d.getTime());
+			sql.addPara("s.createDate", "<=", endDate);
+		}
+		if(StringUtils.isNotBlank(cardNumber)){
+			sql.addPara("a.card_number", "=", cardNumber);
+		}
+		if(StringUtils.isNotBlank(evaSource)){
+			sql.addPara("a.reg_source", "=", evaSource);
+		}
+		if(StringUtils.isNotBlank(patientname)){
+			sql.addPara("a.patient_name", "like", "%"+patientname+"%");
+		}
+		sql.addSQLPart("GROUP BY s.serviceEvaluationId");
+		
+		String fullSQL = sql.getFullSQL().toString();
+		Object[] args = sql.getParas().toArray();
+		
+		List<ServiceEvaluationHosPO> lst;
+		//System.out.println(departmentCode+" "+fullSQL);
+		if (sql.getParas().size() > 0) {
+			lst = jt.query(fullSQL, args, new ServiceEvaluationHosPO());
+		} else {
+			lst = jt.query(fullSQL, new ServiceEvaluationHosPO());
+		}
+		
+		return lst;
+	} catch (Exception ex) {
+		ex.printStackTrace();
+		// log.error(null,ex);
+		return null;
+	}
+	}
+
+	@Override
+	public int countServiceEvaluationHos(String doctorName,String departmentCode,String overallEvaluation,
+			java.sql.Date startDate, java.sql.Date endDate,String cardNumber,String patientname, String departmentName, String evaSource) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL(
+					"select COUNT(s.serviceEvaluationId ) FROM service_evaluation_hos s LEFT JOIN app_reg_orders a ON s.app_reg_order_id=a.app_reg_order_id ",
+					true);
+			if(StringUtils.isNotBlank(doctorName)){
+				sql.addPara("a.doctor_name", "like", "%" + doctorName + "%");
+			}
+			if(StringUtils.isNotBlank(departmentName)){
+				sql.addPara("a.department_name", "like", "%" + departmentName + "%");
+			}
+			if(StringUtils.isNotBlank(departmentCode)){
+				sql.addPara("a.department_id", "=", departmentCode);
+			}
+			if(StringUtils.isNotBlank(evaSource)){
+				sql.addPara("a.reg_source", "=", evaSource);
+			}
+			if(StringUtils.isNotBlank(overallEvaluation)){
+				sql.addPara("s.overallEvaluation", "=", overallEvaluation);
+			}
+			if(startDate!=null){
+				Date start=CommonUtils.addTime(startDate, 0, 0, 0);
+				startDate= new java.sql.Date(start.getTime());
+				String s = DateUtil.date2Str(startDate, "yyyy-MM-dd HH:mm:ss");
+				startDate = DateUtil.strToDate(s);
+				//System.out.println(s+" "+start);
+				sql.addPara("s.createDate", ">=", startDate);
+			}
+			if(endDate!=null){
+				Date d = CommonUtils.addTime(endDate, 23, 59, 59);
+				endDate = new java.sql.Date(d.getTime());
+				String s = DateUtil.date2Str(endDate, "yyyy-MM-dd HH:mm:ss");
+				endDate = DateUtil.strToDate(s);
+				//System.out.println(endDate);
+				sql.addPara("s.createDate", "<=", endDate);
+			}
+			if(StringUtils.isNotBlank(cardNumber)){
+				sql.addPara("a.card_number", "=", cardNumber);
+			}
+			if(StringUtils.isNotBlank(patientname)){
+				sql.addPara("a.patient_name", "like", "%"+patientname+"%");
+			}
+			String fullSQL = sql.getFullSQL().toString();
+			//System.out.println(" "+fullSQL);
+			int c = 0;
+			log.debug("sql.getParas().size() = " + sql.getParas().size());
+			if (sql.getParas().size() > 0) {
+				c = jt.queryForObject(fullSQL, sql.getParas().toArray(),
+						Integer.class);
+			} else {
+				c = jt.queryForObject(fullSQL, Integer.class);
+			}
+			return c;
+		} catch (DataAccessException ex) {
+			System.out.println(ex);
+			log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public ServiceEvaluationHosPO findServiceEvaluationHosById(
+			Integer serviceEvaluationId) {
+		StringBuffer sql=new StringBuffer();
+		sql.append("select a.reg_source_name as sourceName,a.reg_source AS regSource,a.card_number AS cardNumber,a.patient_name AS patientName,a.department_name AS departmentName,a.doctor_name AS doctorName,a.doctor_date AS lookDate,s.* " +
+				"FROM service_evaluation_hos s LEFT JOIN app_reg_orders a ON s.app_reg_order_id=a.app_reg_order_id ");
+		sql.append(" where s.serviceEvaluationId=? ");
+		//System.out.println(sql.toString());
+		List<ServiceEvaluationHosPO> lst =this.getJdbcTemplate().query(sql.toString(),new Object[]{ serviceEvaluationId},new ServiceEvaluationHosPO());
+		if(lst==null||lst.size()==0){
+			return null;
+		}
+		return lst.get(0);
+		
+	}
+
+	@Override
+	public int statisticServiceEvaluationHos(String departmentCode,
+			String overallEvaluation, java.sql.Date startDate,
+			java.sql.Date endDate) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL(
+					"select COUNT(s.serviceEvaluationId ) FROM service_evaluation_hos s LEFT JOIN app_reg_orders a ON s.app_reg_order_id=a.app_reg_order_id ",
+					true);
+			/*if(StringUtils.isNotBlank(doctorName)){
+				sql.addPara("a.doctor_name", "like", "%" + doctorName + "%");
+			}*/
+			if(StringUtils.isNotBlank(departmentCode)){
+				sql.addPara("a.department_id", "=", departmentCode);
+			}
+			if(StringUtils.isNotBlank(overallEvaluation)){
+				sql.addPara("s.overallEvaluation", "=", overallEvaluation);
+			}
+			if(startDate!=null){
+				Date start=CommonUtils.addTime(startDate, 23, 59, 59);
+				startDate= new java.sql.Date(start.getTime());
+				sql.addPara("s.createDate", ">=", startDate);
+			}
+			if(endDate!=null){
+				Date d = CommonUtils.addTime(endDate, 23, 59, 59);
+				endDate = new java.sql.Date(d.getTime());
+				sql.addPara("s.createDate", "<=", endDate);
+			}
+		
+			String fullSQL = sql.getFullSQL().toString();
+
+			int c = 0;
+			log.debug("sql.getParas().size() = " + sql.getParas().size());
+			if (sql.getParas().size() > 0) {
+				c = jt.queryForObject(fullSQL, sql.getParas().toArray(),
+						Integer.class);
+			} else {
+				c = jt.queryForObject(fullSQL, Integer.class);
+			}
+			return c;
+		} catch (DataAccessException ex) {
+			System.out.println(ex);
+			log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public List<ServiceEvaluationHosPO> getCommentCount(
+			ServiceEvaluationHosPO po) {
+		StringBuffer sql = new StringBuffer("SELECT IFNULL(sum(case overallEvaluation when 0 then 1 else 0 end),0) goodNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 1 then 1 else 0 end),0) commonNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 2 then 1 else 0 end),0) badNum FROM service_evaluation_hos WHERE 1 = 1 ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND createDate>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND createDate<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<ServiceEvaluationHosPO>(ServiceEvaluationHosPO.class));
+	}
+
+	@Override
+	public List<ServiceEvaluationHosPO> getCommentCountByDepartMent(
+			ServiceEvaluationHosPO po) {
+		StringBuffer sql = new StringBuffer("SELECT d.department_name as departmentName, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 0 then 1 else 0 end),0) goodNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 1 then 1 else 0 end),0) commonNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 2 then 1 else 0 end),0) badNum ");
+		sql.append(" FROM departments d LEFT JOIN app_reg_orders a ON d.department_id = a.department_id ");
+		sql.append(" LEFT JOIN service_evaluation_hos s ON s.app_reg_order_id = a.app_reg_order_id  ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND s.createDate>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND s.createDate<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		sql.append(" GROUP BY a.department_id ");
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<ServiceEvaluationHosPO>(ServiceEvaluationHosPO.class));
+	}
+
+	@Override
+	public List<ServiceEvaluationHosPO> getCommentCountByDate(
+			ServiceEvaluationHosPO po) {
+		String pattern = "%Y-%m-%d";
+		if("month".equals(po.getCountDateType())){
+			pattern = "%Y-%m";
+		}
+		String groupField = "";
+		if("department".equals(po.getCountType())){
+			groupField = " a.department_id as departmentId, ";
+		}
+		StringBuffer sql = new StringBuffer("SELECT DATE_FORMAT(s.createDate, '" + pattern + "') as countDate, ");
+		sql.append(groupField);
+		sql.append(" IFNULL(sum(case overallEvaluation when 0 then 1 else 0 end),0) goodNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 1 then 1 else 0 end),0) commonNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 2 then 1 else 0 end),0) badNum ");
+		sql.append(" FROM app_reg_orders a inner JOIN service_evaluation_hos s ON s.app_reg_order_id = a.app_reg_order_id where 1=1 ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND s.createDate>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND s.createDate<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		if(StringUtils.isNotBlank(po.getDepartmentId())){
+			sql.append(" AND a.department_id=?");
+			params.add(po.getDepartmentId());
+		}
+		if(StringUtils.isNotBlank(po.getDoctorId())){
+			sql.append(" AND a.doctor_id=?");
+			params.add(po.getDoctorId());
+		}
+		if(StringUtils.isNotBlank(po.getEvaluateSource())){
+			sql.append(" AND a.reg_source=?");
+			params.add(po.getEvaluateSource());
+		}
+		sql.append(" GROUP BY DATE_FORMAT(s.createDate, '" + pattern + "') ");
+		if("department".equals(po.getCountType())){
+			sql.append(" ,a.department_id ");
+		}
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<ServiceEvaluationHosPO>(ServiceEvaluationHosPO.class));
+	}
+
+	@Override
+	public List<ServiceEvaluationHosPO> getCommentCountByDoctor(
+			ServiceEvaluationHosPO po) {
+		StringBuffer sql = new StringBuffer("SELECT a.doctor_name as doctorName, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 0 then 1 else 0 end),0) goodNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 1 then 1 else 0 end),0) commonNum, ");
+		sql.append(" IFNULL(sum(case overallEvaluation when 2 then 1 else 0 end),0) badNum ");
+		sql.append(" FROM app_reg_orders a inner JOIN service_evaluation_hos s ON s.app_reg_order_id = a.app_reg_order_id where 1=1 ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND s.createDate>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND s.createDate<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		if(StringUtils.isNotBlank(po.getDepartmentId())){
+			sql.append(" AND a.department_id=?");
+			params.add(po.getDepartmentId());
+		}
+		sql.append(" GROUP BY a.doctor_id ");
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<ServiceEvaluationHosPO>(ServiceEvaluationHosPO.class));
+	}
+
+}

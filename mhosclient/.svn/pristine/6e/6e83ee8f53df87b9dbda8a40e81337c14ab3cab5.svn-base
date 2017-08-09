@@ -1,0 +1,42 @@
+package com.catic.mobilehos.pay.entity;
+
+public class PayScene {
+	private Integer sID;
+	private String sCode;
+	private String sName;
+	private String sStatus;
+	
+	private Integer count;
+	
+	public Integer getsID() {
+		return sID;
+	}
+	public void setsID(Integer sID) {
+		this.sID = sID;
+	}
+	public String getsCode() {
+		return sCode;
+	}
+	public void setsCode(String sCode) {
+		this.sCode = sCode;
+	}
+	public String getsName() {
+		return sName;
+	}
+	public void setsName(String sName) {
+		this.sName = sName;
+	}
+	public String getsStatus() {
+		return sStatus;
+	}
+	public void setsStatus(String sStatus) {
+		this.sStatus = sStatus;
+	}
+	public Integer getCount() {
+		return count;
+	}
+	public void setCount(Integer count) {
+		this.count = count;
+	}
+	
+}

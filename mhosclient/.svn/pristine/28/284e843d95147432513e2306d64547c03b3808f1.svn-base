@@ -1,0 +1,84 @@
+package com.catic.mobilehos.pay.biz;
+
+import javax.annotation.Resource;
+
+import com.catic.mobilehos.menu_role_authority.biz.IRoleMenuBiz;
+import com.catic.mobilehos.menu_role_authority.dao.IManagerDao;
+import com.catic.mobilehos.menu_role_authority.dao.IMenuDao;
+import com.catic.mobilehos.menu_role_authority.dao.IPopedomDao;
+import com.catic.mobilehos.menu_role_authority.dao.IRoleDao;
+import com.catic.mobilehos.menu_role_authority.dao.IRoleMenuDao;
+import com.catic.mobilehos.pay.dao.IAccountConfigDao;
+import com.catic.mobilehos.pay.dao.ICheckBillDao;
+import com.catic.mobilehos.pay.dao.ICheckBillDetailsDao;
+import com.catic.mobilehos.pay.dao.ICheckImportDao;
+import com.catic.mobilehos.pay.dao.ICheckRecordDao;
+import com.catic.mobilehos.pay.dao.IOrderDao;
+import com.catic.mobilehos.pay.dao.IPayLogDao;
+import com.catic.mobilehos.pay.dao.IPayOrderDao;
+import com.catic.mobilehos.pay.dao.IPayOvertimeDao;
+import com.catic.mobilehos.pay.dao.IPayTerminalDao;
+import com.catic.mobilehos.pay.dao.IRefundDao;
+import com.catic.mobilehos.pay.dao.ISystermUserDao;
+import com.catic.mobilehos.pay.dao.IYQAccountDao;
+import com.catic.mobilehos.pay.dao.IYQConfigDao;
+
+
+public class BaseBiz {
+	
+	@Resource
+	protected IOrderDao orderDao;
+	
+	@Resource
+	protected IPayLogDao payLogDao;
+	
+	@Resource
+	protected ICheckBillDao checkBillDao;
+	
+	@Resource
+	protected ICheckBillDetailsDao checkBillDetailsDao;
+	
+	@Resource
+	protected IRefundDao refundDao;
+	
+	@Resource
+	protected IPayOrderDao payOrderDao;
+	
+	@Resource
+	protected IPayOvertimeDao payOvertimeDao;
+	
+	@Resource
+	protected IYQConfigDao  yQConfigDao;
+	
+	@Resource
+	protected IPayTerminalDao payTemDao;
+	
+	@Resource
+	protected IAccountConfigDao  accountConfigDao;
+	@Resource
+	protected IYQAccountDao yQAccountDao;
+	
+	@Resource
+	protected ISystermUserDao systermUserDao;
+
+	@Resource
+	protected ICheckRecordDao checkRecordDao;
+
+	@Resource
+	protected IMenuDao menuDao;
+	
+	@Resource
+	protected IRoleDao roleDao;
+	
+	@Resource
+	protected IRoleMenuDao roleMenuDao;
+	
+	@Resource
+	protected IPopedomDao popedomDao;
+	
+	@Resource
+	protected IManagerDao managerDao;
+	
+	@Resource
+	protected ICheckImportDao checkImportDao;
+}

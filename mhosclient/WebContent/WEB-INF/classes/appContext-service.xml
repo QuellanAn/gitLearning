@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+	
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  		<property name="dataSource" ref="dataSource"/>
+  	</bean>
+  	
+  <tx:advice id="txAdvice" transaction-manager="txManager">  
+    	<tx:attributes>  
+        	<tx:method name="addPatient" propagation="REQUIRED" />  
+        	<tx:method name="updatePatient" propagation="REQUIRED" />  
+        	<tx:method name="deletePatients" propagation="REQUIRED"/>  
+    		
+    		<tx:method name="submitRegOrder" propagation="REQUIRED"/>  
+        	<tx:method name="cancelRegOrder" propagation="REQUIRED"/>  
+    		
+    		<tx:method name="deleteHosPubInfo" propagation="REQUIRED"/>  
+    		<tx:method name="submitApproved" propagation="REQUIRED"/>  
+    		
+    		<tx:method name="saveHospitalIntroduction" propagation="REQUIRED"/>  
+    		
+    		<tx:method name="saveMsgConfig" propagation="REQUIRED"/>  
+    		
+    		<tx:method name="deleteDoctor" propagation="REQUIRED"/>
+    		
+    		<tx:method name="saveDoctor" propagation="REQUIRED"/>
+    		
+    		<tx:method name="updateDoctorPO" propagation="REQUIRED"/>
+   		
+   			<tx:method name="createQuestionnairePO" propagation="REQUIRED"/>
+    	</tx:attributes>  
+    	
+	</tx:advice>  
+	
+	<aop:config>
+  		<aop:pointcut id="servicesPointcut" 
+  			expression="execution(* com.catic.mobilehos.service.*.*(..))"/>
+  		<aop:advisor advice-ref="txAdvice" pointcut-ref="servicesPointcut"/>
+  	</aop:config>
+    
+	<bean id="noticeService" class="com.catic.mobilehos.service.NoticeServiceImpl">
+		<property name="noticeDAO" ref="noticeDAO"></property>
+	</bean>
+	
+	<bean id="departmentsService" class="com.catic.mobilehos.service.DepartmentsServiceImpl">
+		<property name="departmentDAO" ref="departmentDAO"></property>
+	</bean>
+	<bean id="doctorsService" class="com.catic.mobilehos.service.DoctorsServiceImpl">
+		<property name="doctorDAO" ref="doctorDAO"></property>
+	</bean>
+	<bean id="jobService" class="com.catic.mobilehos.service.JobServiceImpl">
+		<property name="jobDAO" ref="jobDAO"></property>
+	</bean>
+	<bean id="userMngService" class="com.catic.mobilehos.service.UserMngServiceImpl">
+    	<property name="userDAO" ref="userDAO"></property>
+    	<property name="patientDAO" ref="patientDAO"></property>
+    </bean>
+	
+	<bean id="appRegOrderService" class="com.catic.mobilehos.service.AppRegOrderServiceImpl">
+		<property name="appRegOrdersDAO" ref="appRegOrdersDAO"></property>
+		<property name="regSucNoticeDAO" ref="regSucNoticeDAO"></property>
+	</bean>
+	
+	<bean id="orderPayService" class="com.catic.mobilehos.service.OrderPayServiceImpl">
+		<property name="ordersPayDAO" ref="ordersPayDAO"></property>
+	</bean>
+	
+	<bean id="payService" class="com.catic.mobilehos.service.PayServiceImpl">
+		<property name="payDAO" ref="payDAO"></property>
+	</bean>
+	
+	<bean id="payCheckService" class="com.catic.mobilehos.service.PayCheckServiceImpl">
+		<property name="payCheckDAO" ref="payCheckDAO"></property>
+	</bean>
+	
+	<bean id="reportsService" class="com.catic.mobilehos.service.ReportsServiceImpl">
+		<property name="reportsDAO" ref="reportsDAO"></property>
+	</bean>
+	
+	<bean id="hospitalInfoService" class="com.catic.mobilehos.service.HospitalInfoServiceImpl">
+		<property name="htmlImagesDAO" ref="htmlImagesDAO"></property>
+		<property name="hosPubInfoDAO" ref="hosPubInfoDAO"></property>
+		<property name="infoCatDAO" ref="infoCatDAO"></property>
+	</bean>
+	
+	<bean id="msgMngService" class="com.catic.mobilehos.service.MsgMngServiceImpl">
+		<property name="busTypeDicDAO" ref="busTypeDicDAO"></property>
+		<property name="messageDAO" ref="messageDAO"></property>
+		<property name="netMsgTemplateDAO" ref="netMsgTemplateDAO"></property>
+		<property name="phoneMsgTemplateDAO" ref="phoneMsgTemplateDAO"></property>
+	</bean>
+	
+	<bean id="wechatMenuService" class="com.catic.mobilehos.service.WechatMenuServiceImpl">
+		<property name="wechatMenuDao" ref="wechatMenuDao"></property>
+	</bean>
+	
+	<bean id="basicCntCfgService" class="com.catic.mobilehos.service.BasicCntCfgServiceImpl">
+		<property name="basicCntCfgDao" ref="basicCntCfgDao"></property>
+		<property name="basicCntCfgImgsDao" ref="basicCntCfgImgsDao"></property>
+	</bean>
+	
+	<bean id="haService" class="com.catic.mobilehos.service.HelpAnswerServiceImpl">
+		<property name="haDao" ref="haDao"></property>
+	</bean>
+	
+	<bean id="cliVersionService" class="com.catic.mobilehos.service.CliVersionServiceImpl">
+		<property name="cliVersionDAO" ref="cliVersionDAO"></property>
+	</bean>
+	
+	<bean id="sysUsersService" class="com.catic.mobilehos.service.SysUsersServiceImpl">
+		<property name="sysUsersDAO" ref="sysUsersDAO"></property>
+	</bean>
+	
+	<bean id="rolesService" class="com.catic.mobilehos.service.RolesServiceImpl">
+		<property name="rolesDAO" ref="rolesDAO"></property>
+	</bean>
+	<bean id="questionnaireService" class="com.catic.mobilehos.service.QuestionnaireServiceImpl">
+		<property name="questionnaireDAO" ref="questionnaireDAO"></property>
+	</bean>
+	
+	<bean id="serviceEvaluationService" class="com.catic.mobilehos.service.ServiceEvaluationServiceImpl">
+		<property name="serviceEvaluationDAO" ref="serviceEvaluationDAO"></property>
+		<property name="departmentNameDAO" ref="departmentNameDAO"></property>
+	</bean>
+	
+	<bean id="serviceEvaluationHosService" class="com.catic.mobilehos.service.ServiceEvaluationHosServiceImpl">
+		<property name="serviceEvaluationHosDAO" ref="serviceEvaluationHosDAO"></property>
+	</bean>
+	
+	
+	<bean id="hospitalGuideService" class="com.catic.mobilehos.service.HospitalGuideServiceImpl">
+		<property name="hospitalInfoDAO" ref="hospitalInfoDAO"></property>
+		<property name="departmentDAO" ref="departmentDAO"></property>
+	</bean>
+	
+	<bean id="wechatCfgService" class="com.catic.mobilehos.service.WechatCfgServiceImpl">
+		<property name="wechatCfgDao" ref="wechatCfgDao"></property>
+	</bean>
+	
+	<bean id="statisticsService" class="com.catic.mobilehos.service.StatisticsServiceImpl">
+		<property name="statisticsDao" ref="statisticsDao"></property>
+	</bean>
+	
+	<bean id="specialistService" class="com.catic.mobilehos.service.SpecialistServiceImpl">
+		<property name="specialistDao" ref="specialistDao"></property>
+	</bean>
+	
+	<!--********支付******************  -->	
+	<bean id="payOrderBiz" class="com.catic.mobilehos.pay.biz.impl.PayOrderBizImpl">
+		<property name="payOrderDao" ref="payOrderDao"></property>
+	</bean>
+	
+	<bean id="cardPayService" class="com.catic.mobilehos.service.CardPayServiceImpl">
+		<property name="cardPayDao" ref="cardPayDao"></property>
+	</bean>
+	<bean id="tradeService" class="com.catic.mobilehos.service.TradeServiceImpl">
+		<property name="tradeDao" ref="tradeDao"></property>
+	</bean>
+	<bean id="patientsService" class="com.catic.mobilehos.service.PatientsServiceImpl">
+		<property name="patientDao" ref="patientDao"></property>
+	</bean>
+	<bean id="itemsService" class="com.catic.mobilehos.service.ItemsServiceImpl">
+		<property name="itemsDao" ref="itemsDao"></property>
+	</bean>
+	
+	<bean id="userAmountStatisticsService" class="com.catic.mobilehos.service.UserAmountStatisticsServiceImpl">
+    	<property name="userDAO" ref="userDAO"></property>
+    </bean>
+    
+    <bean id="employeeService" class="com.catic.mobilehos.service.EmployeeServiceImpl">
+    	<property name="employeeDao" ref="employeeDao"></property>
+    </bean>
+	
+	<!-- 即时通信 openfire -->
+<!-- 	<bean id="openfireTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"> -->
+<!--   		<property name="dataSource" ref="openFireDataSource"/> -->
+<!--   	</bean> -->
+  	
+<!--   	<tx:advice id="openfireTxAdvice" transaction-manager="openfireTxManager">   -->
+<!--     	<tx:attributes>   -->
+<!--         	<tx:method name="addOpenFireUserPO" propagation="REQUIRED" isolation="READ_COMMITTED" />   -->
+<!--         	<tx:method name="addGroup" propagation="REQUIRED" isolation="READ_COMMITTED" />     		 -->
+<!--     	</tx:attributes>   -->
+<!-- 	</tx:advice>   -->
+	
+<!-- 	<aop:config> -->
+<!--   		<aop:pointcut id="openfirePointcut"  -->
+<!--   			expression="execution(* com.catic.mobilehos.service.*.*(..))"/> -->
+<!--   		<aop:advisor pointcut-ref="openfirePointcut" advice-ref="openfireTxAdvice" /> -->
+<!--   	</aop:config> -->
+  	
+<!-- 	<bean id="openFireUserService" class="com.catic.mobilehos.service.OpenFireUserServiceImpl"> -->
+<!-- 		<property name="openFireUserDAO" ref="openFireUserDAO"></property> -->
+<!-- 	</bean> -->
+	
+<!-- 	<bean id="openFireGroupService" class="com.catic.mobilehos.service.OpenFireGroupServiceImpl"> -->
+<!-- 		<property name="openFireGroupDAO" ref="openFireGroupDAO"></property> -->
+<!-- 	</bean> -->
+</beans>
+
+

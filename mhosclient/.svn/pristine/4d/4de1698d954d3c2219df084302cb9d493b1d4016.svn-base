@@ -1,0 +1,70 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.IBillDao;
+import com.catic.mobilehos.pay.entity.Bill;
+import com.catic.mobilehos.utils.Page;
+@Repository("billDao")
+public class BillDaoImpl extends BaseDao implements IBillDao{
+
+	public List<Bill> findAll(Bill bill,Page page) throws Exception{
+		String sql="";
+		if(page==null){
+			sql="SELECT count(0) AS count FROM pay_bill WHERE 1=1";
+		}else{
+			sql="SELECT * FROM pay_bill WHERE 1=1";
+		}
+		List<Object> params=new ArrayList<Object>();
+		StringBuilder sb=new StringBuilder(sql);
+		if(StringUtils.isNotBlank(bill.getAccountCode())){
+			sb.append(" AND accountCode=?");
+			params.add(bill.getAccountCode());
+		}
+		if(bill.getCheckStatus()!=null){
+			sb.append(" AND checkStatus=?");
+			params.add(bill.getCheckStatus());
+		}
+		if(bill.getStatus()!=null){
+			sb.append(" AND status=?");
+			params.add(bill.getStatus());
+		}
+		if(StringUtils.isNotBlank(bill.getStartDate())){
+			sb.append(" AND billDate>=?");
+			params.add(bill.getStartDate());
+		}
+		if(StringUtils.isNotBlank(bill.getEndDate())){
+			sb.append(" AND billDate<?");
+			params.add(bill.getEndDate()+"23:59:59");
+		}
+		if(page!=null){
+			sb.append("  ORDER BY createTime DESC  LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		List<Bill> list=jdbc.query(sb.toString(),params.toArray(),new BeanPropertyRowMapper(Bill.class));
+		if(list!=null&&list.size()>0){
+			return list;
+		}
+		return null;
+	}
+	
+	
+	public boolean upStarus(Integer status,String bid) throws Exception{
+		String sql="UPDATE pay_bill SET `status`=? WHERE bid=?";
+		List<Object> params=new ArrayList<Object>();
+		params.add(status);
+		params.add(bid);
+		int count=jdbc.update(sql,params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+}

@@ -1,0 +1,277 @@
+package com.catic.mobilehos.dao.jdbc;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import com.catic.mobilehos.dao.PatientDAO;
+import com.catic.mobilehos.po.AppRegOrdersPO;
+import com.catic.mobilehos.po.PatientCardPO;
+import com.catic.mobilehos.po.PatientPO;
+import com.catic.mobilehos.po.UserPO;
+
+public class PatientDAOImpl extends JdbcDaoSupport implements PatientDAO{
+	
+	private Log log = LogFactory.getLog(this.getClass());
+	
+	/**
+	 * 
+	 * @Title: findPatientsByUserId 
+	 * @Description: TODO 根据会员ID获取就诊人列表
+	 * @param @param userId 会员ID
+	 * @return List<PatientPO> 就诊人列表 
+	 * @throws
+	 */
+	@Override
+	public List<PatientPO> findPatientsByUserId(String userId) {
+		try{
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select p.*, pc.card_code, pc.cardnumber from patients p left join patient_cards pc "
+					+ " on p.patient_id = pc.patient_id where p.user_id=?";
+			
+			final List<PatientPO> patients = new ArrayList<PatientPO>();
+			
+			jt.query(sql, new Object[]{userId}, new RowCallbackHandler(){
+				
+				private PatientPO getPatient(String patientId){
+					if (patients.size() > 0){
+						PatientPO last = patients.get(patients.size()-1);
+						if (last.getPatientId().equals(patientId.trim())){
+							return last;
+						}else{
+							PatientPO p = new PatientPO();
+							patients.add(p);
+							return p;
+						}
+					}else{
+						PatientPO p = new PatientPO();
+						patients.add(p);
+						return p;
+
+					}
+				}
+				
+				@Override
+				public void processRow(ResultSet rs) throws SQLException {
+					String patientId = StringUtils.trim(rs.getString("patient_id")); 
+					PatientPO po = getPatient(patientId);
+					po.setUserId(StringUtils.trim(rs.getString("user_id")));
+					po.setPatientId(StringUtils.trim(rs.getString("patient_id")));
+					/*po.setName(StringUtils.trim(rs.getString("patient_name")));
+					po.setSex(rs.getInt("sex"));*/
+					po.setPhone(StringUtils.trim(rs.getString("phone")));
+					po.setIdentityCard(StringUtils.defaultString(StringUtils.trim(rs.getString("identitycard"))));
+					po.setHomeAddress(StringUtils.trim(rs.getString("home_address")));
+					po.setBirthday(rs.getString("birthday"));
+					po.setCreateDate(rs.getTimestamp("create_date"));
+					po.setUpdateDate(rs.getTimestamp("update_date"));
+					
+					PatientCardPO pc = new PatientCardPO();
+					String cardCode = StringUtils.trim(rs.getString("card_code"));
+					if (cardCode != null && cardCode.length() > 0){
+						pc.setCardCode(cardCode);
+						pc.setCardNumber(StringUtils.trim(rs.getString("cardnumber")));
+						/*po.addPatientCard(pc);*/
+					}
+				}
+			});
+			
+			return patients;
+		}catch(DataAccessException ex){
+			log.error(null, ex);
+			throw ex;
+		}
+		
+	}
+
+	@Override
+	public int countPatientsByParas(String cardNo, String patientname,
+			String phone, String identityCard, String startCreateTime,
+			String endCreateTime, String type) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL("select count(*) from patients", true);
+			if (StringUtils.isNotBlank(startCreateTime) && StringUtils.isNotBlank(endCreateTime)) {
+				sql.addPara("create_date", ">=", startCreateTime);
+				sql.addPara("create_date", "<=", endCreateTime);
+			}
+			if (StringUtils.isNotBlank(cardNo)) {
+				sql.addPara("cardNo", "like", "%"+cardNo+"%");
+			}
+			if (StringUtils.isNotBlank(patientname)) {
+				sql.addPara("patient_name", "like", "%"+patientname+"%");
+			}
+			if (StringUtils.isNotBlank(phone)) {
+				sql.addPara("phone", "like", "%"+phone+"%");
+			}
+			if (StringUtils.isNotBlank(identityCard)) {
+				sql.addPara("identityCard", "like", "%"+identityCard+"%");
+			}
+			if (StringUtils.isNotBlank(type)) {
+				sql.addPara("type", "=", type);
+			}
+			String fullSQL = sql.getFullSQL().toString();
+			int c = 0;
+			//System.out.println("fullSQL "+fullSQL);
+			if (sql.getParas().size() > 0) {
+				c = jt.queryForObject(fullSQL, sql.getParas().toArray(),
+						Integer.class);
+			} else {
+				c = jt.queryForObject(fullSQL, Integer.class);
+			}
+			return c;
+		} catch (DataAccessException ex) {
+			// TODO: handle exception
+			throw ex;
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked"})
+	@Override
+	public List<PatientPO> findPatientsByParas(String cardNo,
+			String patientname, String phone, String identityCard,
+			String startCreateTime, String endCreateTime, String type, int offset, int length) {
+		// TODO Auto-generated method stub
+		List<PatientPO> list = null;
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select * from patients p where 1=1";
+			StringBuffer sb = new StringBuffer(sql);
+			if (StringUtils.isNotBlank(patientname)) {
+				sb.append(" AND p.patient_name like '%"+patientname+"%'");
+			}
+			if(StringUtils.isNotBlank(cardNo)){
+				sb.append(" AND p.`cardNo` like '%"+cardNo+"%'");
+			}
+			if(StringUtils.isNotBlank(phone)){
+				sb.append(" AND p.`phone` like '%"+phone+"%'");
+			}
+			if(StringUtils.isNotBlank(identityCard)){
+				sb.append(" AND p.`identityCard` like '%"+identityCard+"%'");
+			}
+			if (StringUtils.isNotBlank(type)) {
+				sb.append(" AND p.`type` = '"+type+"'");
+			}
+			if (StringUtils.isNotBlank(startCreateTime)) {
+				sb.append(" AND p.create_date >= '"+startCreateTime+"'");
+			}
+			if (StringUtils.isNotBlank(endCreateTime)) {
+				sb.append(" AND p.create_date <= '"+endCreateTime+"'");
+			}
+			sb.append(" order by p.`create_date` desc");
+			sb.append(" LIMIT "+offset+" ,"+length+"" );
+			//System.out.println("sb "+sb.toString());
+			list = jt.query(sb.toString(), new BeanPropertyRowMapper(PatientPO.class));
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public PatientPO findPatientByPatentId(String patientId, String type) {
+		// TODO Auto-generated method stub
+		JdbcTemplate jt = this.getJdbcTemplate();
+		List<PatientPO> list = null;
+		String sql = "select p.* from patients p where p.patient_id= ?";
+		if (StringUtils.isNotBlank(type)) {
+			sql += " AND type = ?";
+			list = jt.query(sql, new Object[]{patientId, type}, new BeanPropertyRowMapper(PatientPO.class));
+		}else{
+			list = jt.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper(PatientPO.class));
+		}
+		//System.out.println("sql "+sql);
+		if(list.size() > 0 && list != null){
+			return list.get(0);
+		}else{
+			return null;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public List<PatientCardPO> findPatientsCardByParms(String userId,
+			String patientId, String cardNo) {
+		// TODO Auto-generated method stub
+		List<PatientCardPO> list = null;
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select pc.* from patient_cards pc where 1=1";
+			StringBuffer sb = new StringBuffer(sql);
+			if(StringUtils.isNotBlank(userId)){
+				sb.append(" AND pc.`user_id` like '%"+userId+"%'");
+			}
+			if(StringUtils.isNotBlank(patientId)){
+				sb.append(" AND pc.`patient_id` like '%"+patientId+"%'");
+			}
+			if(StringUtils.isNotBlank(cardNo)){
+				sb.append(" AND pc.`cardnumber` like '%"+cardNo+"%'");
+			}
+			//System.out.println(sb.toString());
+			list = jt.query(sb.toString(), new BeanPropertyRowMapper(PatientCardPO.class));
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public List<UserPO> findUserByPatientId(String patientId) {
+		// TODO Auto-generated method stub
+		List<UserPO> list = null;
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			//String sql = "select u.* from user u where u.user_id = ?";
+			String sql = "SELECT pc.*,u.* FROM users u,patient_cards pc WHERE u.user_id= pc.user_id AND pc.patient_id=?";
+			//System.out.println(sql+" "+patientId);
+			list = jt.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper(UserPO.class));
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public void updatePatientOrUser(String type, String status,
+			String patientId, String userId) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql;
+			if("1".equals(type)){
+				sql = "update users set status=?, update_date=? where user_id=?";
+				jt.update(sql, status, new Date(), userId);
+			}else{
+				sql = "update patients set status=?, update_date=? where patient_id=?";
+				jt.update(sql, status, new Date(), patientId);
+			}
+			//System.out.println(sql);
+		} catch (DataAccessException ex) {
+			throw ex;
+		}
+	}
+	
+	
+	
+
+}

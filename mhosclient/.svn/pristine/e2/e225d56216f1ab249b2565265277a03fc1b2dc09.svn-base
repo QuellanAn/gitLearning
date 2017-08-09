@@ -1,0 +1,206 @@
+package com.catic.mobilehos.dao.jdbc;  
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+
+import com.catic.mobilehos.dao.SelfServiceVersionDao;
+import com.catic.mobilehos.po.SelfServiceVersionPO;
+import com.catic.mobilehos.po.SelfserviceUpgradeHistoryPO;
+import com.catic.mobilehos.utils.Page;
+
+/**  
+ * 类说明:自助终端版本dao接口实现
+ * @author 朱伟权
+ * 创建时间: 2017-7-6 上午10:18:13
+ */
+public class SelfServiceVersionDaoImpl extends JdbcDaoSupport implements SelfServiceVersionDao {
+
+	@Override
+	public List<SelfServiceVersionPO> findAll(Page page, SelfServiceVersionPO po, boolean isGroupby) {
+		StringBuffer sql;
+		if(page == null){
+			sql = new StringBuffer(" SELECT COUNT(0) AS count ");
+		}else{
+			sql = new StringBuffer("select sv.id,sv.upgrade_type upgradeType,sv.facility_type facilityType,sv.version_code versionCode," +
+					" sv.version_name versionName,sv.content,sv.activation_status activationStatus,sv.activation_time activationTime,sv.file_path filePath,sv.update_time updateTime,sv.facility_type_name facilityTypeName ");
+		}
+		if(isGroupby){
+			sql.append(" FROM selfservice_version AS sv WHERE version_code = ( SELECT max(b.version_code) FROM selfservice_version AS b WHERE sv.upgrade_type = b.upgrade_type AND sv.facility_type = b.facility_type ) ");
+		}else{
+			sql.append(" from selfservice_version sv where 1=1 ");
+		}
+		List<Object> params = new ArrayList<Object>();
+		if(po != null){
+			if(StringUtils.isNotBlank(po.getUpgradeType())){
+				sql.append(" AND sv.upgrade_type=? ");
+				params.add(po.getUpgradeType());
+			}
+			if(StringUtils.isNotBlank(po.getFacilityType())){
+				sql.append(" AND sv.facility_type=? ");
+				params.add(po.getFacilityType());
+			}
+			if(StringUtils.isNotBlank(po.getVersionName())){
+				sql.append(" and sv.version_name like ? ");
+				params.add("%" + po.getVersionName() + "%");
+			}
+			if(StringUtils.isNotBlank(po.getActivationStatus())){
+				sql.append(" AND sv.activation_status=? ");
+				params.add(po.getActivationStatus());
+			}
+			if(StringUtils.isNotBlank(po.getBeginDate())){
+				sql.append(" AND sv.activation_time>=?");
+				params.add(po.getBeginDate()+" 00:00:00");
+			}
+			if(StringUtils.isNotBlank(po.getEndDate())){
+				sql.append(" AND sv.activation_time<=?");
+				params.add(po.getEndDate()+" 23:59:59");
+			}
+		}
+		sql.append(" order by sv.activation_time desc ");
+		if(page != null){
+			sql.append(" LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class));
+	}
+	
+	@Override
+	public List<SelfServiceVersionPO> findUpgradeHistory(Page page, String facilityId, String upgradeType){
+		StringBuffer sql;
+		if(page == null){
+			sql = new StringBuffer(" SELECT COUNT(0) AS count ");
+		}else{
+			sql = new StringBuffer(" SELECT v.*,h.upgrade_time updateTime ");
+		}
+		sql.append(" FROM selfservice_version v, selfservice_upgrade_history h WHERE v.id = h.version_id ");
+		List<Object> params = new ArrayList<Object>();
+		if(!StringUtils.isBlank(facilityId)){
+			sql.append(" AND h.facility_id = ? ");
+			params.add(facilityId);
+		}
+		if(!StringUtils.isBlank(upgradeType)){
+			sql.append(" AND v.upgrade_type = ? ");
+			params.add(upgradeType);
+		}
+		sql.append(" order by h.upgrade_time desc");
+		if(page != null){
+			sql.append(" LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class));
+	}
+	
+	@Override
+	public SelfServiceVersionPO findById(int id) {
+		String sql = "select * from selfservice_version pt where id=? ";
+		SelfServiceVersionPO po = getJdbcTemplate().queryForObject(sql, new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class),id);
+		return po;
+	}
+
+	@Override
+	public List<SelfServiceVersionPO> findByIds(String ids) {
+		String sql = "select * from selfservice_version pt where id in(" + ids + ") ";
+		List<SelfServiceVersionPO> list = getJdbcTemplate().query(sql, new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class));
+		return list;
+	}
+
+	@Override
+	public boolean activateVersions(String ids) {
+		String sql = "update selfservice_version set activation_status='1', activation_time=now() where activation_status='0' and id in(" + ids + ")";
+		return getJdbcTemplate().update(sql) > 0;
+	}
+	
+	@Override
+	public boolean save(SelfServiceVersionPO po) {
+		String sql = "INSERT INTO selfservice_version(upgrade_type,facility_type,version_code,version_name," +
+				"content,activation_status,activation_time,file_path,force_upgrade,update_time,facility_type_name)values(?,?,?,?,?,?,?,?,?,?,?)";
+		return getJdbcTemplate().update(sql,po.getUpgradeType(), po.getFacilityType()
+				  , po.getVersionCode(), po.getVersionName()
+				  , po.getContent(), po.getActivationStatus()
+				  , po.getActivationTime(), po.getFilePath()
+				  , po.getForceUpgrade(), po.getUpdateTime(), po.getFacilityTypeName()) > 0;
+	}
+
+	@Override
+	public SelfServiceVersionPO countUpgrade(SelfServiceVersionPO po) {
+		StringBuffer sql = new StringBuffer("SELECT count(1) allSum ");
+		if("0".equals(po.getUpgradeType())){// 主程序升级
+			sql.append(" , sum( CASE WHEN master_version_code >='" + po.getVersionCode() + "' THEN 1 ELSE 0 END ) upgradedSum ");
+		}else{// 守护程序升级
+			sql.append(" , sum( CASE WHEN daemon_version_code >='" + po.getVersionCode() + "' THEN 1 ELSE 0 END ) upgradedSum ");
+		}
+		sql.append(" FROM pay_terminal WHERE facility_status != '4' AND facility_type = ? ");
+		SelfServiceVersionPO obj = getJdbcTemplate().queryForObject(sql.toString(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class), po.getFacilityType());
+		return obj;
+	}
+
+	@Override
+	public SelfServiceVersionPO findByVersioncode(String upgradeType,
+			String facilityType, int versioncode) {
+		StringBuffer sql = new StringBuffer("select * from selfservice_version pt where version_code=? ");
+		List<Object> params = new ArrayList<Object>();
+		params.add(versioncode);
+		if(!StringUtils.isBlank(upgradeType)){
+			sql.append(" and upgrade_type=? ");
+			params.add(upgradeType);
+		}
+		if(!StringUtils.isBlank(facilityType)){
+			sql.append(" and facility_type=? ");
+			params.add(facilityType);
+		}
+		List<SelfServiceVersionPO> list = getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class));
+		if(list != null && list.size() > 0){
+			return list.get(0);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean checkVersionCode(SelfServiceVersionPO po) {
+		String sql = "select * from selfservice_version where upgrade_type=? and facility_type=? and version_code>=?";
+		List<SelfServiceVersionPO> list = getJdbcTemplate().query(sql.toString(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class), po.getUpgradeType(), po.getFacilityType(), po.getVersionCode());
+		if(list != null && list.size() > 0){
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public SelfServiceVersionPO findLatestVersion(String upgradeType,
+			String facilityType) {
+		String sql = "SELECT * FROM selfservice_version a WHERE version_code = " +
+				"( SELECT max(version_code) FROM selfservice_version b " +
+				"WHERE a.upgrade_type = b.upgrade_type AND a.facility_type = b.facility_type ) " +
+				"AND a.upgrade_type = ? AND a.facility_type = ? AND a.activation_status = '1'";// 必须为已激活状态的
+		List<SelfServiceVersionPO> list = getJdbcTemplate().query(sql.toString(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class), upgradeType, facilityType);
+		if(list != null && list.size() > 0){
+			return list.get(0);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean saveUpgradeHistory(SelfserviceUpgradeHistoryPO po) {
+		String sql = "INSERT INTO selfservice_upgrade_history(facility_id,version_id,upgrade_time) values(?,?,?)";
+		return getJdbcTemplate().update(sql, po.getFacilityId(), po.getVersionId()
+				  , po.getUpgrade_time()) > 0;
+	}
+
+	@Override
+	public boolean checkUpgradeHistory(SelfserviceUpgradeHistoryPO po) {
+		String sql = "select * from selfservice_upgrade_history where facility_id=? and version_id=?";
+		List<SelfServiceVersionPO> list = getJdbcTemplate().query(sql.toString(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class), po.getFacilityId(), po.getVersionId());
+		if(list != null && list.size() > 0){
+			return true;
+		}
+		return false;
+	}
+
+}
+ 

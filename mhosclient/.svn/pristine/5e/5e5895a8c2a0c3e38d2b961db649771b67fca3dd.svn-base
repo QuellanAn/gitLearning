@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="fdyyclient"
+  id="myeclipse.1398325085101"
+  context-root="/fdyyclient"
+  j2ee-spec="6.0"
+  archive="fdyyclient.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebContent" />
+  </attributes>
+</project-module>
+

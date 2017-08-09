@@ -1,0 +1,235 @@
+package com.catic.mobilehos.action;  
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.po.AppRegOrdersPO;
+import com.catic.mobilehos.po.DoctorPO;
+import com.catic.mobilehos.service.AppRegOrderService;
+import com.catic.mobilehos.service.DepartmentsService;
+import com.catic.mobilehos.service.DoctorsService;
+import com.catic.mobilehos.service.vo.DepartmentVO;
+import com.catic.mobilehos.utils.DateUtil;
+
+/**  
+ * 类说明:预约挂号统计（当日挂号统计）action
+ * @author 朱伟权
+ * 创建时间: 2017-5-8 上午11:23:31
+ */
+@Controller
+@Scope("prototype")
+public class AppointmentStatisticsAction extends com.catic.mobilehos.pay.action.BaseAction {
+
+	private static final long serialVersionUID = 1L;
+	
+	@Resource
+	private AppRegOrderService appRegOrderService;
+	@Resource
+	private DepartmentsService departmentsService;
+	@Resource
+	private DoctorsService doctorsService;
+	
+	private String beginDate;// 开始时间
+	private String endDate;// 结束时间
+	private String type;// 0为预约，1为挂号
+	private String departmentCode;// 科室id
+	private String doctorId;// 医生id
+	private String chartType;// 1表示科室挂号量变化，2表示医生挂号量变化
+	
+	public String getBeginDate() {
+		return beginDate;
+	}
+	public void setBeginDate(String beginDate) {
+		this.beginDate = beginDate;
+	}
+	public String getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+	public String getDepartmentCode() {
+		return departmentCode;
+	}
+	public void setDepartmentCode(String departmentCode) {
+		this.departmentCode = departmentCode;
+	}
+	public String getDoctorId() {
+		return doctorId;
+	}
+	public void setDoctorId(String doctorId) {
+		this.doctorId = doctorId;
+	}
+	public String getChartType() {
+		return chartType;
+	}
+	public void setChartType(String chartType) {
+		this.chartType = chartType;
+	}
+	
+	/**
+	 * 获取以科室为分组的统计
+	 */
+	public void getCountByDepartment(){
+		try{
+			AppRegOrdersPO appRegOrdersPO = new AppRegOrdersPO();
+			appRegOrdersPO.setType(type);
+			appRegOrdersPO.setBeginDate(beginDate);
+			appRegOrdersPO.setEndDate(endDate);
+			List<AppRegOrdersPO> countResultList = appRegOrderService.getCountByDepartment(appRegOrdersPO);
+			// 记录时间区间内的预约累计数量
+			int periodCount = 0;
+			if(countResultList != null && countResultList.size() > 0){
+				for (AppRegOrdersPO po : countResultList) {
+					periodCount += po.getCount();
+				}
+			}
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("num", periodCount);
+			resultMap.put("list", countResultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 跳转到科室变化趋势页面
+	 * @return
+	 */
+	public String toDepartmentChange(){
+		request.setAttribute("beginDate", beginDate);
+		request.setAttribute("endDate", endDate);
+		request.setAttribute("chartType", chartType);
+		if("0".equals(type)){// 预约挂号
+			return "departmentChange";
+		}else{// 当日挂号
+			return "departmentChangeToday";
+		}
+	}
+	
+	/**
+	 * 获取按日分组统计结果
+	 */
+	public void getCountByDate(){
+		try{
+			AppRegOrdersPO appRegOrdersPO = new AppRegOrdersPO();
+			appRegOrdersPO.setType(type);
+			appRegOrdersPO.setBeginDate(beginDate);
+			appRegOrdersPO.setEndDate(endDate);
+			appRegOrdersPO.setDepartmentId(departmentCode);
+			appRegOrdersPO.setDoctorId(doctorId);
+			
+			// 保存统计的结果，key为统计日期
+			Map<String, AppRegOrdersPO> dateCountMap = new HashMap<String, AppRegOrdersPO>();
+			
+			// 查询时间区间的所有统计
+			List<AppRegOrdersPO> appRegOrdersPOs = appRegOrderService.getCountByDate(appRegOrdersPO);
+			if(appRegOrdersPOs != null && appRegOrdersPOs.size() > 0){
+				for (AppRegOrdersPO po : appRegOrdersPOs) {
+					dateCountMap.put(po.getCountDate(), po);
+				}
+			}
+			
+			DepartmentVO department = null;// 选择的科室
+			if(StringUtils.isNotBlank(departmentCode)){
+				department = departmentsService.findDepVOByCode(departmentCode);
+			}
+			
+			Date sDate = DateUtil.str2Date(beginDate, "yyyy-MM-dd");
+			Date eDate = DateUtil.str2Date(endDate, "yyyy-MM-dd");
+			// 准备返回的区间统计
+			List<AppRegOrdersPO> resultList = new ArrayList<AppRegOrdersPO>();
+			List<Date> dates = DateUtil.getBetweenDates(sDate, eDate, true);
+			for (Date date : dates) {// 循环开始日期和结束日期之间的所有日期，没有统计项的默认为0
+				String tmpDate = DateUtil.date2Str(date, "yyyy-MM-dd");
+				AppRegOrdersPO po = null;
+				if(dateCountMap.get(tmpDate) == null){
+					po = new AppRegOrdersPO();
+					po.setCountDate(tmpDate);
+					po.setCount(0);// 统计默认为0
+				}else{
+					po = dateCountMap.get(tmpDate);
+				}
+				if(po != null){
+					po.setCountDate(po.getCountDate().substring(5));// 日期只截取月日，即“05-04”
+					resultList.add(po);
+				}
+			}
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("department", department == null ? "" : department.getDepartmentName());
+			resultMap.put("list", resultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 获取以医生为分组的统计
+	 */
+	public void getCountByDoctor(){
+		try{
+			AppRegOrdersPO appRegOrdersPO = new AppRegOrdersPO();
+			appRegOrdersPO.setType(type);
+			appRegOrdersPO.setBeginDate(beginDate);
+			appRegOrdersPO.setEndDate(endDate);
+			appRegOrdersPO.setDepartmentId(departmentCode);
+			List<AppRegOrdersPO> countResultList = appRegOrderService.getCountByDoctor(appRegOrdersPO);
+			// 记录时间区间内的预约累计数量
+			int periodCount = 0;
+			if(countResultList != null && countResultList.size() > 0){
+				for (AppRegOrdersPO po : countResultList) {
+					periodCount += po.getCount();
+				}
+			}
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("num", periodCount);
+			resultMap.put("list", countResultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 根据科室id获取对应的所有医生信息
+	 */
+	public void getDoctorsByDepartmentId(){
+		try{
+			DoctorPO po = new DoctorPO();
+			po.setDepartmentId(departmentCode);
+			List<DoctorPO> doctorList = doctorsService.getDoctorByDepartmentId(po);
+			JSONArray array = JSONArray.fromObject(doctorList);
+			this.jsonObj(array.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
+}
+ 

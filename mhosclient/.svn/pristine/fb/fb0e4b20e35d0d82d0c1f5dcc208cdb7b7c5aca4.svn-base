@@ -1,0 +1,101 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<base href="<%=basePath%>/" />
+<title>会员管理</title>
+<base href="${pageContext.request.contextPath}/" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/index.css" />
+<script charset="utf-8" src="resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery-ui.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery.ui.datepicker-zh-CN.js"></script>
+<script charset="utf-8" src="resources/js/common.js"></script>
+<script type="text/javascript" src="manager/user/user.js"></script>
+<script type="text/javascript" src="../getKey.js"></script>
+</head>
+<s:if test="#session.userName==null ||!#session.authority.contains('ROLE_USER')">
+	<script type="text/javascript">
+		location.href = $('base').attr('href') + "login.jsp";
+	</script>
+</s:if>
+<input type="hidden" value="${param.key}" id="key1"/>
+<s:hidden value="%{#session.key}" id="key"/>
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl" style="min-height: none; height: auto;">
+			<ul class="tab-wrap bg">
+				<li class="tab-crt">会员管理</li>
+			</ul>
+			<div class="tab-cnt">
+				<div class="f-fl left-list-wrap">
+					<div class="left-list-hd">
+						<span class="f-fl">会员管理(<span id="totalcount"></span>)
+						</span>
+					</div>
+					<div class="left-list-hd">
+						<s:form id="searchUserForm" action="searchUser" theme="simple">
+							<table height="100%" style="margin-top: -3px;">
+								<tr>
+									<td valign="middle">会员账号 :</td>
+									<td valign="middle"><s:textfield id="user_name" name="user_name" size="10" cssStyle="height: 28px; line-height: 28px;" /></td>
+									<td valign="middle">会员状态：</td>
+									<td valign="middle"><s:select cssStyle="width:90px;height: 28px; padding: 4px 8px;" id="status" name="status" list="#{'':'全部','0':'启用','1':'禁用','2':'拉黑' }"></s:select></td>
+									<td valign="middle">注册时间:</td>
+									<td valign="middle"><s:textfield id="start_create_date" name="start_create_date" size="12" cssStyle="height: 28px; line-height: 28px;" /></td>
+									<td valign="middle">-</td>
+									<td valign="middle"><s:textfield id="end_create_date" name="end_create_date" size="12" cssStyle="height: 28px; line-height: 28px;" /></td>
+									<td valign="middle"><input id="" type="submit" class="save-btn" value="查询" /></td>
+								</tr>
+							</table>
+						</s:form>
+					</div>
+					<div id="div_cnt_table"></div>
+				</div>
+				<div class="f-clear"></div>
+			</div>
+		</div>
+		<div class="f-clear"></div>
+	</div>
+
+	<div id="showPatients" title="查看就诊人"></div>
+	<div id="setStatus" title="状态更改">
+		<form id="setStatusForm" onsubmit="return false;">
+			<table width="100%" cellpadding="7">
+				<tr>
+					<td>帐号状态 <input type="hidden" name="p_userId" id="pat_userId" />
+					</td>
+					<td>
+<!-- 						<input type="radio" id="pat_status0" name="p_status" value="0" />启用 -->
+<!-- 						<input type="radio" id="pat_status1" name="p_status" value="1" />禁用 -->
+						<select id="pat_status" name="p_status" style="width: 130px">
+							<option value="0">启用</option><option value="1">禁用</option>
+						</select>	
+					</td>
+					<td><span style="color: red; font-size: 12px;">禁用后则其无法登录</span></td>
+				</tr>
+				<tr>
+					<td>黑名单期限</td>
+					<td><input type="text" id="pat_blackTime" name="p_blackTime" style="width: 130px;" placeholder="非黑名单则留空" /></td>
+					<td><span style="color: red; font-size: 12px;">设置黑名单的有效期</span></td>
+				</tr>
+				<tr>
+					<td colspan="3" align="center"><input type="submit" class="save-btn" value="取消" style="margin-top: 10px; background-color: gray;" onclick="closeDialog('setStatus')" /> <input
+						style="margin-left: 20px; margin-top: 10px;" type="submit" class="save-btn" value="保存" onclick="updateStatusAction()" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="${pageContext.request.contextPath}/" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>调查问卷</title>
+<base href="${pageContext.request.contextPath}/" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css"
+	href="${pageContext.request.contextPath}/resources/css/global.css" />
+<link rel="stylesheet" type="text/css"
+	href="${pageContext.request.contextPath}/resources/css/common.css" />
+<link rel="stylesheet" type="text/css"
+	href="${pageContext.request.contextPath}/resources/css/introduction-edit.css" />
+<script type="text/javascript"
+	src="${pageContext.request.contextPath}/resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript"
+	src="${pageContext.request.contextPath}/resources/js/common.js"></script>
+<script type="text/javascript" src="questionnaire/questionnaire-add.js"></script>
+<script>
+function submitQuestionnaire() {
+	if(!postData()) {
+		return;
+	}
+	var questionnaire = new Object();
+	questionnaire.title = $("#title").val();
+	questionnaire.sub_title = $("#sub_title").val();
+	questionnaire.status = $("#status").val();
+	var questionsArray = [];
+	var questions = $("#questions").find(".question_div");
+	for(var i = 0; i < questions.length; i++) {
+		var q = new Object();
+		q.type = $(questions[i]).find("#sel_type").val();
+		q.subject = $(questions[i]).find("#inp_subject").val();
+		var options = [];
+		var optionsArray = $(questions[i]).find(".an1 input");
+		for(var k = 0; k < optionsArray.length; k++) {
+			var option = $(optionsArray[k]).val();
+			if($.trim(option) != '') {
+				options.push($.trim(option));
+			} else {
+				break;
+			}
+		}
+		q.options = options;
+		questionsArray.push(q);
+	}
+		questionnaire.questions =JSON.stringify(questionsArray);
+			// alert(JSON.stringify(questionnaire));
+	
+	$.ajax({
+			url: "questionnaire/saveQuestionnaire",
+			type: "POST",
+			data: {questionnaire: JSON.stringify(questionnaire)},
+			dataType: "json",
+			success: function(data){
+				alert(data);
+			}
+		});
+		confirm("提交成功");
+		window.history.back(-1);
+}
+/* function play(){
+
+	text.readonly="true";
+} */
+</script>
+</head>
+<!-- <s:if
+	test="#session.userName==null ||!#session.authority.contains('ROLE_HOSINFO')">
+	<script type="text/javascript">
+		location.href = $('base').attr('href') + "login.jsp";
+	</script>
+</s:if> -->
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg">
+
+				<li class="tab-crt">调查问卷管理<a></a></li>
+			</ul>
+			<div class="tab-cnt" style="overflow: auto;">
+				<s:form id="questionnaireAddForm" 
+					method="post" theme="simple" cssClass="introduction-fm"
+					onsubmit="return false;">
+					<ul>
+						<li><span class="introduction-label f-fl"><span
+								class="color-red">*</span>标题:</span> <s:textfield id="title"
+								name="title" cssClass="fm-text f-fl" /></li>
+
+						<li><span class="introduction-label f-fl"><span
+								class="color-red">*</span>副标题</span> <s:textarea id="sub_title"
+								name="sub_title"
+								 Class="fm-text introduction-textarea1 f-fl" />
+								</li>
+						<li><span class="introduction-label f-fl">问卷状态:</span> <s:select
+								id="status" name="status"
+								list="#{'0':'无效','1':'有效'}" cssStyle="width:200px;height:30px;" />
+						</li>
+						<li id="questions"> </li>
+					</ul>
+
+					<br />
+					<center>
+						<input type="button" value="添加问题" class="normal-btn"
+						onclick="addQuestions()" style="margin-right: 20px;">
+						<input type="submit" value="提交" class="normal-btn" onclick="submitQuestionnaire()" />
+					</center>
+				</s:form>
+			</div>
+		</div>
+		<div class="f-clear"></div>
+	</div>
+	<div id="div_add_win_temp1" class="question_div" style="display: none; border: 1px solid #C0C0C0; margin-top: 20px;">
+		<span class="introduction-label f-fl">问题类型:</span> 
+		<select id="sel_type" style="width: 120px;height:27px;"
+			onchange="addAnswers(this.value, this)">
+			<option value="0">单项选择题</option>
+			<option value="1">多项选择题</option>
+			<option value="2">表达题</option>
+		</select>
+		<input id="inp_subject" style="width: 430px; height: 25px" />
+		<input type="button" value="删除" class="normal-btn" style="text-align: center; padding: 0; height: 30px;width: 50px;"
+						onclick="deleteQuestion(this)" />
+		<br>
+		<div class="an1">
+			选项1：<input type="text"  style="width: 170px; height: 25px"" /> 
+			选项2：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> 
+			选项3：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> <br> 
+			选项4：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> 
+			选项5：<input type="text" onblur="play()" style="width: 170px; height: 25px" />
+			选项6：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> <br> 
+			选项7：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> 
+			选项8：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> 
+			选项9：<input type="text" onblur="play()" style="width: 170px; height: 25px" /> <br> 
+			选项10：<input type="text" onblur="play()" style="width: 170px; height: 25px" />
+		</div>
+		<textarea class="an2" rows="" cols="" readonly="readonly"
+			style="width: 680px; height: 50px; display: none">表达题答案由用户填写.</textarea>
+	</div>
+</body>
+</html>

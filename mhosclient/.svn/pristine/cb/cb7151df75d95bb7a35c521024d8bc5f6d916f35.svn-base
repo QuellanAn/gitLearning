@@ -1,0 +1,66 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8" %>
+<%@ taglib prefix="s" uri="/struts-tags" %>
+<input id="hid_totalcount" type="hidden" value="${page.totalCount }"/>
+<script type="text/javascript">
+		refresh_totalcount();
+</script>
+	<table id="tb_cnt" class="list-table" style="margin-top: 5px;">
+		<thead>
+			<tr>
+				<th style="margin-left: 5px;margin-right: 5px;">账单日期</th>
+				<th style="margin-left: 5px;margin-right: 5px;">来源</th>
+				<th style="margin-left: 5px;margin-right: 5px;">名称</th>
+				<th style="margin-left: 5px;margin-right: 5px;">文件名</th>
+				<th style="margin-left: 5px;margin-right: 5px;">提交订单总数</th>
+				<th style="margin-left: 5px;margin-right: 5px;">受理成功单数</th>
+				<th style="margin-left: 5px;margin-right: 5px;">操作人</th>
+				<th style="margin-left: 5px;margin-right: 5px;">提交时间</th>
+				<th style="margin-left: 5px;margin-right: 5px;">操作</th>	
+			</tr>
+		</thead>
+		<tbody id="tb_cnt_body">
+			 <s:iterator value="checkImportList" var="checkImportList" status="status">
+             <tr>
+             <td align="center">${billDate}</td>
+               <td align="center">${source}</td>  
+               <td align="center">${name}</td>  
+		       <td align="center">${fileName}</td>
+		       <td align="center">${submitNum}</td>
+		       <td align="center">${successNum}</td>
+		       <td align="center">${operator}</td>   
+		       <td align="center">${createTime.substring(0,16)}</td>   
+             <td align="center">
+              <a href="javascript:findDetails('${iid}')">查看</a>
+             </td> 
+             </tr>
+           </s:iterator>
+           		   <s:if test="%{page.pageCount == 0}"> <tr><td align="center" colspan="9" >暂无数据</td></tr></s:if>
+		</tbody>
+	</table>
+	<s:if test="%{page.pageCount != 0}">
+<div style="float: left;" align="left" class="pagination-wrap f-fr">
+	&nbsp;&nbsp;共有 <font style="font-weight: bolder;">${page.totalCount}</font> 条记录，&nbsp;共 ${page.pageNo}/${page.pageCount} 页
+</div>
+<div class=" pagination-wrap f-fr">
+	<s:if test="%{page.pageNo == 1}">
+		<a class="pagination">首页</a>
+		<a class="pagination">上页</a>
+	</s:if>
+	<s:if test="%{page.pageNo != 1}">
+		<a href="javascript:datalist_ctrl.loaddatalist('1','${source}','${batchNumber }','${operator}','${startdate}','${enddate}');" class="pagination">首页 </a>
+		<a href="javascript:datalist_ctrl.loaddatalist('${page.pageNo-1}','${source}','${batchNumber }','${operator}','${startdate}','${enddate}');" class="pagination">上页 </a>
+	</s:if>
+	<s:if test="%{page.pageNo == page.pageCount}">
+		<a class="pagination">下页</a>
+		<a class="pagination">末页</a>
+	</s:if>
+	<s:if test="%{page.pageNo != page.pageCount}">
+		<a href="javascript:datalist_ctrl.loaddatalist('${page.pageNo+1}','${source}','${batchNumber }','${operator}','${startdate}','${enddate}');" class="pagination">下页 </a>
+		<a href="javascript:datalist_ctrl.loaddatalist('${page.pageCount}','${source}','${batchNumber }','${operator}','${startdate}','${enddate}');" class="pagination">末页 </a>
+	</s:if>
+	&nbsp; <span class="pagination">共 ${page.pageNo}/${page.pageCount} 页
+	</span>
+</div>
+</s:if>
+</div>

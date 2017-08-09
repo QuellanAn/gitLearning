@@ -1,0 +1,214 @@
+$(document).ready(function() {
+	var myChart = echarts.init(document.getElementById('Section1'));
+	myChart.showLoading({text : '正在努力请求数据,请稍等!' }); 
+	var myChartBi = echarts.init(document.getElementById('Section2'));
+	var myChartJun = echarts.init(document.getElementById('Section3'));
+	
+	$.ajax({
+		type : "post",
+		url : "unpaid/selectStatistics_selectBytime",
+		dataType : "json",
+		async : false,
+		success : function(data) {
+			var po = eval(data.po);
+			var rows = eval(data.all);
+			var arr = [];
+			var arrY = [];
+			//调用函数获取值，转换成数组模式  
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].name);
+				arrY.push(rows[i].val);
+			}
+			option = {
+				title : {
+					text : '销售总金额',
+					left : 'center'
+				},
+				tooltip : {
+					trigger : 'item',
+				},
+				toolbox : {
+					show : true,
+					feature : {
+						dataView : {},
+						magicType : {show: true, type: ['line', 'bar']},
+						restore : {}
+					}
+				},
+				xAxis : {
+					type : 'category',
+					boundaryGap: false,
+					splitLine : {
+						show : false
+					},
+					data : arr
+				},
+				grid : {
+					left : '3%',
+					right : '4%',
+					bottom : '3%',
+					containLabel : true
+				},
+				yAxis : {},
+				series : [ {
+					name : '销售总额',
+					type : 'line',
+					itemStyle : {  
+                        normal : {  
+                        	color:'#44B549',  
+                            lineStyle:{  
+                                color:'#44B549'  
+                            }  
+                        }  
+                    },  
+					data : arrY
+				} ]
+			};
+			myChart.setOption(option);
+			var totalMoney=$("#totalMoney");
+			totalMoney.append("销售金额(元)<br/>"+po.totalMoney+"<br/>").append("对比"+po.stime+"至"+po.etime+po.upDown+po.contrast);
+			myChart.hideLoading();
+		},error : function(errorMsg) {
+	         alert("图表请求数据失败!");
+	         myChart.hideLoading();
+		}
+	});
+	
+	$.ajax({
+		type : "post",
+		url : "unpaid/selectStatistics_selectTotalCount",
+		dataType : "json",
+		async : false,
+		success : function(data) {
+			var po = eval(data.po);
+			var rows = eval(data.all);
+			var arr = [];
+			var arrY = [];
+			//调用函数获取值，转换成数组模式  
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].name);
+				arrY.push(rows[i].val);
+			}
+			option = {
+				title : {
+					text : '销售总笔数',
+					left : 'center'
+				},
+				tooltip : {
+					trigger : 'item',
+				},
+				toolbox : {
+					show : true,
+					feature : {
+						dataView : {},
+						magicType : {show: true, type: ['line', 'bar']},
+						restore : {}
+					}
+				},
+				xAxis : {
+					type : 'category',
+					boundaryGap: false,
+					splitLine : {
+						show : false
+					},
+					data : arr
+				},
+				grid : {
+					left : '3%',
+					right : '4%',
+					bottom : '3%',
+					containLabel : true
+				},
+				yAxis : {},
+				series : [ {
+					name : '总数量',
+					type : 'line',
+					itemStyle : {  
+                        normal : {  
+                        	color:'#44B549',  
+                            lineStyle:{  
+                                color:'#44B549'  
+                            }  
+                        }  
+                    },  
+					data : arrY
+				} ]
+			};
+			myChartBi.setOption(option);
+			var totalCount=$("#totalCount");
+			totalCount.append("销售总笔数(笔)<br/>"+po.totalCount+"<br/>").append("对比"+po.stime+"至"+po.etime+po.upDown+po.contrast);
+		},error : function(errorMsg) {
+	         alert("图表请求数据失败!");
+	         myChart.hideLoading();
+		}
+	});
+	
+	$.ajax({
+		type : "post",
+		url : "unpaid/selectStatistics_selectAvgMoney",
+		dataType : "json",
+		async : false,
+		success : function(data) {
+			var po = eval(data.po);
+			var rows = eval(data.all);
+			var arr = [];
+			var arrY = [];
+			//调用函数获取值，转换成数组模式  
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].name);
+				arrY.push(rows[i].val);
+			}
+			option = {
+				title : {
+					text : '人均金额',
+					left : 'center'
+				},
+				tooltip : {
+					trigger : 'item',
+				},
+				toolbox : {
+					show : true,
+					feature : {
+						dataView : {},
+						magicType : {show: true, type: ['line', 'bar']},
+						restore : {}
+					}
+				},
+				xAxis : {
+					type : 'category',
+					boundaryGap: false,
+					splitLine : {
+						show : false
+					},
+					data : arr
+				},
+				grid : {
+					left : '3%',
+					right : '4%',
+					bottom : '3%',
+					containLabel : true
+				},
+				yAxis : {},
+				series : [ {
+					name : '金额',
+					type : 'line',
+					itemStyle : {  
+                        normal : {  
+                        	color:'#44B549',  
+                            lineStyle:{  
+                                color:'#44B549'  
+                            }  
+                        }  
+                    },  
+					data : arrY
+				} ]
+			};
+			myChartJun.setOption(option);
+			var avgMoney=$("#avgMoney");
+			avgMoney.append("人均金额(元)<br/>"+po.avgMoney+"<br/>").append("对比"+po.stime+"至"+po.etime+po.upDown+po.contrast);
+		},error : function(errorMsg) {
+	         alert("图表请求数据失败!");
+	         myChart.hideLoading();
+		}
+	});
+});

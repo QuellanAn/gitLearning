@@ -1,0 +1,111 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"
+	import="java.util.*, com.catic.mobilehos.service.vo.*"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+
+<head>
+<base href="<%=basePath%>/" />
+<title>服务评价统计</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/index.css" />
+<script charset="utf-8" src="resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery-ui.js"></script>
+<script type="text/javascript" src="../getKey.js"></script>
+<script type="text/javascript" src="resources/js/common.js"></script>
+<script charset="utf-8" src="statistics/serviceEvaluation/serviceEvaluation_main.js"></script>
+<style type="text/css">
+span.gap{
+	margin-left: 10px;
+	margin-right: 10px;
+	color: #4FB18C;
+}
+
+a.selectTime{
+	color: #4FB18C;
+	text-decoration: none;
+}
+
+div.divDepartmentCount{
+	margin: 30px 0 0 600px;
+}
+
+div.divDepartmentCount a{
+	color: #63B897;
+	font-size: 16px;
+	font-weight: bold;
+	text-decoration: none;
+}
+</style>
+</head>
+<input type="hidden" value="${param.key}" id="key1" />
+<s:hidden value="%{#session.key}" id="key" />
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg">
+				<li class="tab-crt">服务评价统计</li>
+			</ul>
+			<div class="tab-cnt">
+				<div class="f-fl left-list-wrap">
+					<div class="left-list-hd" style="height: 85px;padding-top: 10px">
+						<div style="float: left;">
+							<form id="form_query">
+								<table height="100%" style="margin-top: -3px;">
+									<tr>
+										<td>日期选择:</td>
+										<td valign="middle" style="padding-left: 30px;" align="right"><input id="beginDate" name="sq_startdate"
+											type="text" size="10" style="height: 28px; line-height: 28px; width:120px;" readonly="readonly"/></td>
+										<td valign="middle" align="center" width="40px">到</td>
+										<td valign="middle" align="left" colspan="3"><input id="endDate" name="sq_enddate"
+											type="text" size="10" style="height: 28px; line-height: 28px;width:120px;" readonly="readonly"/></td>
+										<td valign="middle" align="left">
+											<a class="selectTime" href="javascript:void(0)" onclick="setSelectTime(7)">最近7天</a><span class="gap">|</span> 
+											<a class="selectTime" href="javascript:void(0)" onclick="setSelectTime(15)">最近15天</a><span class="gap">|</span>
+											<a class="selectTime" href="javascript:void(0)" onclick="setSelectTime(30)">最近30天</a>
+										</td>
+									</tr>
+									<tr>
+										<td valign="middle" align="right"></td>
+										<td valign="middle" style="padding-left: 30px;" align="left"><input type="button" id="act_query"
+											class="save-btn" value="查询"/></td>
+									</tr>
+									<tr>
+										<td></td>
+										<td width="120px"></td>
+										<td width="40px"></td>
+										<td width="40px"></td>
+										<td width="40px"></td>
+										<td width="120px"></td>
+										<td></td>
+									</tr>
+								</table>
+							</form>
+						</div>
+					</div>
+					<div class="divDepartmentCount">
+						<a href="javascript:void(0)" onclick="toDepartmentChange()">查看各科室服务评价分析</a>
+					</div>
+					<div style="margin-left:100px;margin-top:20px;margin-bottom:50px; height: 400px;width: 680px;float: left;"
+						id="Section1"></div>
+				</div>
+				<div class="f-clear"></div>
+			</div>
+		</div>
+
+		<div class="f-clear"></div>
+	</div>
+</body>
+<script src="resources/js/echarts.min.js" type="text/javascript"></script>
+</html>

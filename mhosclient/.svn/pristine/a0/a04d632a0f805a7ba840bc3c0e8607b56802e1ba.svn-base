@@ -1,0 +1,217 @@
+package com.catic.mobilehos.action;  
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.po.ServiceEvaluationHosPO;
+import com.catic.mobilehos.service.ServiceEvaluationHosService;
+
+/**  
+ * 类说明:服务评价统计action
+ * @author 朱伟权
+ * 创建时间: 2017-5-10 下午2:16:39
+ */
+@Controller
+@Scope("prototype")
+public class ServiceEvaluationStatisticsAction extends com.catic.mobilehos.pay.action.BaseAction {
+
+	private static final long serialVersionUID = 1L;
+	
+	@Resource
+	private ServiceEvaluationHosService serviceEvaluationHosService;
+	
+	private String beginDate;// 开始日期
+	private String endDate;// 结束日期
+	private String type;// 评价等级，0为综合，1为好评，2为中评，3为差评
+	private String departmentId;// 科室id
+	private String doctorId;// 医生id
+	
+	public String getBeginDate() {
+		return beginDate;
+	}
+
+	public void setBeginDate(String beginDate) {
+		this.beginDate = beginDate;
+	}
+
+	public String getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+	
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getDepartmentId() {
+		return departmentId;
+	}
+
+	public void setDepartmentId(String departmentId) {
+		this.departmentId = departmentId;
+	}
+
+	public String getDoctorId() {
+		return doctorId;
+	}
+
+	public void setDoctorId(String doctorId) {
+		this.doctorId = doctorId;
+	}
+
+	/**
+	 * 查询服务评价统计
+	 */
+	public void getCommentCount(){
+		try{
+			ServiceEvaluationHosPO serviceEvaluationHosPO = new ServiceEvaluationHosPO();
+			serviceEvaluationHosPO.setBeginDate(beginDate);
+			serviceEvaluationHosPO.setEndDate(endDate);
+			
+			List<ServiceEvaluationHosPO> resultList = serviceEvaluationHosService.getCommentCount(serviceEvaluationHosPO);
+			ServiceEvaluationHosPO resultObj = null;
+			if(resultList != null && resultList.size() > 0){
+				resultObj = resultList.get(0);
+			}
+			
+			if(resultObj == null){// 如果结果为空，创建一个默认结果
+				resultObj = new ServiceEvaluationHosPO();
+				resultObj.setGoodNum(0);
+				resultObj.setCommonNum(0);
+				resultObj.setBadNum(0);
+			}
+			
+			JSONObject json = JSONObject.fromObject(resultObj);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 跳转到科室服务评价统计页面
+	 * @return
+	 */
+	public String toDepartmentCount(){
+		request.setAttribute("beginDate", beginDate);
+		request.setAttribute("endDate", endDate);
+		return "departmentCount";
+	}
+	
+	/**
+	 * 根据科室统计服务评价
+	 */
+	public void getCommentCountByDepartMent(){
+		try{
+			ServiceEvaluationHosPO serviceEvaluationHosPO = new ServiceEvaluationHosPO();
+			serviceEvaluationHosPO.setBeginDate(beginDate);
+			serviceEvaluationHosPO.setEndDate(endDate);
+			
+			List<ServiceEvaluationHosPO> resultList = serviceEvaluationHosService.getCommentCountByDepartMent(serviceEvaluationHosPO, type);
+			JSONArray jsonArray = JSONArray.fromObject(resultList);
+			this.jsonObj(jsonArray.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 跳转到单个科室服务评价统计页面
+	 * @return
+	 */
+	public String toSingleDepartmentCount(){
+		request.setAttribute("beginDate", beginDate);
+		request.setAttribute("endDate", endDate);
+		return "singleDepartmentCount";
+	}
+	
+	/**
+	 * 按日期统计服务评价
+	 */
+	public void getCommentCountByDate(){
+		try{
+			ServiceEvaluationHosPO serviceEvaluationHosPO = new ServiceEvaluationHosPO();
+			serviceEvaluationHosPO.setBeginDate(beginDate);
+			serviceEvaluationHosPO.setEndDate(endDate);
+			serviceEvaluationHosPO.setDepartmentId(departmentId);
+			
+			List<ServiceEvaluationHosPO> resultList = serviceEvaluationHosService.getCommentCountByDate(serviceEvaluationHosPO, type);
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("list", resultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 按医生分组统计服务评价
+	 */
+	public void getCommentCountByDoctor(){
+		try{
+			ServiceEvaluationHosPO serviceEvaluationHosPO = new ServiceEvaluationHosPO();
+			serviceEvaluationHosPO.setBeginDate(beginDate);
+			serviceEvaluationHosPO.setEndDate(endDate);
+			serviceEvaluationHosPO.setDepartmentId(departmentId);
+			
+			List<ServiceEvaluationHosPO> resultList = serviceEvaluationHosService.getCommentCountByDoctor(serviceEvaluationHosPO, type);
+			JSONArray jsonArray = JSONArray.fromObject(resultList);
+			this.jsonObj(jsonArray.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 跳转到医生服务评价统计页面
+	 * @return
+	 */
+	public String toDoctorCount(){
+		request.setAttribute("beginDate", beginDate);
+		request.setAttribute("endDate", endDate);
+		request.setAttribute("departmentId", departmentId);
+		return "doctorCount";
+	}
+	
+	/**
+	 * 按日期分组统计医生服务评价
+	 */
+	public void getDoctorCommentCountByDate(){
+		try{
+			ServiceEvaluationHosPO serviceEvaluationHosPO = new ServiceEvaluationHosPO();
+			serviceEvaluationHosPO.setBeginDate(beginDate);
+			serviceEvaluationHosPO.setEndDate(endDate);
+			serviceEvaluationHosPO.setDepartmentId(departmentId);
+			serviceEvaluationHosPO.setDoctorId(doctorId);
+			
+			List<ServiceEvaluationHosPO> resultList = serviceEvaluationHosService.getCommentCountByDate(serviceEvaluationHosPO, type);
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("list", resultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
+}
+ 

@@ -1,0 +1,289 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"
+	import="java.util.*, com.catic.mobilehos.service.vo.*"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+
+<head>
+<base href="<%=basePath%>/" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>服务评价详情</title>
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css"
+	href="resources/css/index.css" />
+<script charset="utf-8" src="resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery-ui.js"></script>
+<script type="text/javascript"
+	src="resources/js/jquery/jquery.ui.datepicker-zh-CN.js"></script>
+<script charset="utf-8" src="busrecord/evaluate/eva_hos_main.js"></script>
+<style type="text/css">
+.star{
+	width: 0;
+	height: 0;
+	color: #FFD700;
+	float: left;
+	position: relative;
+	display: block;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 7px solid #ABABAB;
+	-moz-transfrom:rotate(35deg);
+	-webkit-transform:rotate(35deg);
+	-ms-transform:rotate(35deg);
+	-o-transform:rotate(35deg);
+}
+	
+.star:BEFORE{
+	width: 0;
+	height: 0;
+	border-left: 3px solid transparent;
+	border-right: 3px solid transparent;
+	border-bottom: 8px solid #ABABAB;
+	position: absolute;
+	top: -4px;
+	left: -5px;
+	color: white;
+	display: block;
+	content: "";
+	-moz-transform:rotate(-35deg);
+	-webkit-transform:rotate(-35deg);
+	-ms-transform:rotate(-35deg);
+	-o-transform:rotate(-35deg); 
+}
+
+.star:AFTER {
+	width: 0;
+	height: 0;
+	display: block;
+	position: absolute;
+	color: #ABABAB;
+	top: 0px;
+	left: -10px;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 7px solid #ABABAB;
+	content: "";
+	-moz-transform:rotate(-70deg);
+	-webkit-transform:rotate(-70deg);
+	-ms-transform:rotate(-70deg);
+	-o-transform:rotate(-70deg);
+}
+.star1{
+	width: 0;
+	height: 0;
+	color: #FFD700;
+	float: left;
+	position: relative;
+	display: block;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 7px solid #FFD700;
+	-moz-transfrom:rotate(35deg);
+	-webkit-transform:rotate(35deg);
+	-ms-transform:rotate(35deg);
+	-o-transform:rotate(35deg);
+}
+
+.star1:BEFORE{
+	width: 0;
+	height: 0;
+	border-left: 3px solid transparent;
+	border-right: 3px solid transparent;
+	border-bottom: 8px solid #FFD700;
+	position: absolute;
+	top: -4px;
+	left: -5px;
+	color: white;
+	display: block;
+	content: "";
+	-moz-transform:rotate(-35deg);
+	-webkit-transform:rotate(-35deg);
+	-ms-transform:rotate(-35deg);
+	-o-transform:rotate(-35deg); 
+}
+
+.star1:AFTER {
+	width: 0;
+	height: 0;
+	display: block;
+	position: absolute;
+	color: #FFD700;
+	top: 0px;
+	left: -10px;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 7px solid #FFD700;
+	content: "";
+	-moz-transform:rotate(-70deg);
+	-webkit-transform:rotate(-70deg);
+	-ms-transform:rotate(-70deg);
+	-o-transform:rotate(-70deg);
+}
+	
+</style>
+</head>
+<!-- <s:if
+	test="#session.userName==null ||!#session.authority.contains('ROLE_HOSINFO')">
+	<script type="text/javascript">
+		location.href = $('base').attr('href')+"login.jsp";
+	</script>
+</s:if> -->
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../../menus.jsp"></s:include>
+
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg">
+				<li class="tab-crt"><a href="busrecord/evaluate/eva_hos_main.jsp">服务评价详情</a></li>
+			</ul>
+			<div class="tab-cnt">
+				<div style="margin-left : 50px;width: 1000px;border: 1px solid #ccc;">
+					<div style="background-color: #ccc;height: 42px;padding-left: 20px;">就诊信息</div>
+					<div style="width: 100%;height: 126px;">
+						<div class="patient-feft1">
+							<div class="patient-feft">
+								<div style="height: 100%;float: left;width: 56px;">就诊卡号   </div>
+								<div class="patient-feft">${serviceEvaluationHosVO.cardNumber }</div>
+							</div>
+							
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;">
+								<div style="height: 100%;float: left;width: 56px;">就诊科室   </div>
+								<div class="patient-feft">${serviceEvaluationHosVO.departmentName}</div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;">
+								<div style="height: 100%;float: left;width: 56px;">就诊时间</div>
+								<div class="patient-feft">
+									${fn:substring(serviceEvaluationHosVO.lookDate, 0, 16) }
+								</div>
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+						<div class="patient-feft1">
+							<div class="patient-feft">
+								<div style="height: 100%;float: left;width: 56px;">就诊人  </div>
+								<div class="patient-feft">${serviceEvaluationHosVO.patientName}</div>
+							</div>
+							
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;">
+								<div style="height: 100%;float: left;width: 56px;">就诊医生   </div>
+								<div class="patient-feft">${serviceEvaluationHosVO.doctorName} </div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div style="margin-left : 50px;width: 1000px;border: 1px solid #ccc;margin-top: 20px;">
+					<div style="background-color: #ccc;height: 42px;padding-left: 20px;">评价信息</div>
+					<div style="width: 100%;height: 312px;">
+						<div class="patient-feft1" style="width: 100%;">
+							<div class="patient-feft">
+								<div style="height: 100%;float: left;width: 56px;">总体评价   </div>
+								<div class="patient-feft">
+									<s:if test="serviceEvaluationHosVO.overallEvaluation==0">满意</s:if>
+									<s:if test="serviceEvaluationHosVO.overallEvaluation==1">一般</s:if>
+									<s:if test="serviceEvaluationHosVO.overallEvaluation==2">差评</s:if>
+								</div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;">
+								<div style="height: 100%;float: left;width: 56px;">评价时间   </div>
+								<div class="patient-feft"><s:date  name="serviceEvaluationHosVO.createDate"  /></div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;line-height: 42px;">
+								<div style="height: 100%;float: left;width: 56px;">就医环境</div>
+								<div class="patient-feft" >
+									<div id="environment" style="text-align: center;padding-top: 15px;">
+									    <a class="star" id="environment0"></a>
+									    <a class="star" id="environment1"></a>
+									    <a class="star" id="environment2"></a>
+									    <a class="star" id="environment3"></a>
+									    <a class="star" id="environment4"></a>
+									</div>
+									<input type="hidden" name="environment5" id="environment5" value="${serviceEvaluationHosVO.environment}" /> 
+								</div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;line-height: 42px;">
+								<div style="height: 100%;float: left;width: 56px;">就医效率</div>
+								<div class="patient-feft" >
+									<div id="efficiency" style="text-align: center;padding-top: 15px;">
+									    <a class="star" id="efficiency0"></a>
+									    <a class="star" id="efficiency1"></a>
+									    <a class="star" id="efficiency2"></a>
+									    <a class="star" id="efficiency3"></a>
+									    <a class="star" id="efficiency4"></a>
+									</div>
+									<input type="hidden" name="efficiency5" id="efficiency5" value="${serviceEvaluationHosVO.efficiency}" /> 
+								</div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;line-height: 42px;">
+								<div style="height: 100%;float: left;width: 56px;">服务态度</div>
+								<div class="patient-feft" >
+									<div id="attitude" style="text-align: center;padding-top: 15px;">
+									    <a class="star" id="attitude0"></a>
+									    <a class="star" id="attitude1"></a>
+									    <a class="star" id="attitude2"></a>
+									    <a class="star" id="attitude3"></a>
+									    <a class="star" id="attitude4"></a>
+									</div>
+									<input type="hidden" name="attitude5" id="attitude5" value="${serviceEvaluationHosVO.attitude}" /> 
+								</div>
+							</div>
+							<div style="padding-left: 50px;height: 65px;float: left;width: 100%;">
+								<div style="height: 100%;float: left;width: 56px;">评价内容</div>
+								<div class="patient-feft" style="width: 80%;">
+									${serviceEvaluationHosVO.content}
+								</div>
+							</div>
+							<div style="padding-left: 50px;height: 42px;float: left;width: 100%;">
+								<div style="height: 100%;float: left;width: 56px;">评价时间</div>
+								<div class="patient-feft" >
+									${fn:substring(serviceEvaluationHosVO.createDate, 0, 16) }
+								</div>
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		<div class="f-clear"></div>
+		<div id="node"></div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function() {
+		//调用方法，想要亮几颗就传入几
+		var environment5 = $("#environment5").val();
+		var efficiency5 = $("#efficiency5").val();
+		var attitude5 = $("#attitude5").val();
+		
+		highlightStar(environment5,"environment");
+		highlightStar(efficiency5,"efficiency");
+		highlightStar(attitude5,"attitude");
+	});
+	function highlightStar(num, type){
+	    var starBg = document.getElementById(type);
+	    var stars = starBg.getElementsByTagName("a");
+	    for(var i = 0 ; i < num ; i++){
+	        var id = "#"+type+i;
+	        $(id).removeClass("star");
+	        $(id).addClass("star1");
+	    }
+	}
+</script>
+</html>
+
+
+

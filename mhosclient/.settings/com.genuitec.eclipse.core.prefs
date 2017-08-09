@@ -1,0 +1,3 @@
+eclipse.preferences.version=1
+validator.Checked=WebContent,.myeclipse/wsgeneration,src/appContext-service.xml,src/struts-back.xml,src/appContext-synchronize.xml
+validator.Unchecked=

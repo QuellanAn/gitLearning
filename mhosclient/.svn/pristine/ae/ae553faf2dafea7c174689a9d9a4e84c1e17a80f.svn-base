@@ -1,0 +1,112 @@
+package com.catic.mobilehos.pay.entity;
+
+import java.sql.Timestamp;
+
+public class PayTerminal{
+	private int id;
+	private String facilityId;
+	private String collectorId;
+	private String facilityName;
+	private String district;
+	private String facilityType;
+	private String facilityStatus;
+	private String putAddress;
+	private Timestamp createTime;
+	private Integer status;
+	private String payType;
+	
+	private Integer  count;
+	private String name;
+	
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getFacilityId() {
+		return facilityId;
+	}
+
+	public void setFacilityId(String facilityId) {
+		this.facilityId = facilityId;
+	}
+
+	public String getCollectorId() {
+		return collectorId;
+	}
+
+	public void setCollectorId(String collectorId) {
+		this.collectorId = collectorId;
+	}
+
+	public String getFacilityName() {
+		return facilityName;
+	}
+
+	public void setFacilityName(String facilityName) {
+		this.facilityName = facilityName;
+	}
+
+	public String getDistrict() {
+		return district;
+	}
+
+	public void setDistrict(String district) {
+		this.district = district;
+	}
+
+	public String getFacilityType() {
+		return facilityType;
+	}
+
+	public void setFacilityType(String facilityType) {
+		this.facilityType = facilityType;
+	}
+
+	public String getFacilityStatus() {
+		return facilityStatus;
+	}
+
+	public void setFacilityStatus(String facilityStatus) {
+		this.facilityStatus = facilityStatus;
+	}
+
+	public String getPutAddress() {
+		return putAddress;
+	}
+
+	public void setPutAddress(String putAddress) {
+		this.putAddress = putAddress;
+	}
+
+	public Timestamp getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Timestamp createTime) {
+		this.createTime = createTime;
+	}
+	public Integer getStatus() {
+		return status;
+	}
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+	public Integer getCount() {
+		return count;
+	}
+	public void setCount(Integer count) {
+		this.count = count;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+}

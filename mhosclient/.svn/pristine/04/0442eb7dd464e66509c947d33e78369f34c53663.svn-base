@@ -1,0 +1,73 @@
+﻿body{
+	_width:100%;
+}
+.login-bg{
+	height:800px;
+	left:-640px;
+	margin-left:50%;
+	position:relative;
+	width:1280px;
+}
+.login-fm-wrap{
+	background-color:#fafafa;
+	border-radius:3px;
+	box-shadow:0 8px 15px #036a9e;
+	height:263px;
+	left:687px;
+	margin-bottom:15px;
+	padding:15px 0 0 33px;
+	position:absolute;
+	top:187px;
+	width:353px;
+}
+.login-fm{
+	margin-top:15px;
+}
+.login-fm .fm-txt-wrap{
+	border:1px solid #c9c8c8;
+	border-radius:4px;
+	box-shadow:0 0 5px #ccc inset;
+	height:97px;
+	width:314px;
+}
+.login-fm .fm-txt{
+	height:48px;
+	padding:0 18px;
+	width:278px;
+}
+.login-fm .fm-txt-down{
+	border-bottom:1px solid #c9c8c8;
+	_border-bottom:none;
+	border-top:1px solid #ccc;
+	border-radius:0 0 4px 4px;
+	box-shadow:0 1px 0px #fff;
+}
+.login-fm .fm-label{
+	color:#000;
+	font:14px/48px "方正兰亭黑_GBK","Microsoft YaHei","宋体";
+	margin-right:14px;
+}
+.login-fm .fm-text{
+	background-color:#fafafa;
+	border:none;
+	color:#b5b5b5;
+	font:16px/32px "方正兰亭黑_GBK","Microsoft YaHei","宋体";
+	height:32px;
+	margin-top:8px;
+	padding:0 0 0 14px;
+	width:222px;
+}
+.login-fm .fm-text:focus{
+	color:#333;
+}
+.login-fm .fm-submit{
+	background:#0079ff;
+	border:none;
+	border-radius:4px;
+	color:#f3f3f3;
+	cursor:pointer;
+	font:18px "方正兰亭黑_GBK","Microsoft YaHei","宋体";
+	height:35px;
+	margin-top:26px;
+	width:122px;
+}

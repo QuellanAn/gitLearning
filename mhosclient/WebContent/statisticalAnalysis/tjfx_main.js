@@ -1,0 +1,124 @@
+$(document).ready(function() {
+	selectTime(30);
+	
+	var paras = $("#form_query").serialize();
+	//initTu(paras);
+	
+	$("#act_query").click(function(e) {
+		initTu();
+		return false;
+	});
+	
+	$('input[name=startTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=endTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+});
+
+function initTu(paras){
+	var paras = $("#form_query").serialize();
+	var myChart = echarts.init(document.getElementById('Section1'));
+	myChart.showLoading({text : '正在努力请求数据,请稍等!' }); 
+	var xiang=$('#xiangmu').val();
+	var leib=$('#leibi').val();
+	var type=null;
+	var title=null;
+	var info=null;
+	if(xiang==1){
+		type="{b} : {c}元\n ({d}%)";
+	}else if(xiang==2){
+		type="{b} : {c}笔\n({d}%)";
+	}
+	if(leib==1){
+		info="院区"
+		title="院区占比分析图";
+	}else if(leib==2){
+		info="资金账户";
+		title="资金账户占比分析图";
+	}else if(leib==3){
+		info="支付方式"
+		title="支付方式占比分析图";
+	}else if(leib==4){
+		info="支付场景"
+		title="支付场景占比分析图";
+	}else{
+		info="缴费项目"
+		title="缴费项目占比分析图";
+	}
+	$.ajax({
+		type : "post",
+		url : "unpaid/selectStatistics_selectByTjfx",
+		dataType : "json",
+		data : paras,
+		async : false,
+		success : function(data) {
+			if(eval(data).json!=null){
+				window.setTimeout(function () { window.top.location.href = "session.jsp"; }, 100);
+				return false;
+			}
+			var rows = eval(data.view);
+			if(rows.length<=0){
+				$("#Section1").html("当前时间暂无数据!");
+				myChart.hideLoading();
+				return false;
+			}
+			var arr = [];
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].name);
+			}
+			option = {
+		title : {
+			text : title,
+			x : 'center'
+		},
+		tooltip : {
+			trigger : 'item',
+			formatter : type
+		},
+
+		legend : {
+			orient : 'vertical',
+			left : 'left',
+			data : arr
+		},
+		toolbox : {
+			show : true,
+			feature : {
+				saveAsImage : {},
+				restore : {}
+			}
+		},
+		series : [ {
+			name : info,
+			type : 'pie',
+			radius : '70%',
+			center : [ '50%', '60%' ],
+			data : rows,
+			itemStyle : {
+				normal : {
+					label : {
+						show : true,
+						formatter : type
+					},
+					labelLine : {
+						show : true
+					}
+				}
+			}
+		} ],
+		color : [ '#FD7054', '#5FD1CE' ]
+	};
+	myChart.setOption(option);	
+	myChart.hideLoading();
+	},error: function() {
+		alert("图表请求数据失败!");
+		myChart.hideLoading();
+	},
+	});	
+};
+
+function selectTime(days){
+	var beginDate = getDayAdd((-1) * (days - 1));
+	var endDate = getTodayDate();
+	$('input[name=startTime]').val(beginDate);
+	$('input[name=endTime]').val(endDate);
+	initTu();
+};

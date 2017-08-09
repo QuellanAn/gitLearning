@@ -1,0 +1,250 @@
+package com.catic.mobilehos.po;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+
+import org.springframework.jdbc.core.RowMapper;
+
+public class ServiceEvaluationHosPO implements RowMapper<ServiceEvaluationHosPO>{
+	
+	private Integer serviceEvaluationId;
+	private Integer environment;
+	private Integer efficiency;
+	private Integer attitude;
+	private String overallEvaluation;
+	private String  content;
+	private String app_reg_order_id;//对应就诊id
+	private String patientName;//病人姓名
+	private String doctorName;//主治医生姓名
+	private String departmentName;//就诊科室
+	private Timestamp lookDate;//就诊时间
+	private Timestamp createDate;
+	private String  cardNumber;
+	
+	//统计数量
+	private int goodNum;
+	private int commonNum;
+	private int badNum;
+
+	
+	
+	public Integer getServiceEvaluationId() {
+		return serviceEvaluationId;
+	}
+
+
+
+	public void setServiceEvaluationId(Integer serviceEvaluationId) {
+		this.serviceEvaluationId = serviceEvaluationId;
+	}
+
+
+
+	public Integer getEnvironment() {
+		return environment;
+	}
+
+
+
+	public void setEnvironment(Integer environment) {
+		this.environment = environment;
+	}
+
+
+
+	public Integer getEfficiency() {
+		return efficiency;
+	}
+
+
+
+	public void setEfficiency(Integer efficiency) {
+		this.efficiency = efficiency;
+	}
+
+
+
+	public Integer getAttitude() {
+		return attitude;
+	}
+
+
+
+	public void setAttitude(Integer attitude) {
+		this.attitude = attitude;
+	}
+
+
+
+
+
+
+	public String getOverallEvaluation() {
+		return overallEvaluation;
+	}
+
+
+
+	public void setOverallEvaluation(String overallEvaluation) {
+		this.overallEvaluation = overallEvaluation;
+	}
+
+
+
+	public String getContent() {
+		return content;
+	}
+
+
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+
+
+	public Timestamp getCreateDate() {
+		return createDate;
+	}
+
+
+
+	public void setCreateDate(Timestamp createDate) {
+		this.createDate = createDate;
+	}
+
+
+
+	public String getApp_reg_order_id() {
+		return app_reg_order_id;
+	}
+
+
+
+	public void setApp_reg_order_id(String app_reg_order_id) {
+		this.app_reg_order_id = app_reg_order_id;
+	}
+
+
+
+	public String getPatientName() {
+		return patientName;
+	}
+
+
+
+	public void setPatientName(String patientName) {
+		this.patientName = patientName;
+	}
+
+
+
+	public String getDoctorName() {
+		return doctorName;
+	}
+
+
+
+	public void setDoctorName(String doctorName) {
+		this.doctorName = doctorName;
+	}
+
+
+
+	public String getDepartmentName() {
+		return departmentName;
+	}
+
+
+
+	public void setDepartmentName(String departmentName) {
+		this.departmentName = departmentName;
+	}
+
+
+
+	public Timestamp getLookDate() {
+		return lookDate;
+	}
+
+
+
+	public void setLookDate(Timestamp lookDate) {
+		this.lookDate = lookDate;
+	}
+
+	
+	
+
+
+	public int getGoodNum() {
+		return goodNum;
+	}
+
+
+
+	public void setGoodNum(int goodNum) {
+		this.goodNum = goodNum;
+	}
+
+
+
+	public int getCommonNum() {
+		return commonNum;
+	}
+
+
+
+	public void setCommonNum(int commonNum) {
+		this.commonNum = commonNum;
+	}
+
+
+
+	public int getBadNum() {
+		return badNum;
+	}
+
+
+
+	public void setBadNum(int badNum) {
+		this.badNum = badNum;
+	}
+
+	public String getCardNumber() {
+		return cardNumber;
+	}
+
+
+
+	public void setCardNumber(String cardNumber) {
+		this.cardNumber = cardNumber;
+	}
+
+
+
+	@Override
+	public ServiceEvaluationHosPO mapRow(ResultSet rs, int i) throws SQLException{
+		
+		ServiceEvaluationHosPO s=new ServiceEvaluationHosPO();
+		s.setServiceEvaluationId(rs.getInt("serviceEvaluationId"));
+		s.setEnvironment(rs.getInt("environment"));
+		s.setEfficiency(rs.getInt("efficiency"));
+		s.setAttitude(rs.getInt("attitude"));
+		s.setOverallEvaluation(rs.getString("overallEvaluation"));
+		s.setContent(rs.getString("content"));
+		s.setCreateDate(rs.getTimestamp("createDate"));
+		
+		s.setApp_reg_order_id(rs.getString("app_reg_order_id"));
+		s.setPatientName(rs.getString("patientName"));
+		s.setDoctorName(rs.getString("doctorName"));
+		s.setDepartmentName(rs.getString("departmentName"));
+		s.setLookDate(rs.getTimestamp("lookDate"));
+		
+		s.setCardNumber(rs.getString("cardNumber"));		
+		return s;
+	}
+	
+
+}

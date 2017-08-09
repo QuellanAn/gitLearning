@@ -1,0 +1,24 @@
+package com.catic.mobilehos.pay.dao;
+
+import java.util.List;
+
+import com.catic.mobilehos.pay.entity.CheckBill;
+import com.catic.mobilehos.utils.Page;
+
+public interface ICheckBillDao {
+	public List<CheckBill> findAll(CheckBill checkBill,Page page) throws Exception;
+	
+	public Double  totalAmount(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	public Integer  totalNumber(String billDate,Integer status,Integer pattern)throws Exception;
+		
+	public Double  totalRefund(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	public Integer  totalRefundNum(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	public Boolean updateStatus(String id,Integer status)throws Exception;
+	
+	public List<CheckBill> findAll_WeChat(CheckBill checkBill,Page page) throws Exception;
+	
+	public List<CheckBill> findAll_AliPay(CheckBill checkBill,Page page) throws Exception;
+}

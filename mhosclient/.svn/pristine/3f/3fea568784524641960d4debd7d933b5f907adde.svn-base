@@ -1,0 +1,21 @@
+package com.catic.mobilehos.pay.biz;
+
+import java.util.List;
+
+import com.catic.mobilehos.pay.entity.PayTerminal;
+import com.catic.mobilehos.utils.Page;
+
+public interface IPayTerminalBiz {
+	
+	public Boolean insert(PayTerminal payTer) throws Exception;
+	
+	public List<PayTerminal> findAll(Page page,PayTerminal payTer) throws Exception ;
+	
+	public Boolean delete(int id) throws Exception ;
+	
+	public Boolean modify(PayTerminal payTer) throws Exception ;
+	
+	public PayTerminal findById(int id) throws Exception ;
+	
+	public PayTerminal findByCode(String code) throws Exception;
+}

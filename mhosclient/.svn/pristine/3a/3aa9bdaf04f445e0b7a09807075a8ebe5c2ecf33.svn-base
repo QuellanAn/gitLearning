@@ -1,0 +1,265 @@
+package com.catic.mobilehos.pay.entity;
+/*
+ * 退账
+ */
+public class Refund {
+
+	private String id;
+	private String tradeNo;
+	private String refundNo;
+	private String refundId;
+	private Double tatolFee;
+	private Double refundFee;
+	private String patientName;
+	private Integer pattern;
+	private Integer payType;
+	private String createTime;
+	private String refundTime;
+	private Integer refundType;
+	private Integer refundStatus;
+	private String operatorId;
+	private String operatorName;
+	private String cardNo;
+	private String deviceInfo;
+	private String actualPay;
+	private String updateTime;
+	private String orderCode;
+	private String refundReason;
+	private String orderId;
+	private Integer payStatus;
+	private Integer hisPayStatus;
+	private Integer hisStatus;
+	private Integer outStatus;
+	private String yqName;// 院区
+	private String accountName;
+	
+	private String body;//缴费项目
+	private String patientId;//病人ID
+	private String total_fee;//应缴费用
+	
+	private String sq_startdate;
+	private String sq_enddate;
+	private String tk_startdate;
+	private String tk_enddate;
+	
+	private Integer count;
+	
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getTradeNo() {
+		return tradeNo;
+	}
+	public void setTradeNo(String tradeNo) {
+		this.tradeNo = tradeNo;
+	}
+	public String getRefundNo() {
+		return refundNo;
+	}
+	public void setRefundNo(String refundNo) {
+		this.refundNo = refundNo;
+	}
+	public Double getTatolFee() {
+		return tatolFee;
+	}
+	public void setTatolFee(Double tatolFee) {
+		this.tatolFee = tatolFee;
+	}
+	public Double getRefundFee() {
+		return refundFee;
+	}
+	public void setRefundFee(Double refundFee) {
+		this.refundFee = refundFee;
+	}
+	public String getPatientName() {
+		return patientName;
+	}
+	public void setPatientName(String patientName) {
+		this.patientName = patientName;
+	}
+	public Integer getPattern() {
+		return pattern;
+	}
+	public void setPattern(Integer pattern) {
+		this.pattern = pattern;
+	}
+	public Integer getPayType() {
+		return payType;
+	}
+	public void setPayType(Integer payType) {
+		this.payType = payType;
+	}
+	public String getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+	public Integer getRefundType() {
+		return refundType;
+	}
+	public void setRefundType(Integer refundType) {
+		this.refundType = refundType;
+	}
+	public String getOperatorId() {
+		return operatorId;
+	}
+	public void setOperatorId(String operatorId) {
+		this.operatorId = operatorId;
+	}
+	public String getOperatorName() {
+		return operatorName;
+	}
+	public void setOperatorName(String operatorName) {
+		this.operatorName = operatorName;
+	}
+	public Integer getCount() {
+		return count;
+	}
+	public void setCount(Integer count) {
+		this.count = count;
+	}
+	public Integer getRefundStatus() {
+		return refundStatus;
+	}
+	public void setRefundStatus(Integer refundStatus) {
+		this.refundStatus = refundStatus;
+	}
+	public String getCardNo() {
+		return cardNo;
+	}
+	public void setCardNo(String cardNo) {
+		this.cardNo = cardNo;
+	}
+	public String getDeviceInfo() {
+		return deviceInfo;
+	}
+	public void setDeviceInfo(String deviceInfo) {
+		this.deviceInfo = deviceInfo;
+	}
+	public String getActualPay() {
+		return actualPay;
+	}
+	public void setActualPay(String actualPay) {
+		this.actualPay = actualPay;
+	}
+	public String getUpdateTime() {
+		return updateTime;
+	}
+	public void setUpdateTime(String updateTime) {
+		this.updateTime = updateTime;
+	}
+	public String getOrderCode() {
+		return orderCode;
+	}
+	public void setOrderCode(String orderCode) {
+		this.orderCode = orderCode;
+	}
+	public String getBody() {
+		return body;
+	}
+	public void setBody(String body) {
+		this.body = body;
+	}
+	public String getPatientId() {
+		return patientId;
+	}
+	public void setPatientId(String patientId) {
+		this.patientId = patientId;
+	}
+	public String getTotal_fee() {
+		return total_fee;
+	}
+	public void setTotal_fee(String total_fee) {
+		this.total_fee = total_fee;
+	}
+	public String getRefundReason() {
+		return refundReason;
+	}
+	public void setRefundReason(String refundReason) {
+		this.refundReason = refundReason;
+	}
+	public Integer getPayStatus() {
+		return payStatus;
+	}
+	public void setPayStatus(Integer payStatus) {
+		this.payStatus = payStatus;
+	}
+	public Integer getHisPayStatus() {
+		return hisPayStatus;
+	}
+	public void setHisPayStatus(Integer hisPayStatus) {
+		this.hisPayStatus = hisPayStatus;
+	}
+	public Integer getOutStatus() {
+		return outStatus;
+	}
+	public void setOutStatus(Integer outStatus) {
+		this.outStatus = outStatus;
+	}
+	public Integer getHisStatus() {
+		return hisStatus;
+	}
+	public void setHisStatus(Integer hisStatus) {
+		this.hisStatus = hisStatus;
+	}
+	public String getSq_startdate() {
+		return sq_startdate;
+	}
+	public void setSq_startdate(String sq_startdate) {
+		this.sq_startdate = sq_startdate;
+	}
+	public String getSq_enddate() {
+		return sq_enddate;
+	}
+	public void setSq_enddate(String sq_enddate) {
+		this.sq_enddate = sq_enddate;
+	}
+	public String getTk_startdate() {
+		return tk_startdate;
+	}
+	public void setTk_startdate(String tk_startdate) {
+		this.tk_startdate = tk_startdate;
+	}
+	public String getTk_enddate() {
+		return tk_enddate;
+	}
+	public void setTk_enddate(String tk_enddate) {
+		this.tk_enddate = tk_enddate;
+	}
+	public String getRefundTime() {
+		return refundTime;
+	}
+	public void setRefundTime(String refundTime) {
+		this.refundTime = refundTime;
+	}
+	public String getOrderId() {
+		return orderId;
+	}
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+	public String getRefundId() {
+		return refundId;
+	}
+	public void setRefundId(String refundId) {
+		this.refundId = refundId;
+	}
+	public String getYqName() {
+		return yqName;
+	}
+	public void setYqName(String yqName) {
+		this.yqName = yqName;
+	}
+	public String getAccountName() {
+		return accountName;
+	}
+	public void setAccountName(String accountName) {
+		this.accountName = accountName;
+	}
+	
+	
+}

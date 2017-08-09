@@ -1,0 +1,280 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.ICheckBillDao;
+import com.catic.mobilehos.pay.entity.CheckBill;
+import com.catic.mobilehos.utils.Page;
+import com.sun.swing.internal.plaf.basic.resources.basic;
+
+
+@Repository("checkBillDao")
+public class CheckBillDaoImpl  extends BaseDao implements ICheckBillDao{
+
+	/**
+	 * 查询所有对账情况
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CheckBill> findAll(CheckBill checkBill,Page page) throws Exception{
+		String sql="";
+		if(page==null){
+			sql="SELECT COUNT(0) AS count FROM pay_bill WHERE 1=1";
+		}else{
+			sql="SELECT id,billDate,createTime,billStatus,status,total,amount,refund_amount,total_out,amount_out,refund_amount_out FROM pay_bill WHERE 1=1";
+		}
+		StringBuffer sb=new StringBuffer(sql);
+		List<Object> params=new ArrayList<Object>();
+
+		if(StringUtils.isNotBlank(checkBill.getId())){
+			sb.append(" AND id=?");
+			params.add(checkBill.getId());
+		}
+		if(StringUtils.isNotBlank(checkBill.getStartdate())){
+		    sb.append(" AND billDate>=?");
+			params.add(checkBill.getStartdate());
+		}
+		if(StringUtils.isNotBlank(checkBill.getEnddate())){
+			sb.append(" AND billDate<=?");
+			params.add(checkBill.getEnddate());
+		}
+		if(checkBill.getBillStatus()!=null){
+			sb.append(" AND billStatus=?");
+			params.add(checkBill.getBillStatus());
+		}
+		
+		if(page!=null){
+			sb.append("  ORDER BY createTime LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		
+		List<CheckBill> cbList=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		return cbList;
+	}
+		
+	/**
+	 * 查询所有微信的对账情况
+	 * @param checkBill
+	 * @param page
+	 * @return
+	 * @throws Exception
+	 */
+	public List<CheckBill> findAll_WeChat(CheckBill checkBill,Page page) throws Exception{
+		String sql="";
+		if(page==null){
+			sql="SELECT COUNT(0) AS count FROM pay_bill WHERE flag in(0,1)";
+		}else{
+			sql="SELECT id,billDate,createTime,billStatus,status,total_w,amount_w,refund_amount_w,w_amount,w_total,w_refund_amount FROM pay_bill WHERE flag in(0,1)";
+		}
+		StringBuffer sb=new StringBuffer(sql);
+		List<Object> params=new ArrayList<Object>();
+
+		if(StringUtils.isNotBlank(checkBill.getId())){
+			sb.append(" AND id=?");
+			params.add(checkBill.getId());
+		}
+		if(StringUtils.isNotBlank(checkBill.getStartdate())){
+		    sb.append(" AND billDate>=?");
+			params.add(checkBill.getStartdate());
+		}
+		if(StringUtils.isNotBlank(checkBill.getEnddate())){
+			sb.append(" AND billDate<=?");
+			params.add(checkBill.getEnddate());
+		}
+		if(checkBill.getBillStatus()!=null){
+			sb.append(" AND billStatus=?");
+			params.add(checkBill.getBillStatus());
+		}
+		
+		if(page!=null){
+			sb.append("  ORDER BY createTime LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		
+		List<CheckBill> cbList=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		return cbList;
+	}
+	
+	/**
+	 * 查询所有支付宝的对账情况
+	 * @param checkBill
+	 * @param page
+	 * @return
+	 * @throws Exception
+	 */
+	public List<CheckBill> findAll_AliPay(CheckBill checkBill,Page page) throws Exception{
+		String sql="";
+		if(page==null){
+			sql="SELECT COUNT(0) AS count FROM pay_bill WHERE flag in(0,2)";
+		}else{
+			sql="SELECT id,billDate,createTime,billStatus,status,total_a,amount_a,refund_amount_a,a_amount,a_total,a_refund_amount FROM pay_bill WHERE flag in(0,2)";
+		}
+		StringBuffer sb=new StringBuffer(sql);
+		List<Object> params=new ArrayList<Object>();
+
+		if(StringUtils.isNotBlank(checkBill.getId())){
+			sb.append(" AND id=?");
+			params.add(checkBill.getId());
+		}
+		if(StringUtils.isNotBlank(checkBill.getStartdate())){
+		    sb.append(" AND billDate>=?");
+			params.add(checkBill.getStartdate());
+		}
+		if(StringUtils.isNotBlank(checkBill.getEnddate())){
+			sb.append(" AND billDate<=?");
+			params.add(checkBill.getEnddate());
+		}
+		if(checkBill.getBillStatus()!=null){
+			sb.append(" AND billStatus=?");
+			params.add(checkBill.getBillStatus());
+		}
+		
+		if(page!=null){
+			sb.append("  ORDER BY createTime LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		
+		List<CheckBill> cbList=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		return cbList;
+	}
+	
+	
+	
+	/**
+	 * 更改总对账单状态
+	 * @param Status
+	 * @return Boolean
+	 */
+	public Boolean updateStatus(String id,Integer status)throws Exception{
+		String sql="UPDATE pay_bill SET `status`=? WHERE id=?";
+		List<Object> params=new ArrayList<Object>();
+		params.add(status);
+		params.add(id);
+		int count=jdbc.update(sql, params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+		
+	}
+	
+	/**
+	 * 订单总金额
+	 * @param Status
+	 * @return Boolean
+	 */
+	public Double  totalAmount(String billDate,Integer status,Integer pattern)throws Exception{
+		String sql="SELECT SUM(actualPay) AS amount FROM pay_order WHERE time_expire LIKE ?";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(billDate+"%");
+		if(status==4){
+			sb.append(" AND payStatus IN (1,2,3) ");
+		}else{
+			sb.append(" AND payStatus IN (?) ");
+			params.add(status);
+		}	
+		if(pattern!=null){
+			sb.append(" AND pattern=? ");
+			params.add(pattern);
+		}
+		List<CheckBill> cbList=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		if(cbList!=null&&cbList.size()>0){
+			if(cbList.get(0).getAmount()==null){
+				return 0.00;	
+			}
+			return cbList.get(0).getAmount();	
+		}
+	
+		return 0.00;
+		
+	}
+	
+	/**
+	 * 退款总金额
+	 * @param Status
+	 * @return Boolean
+	 */
+	public Double  totalRefund(String billDate,Integer status,Integer pattern)throws Exception{
+		String sql="SELECT SUM(pr.refundFee) AS amount  FROM pay_refund pr LEFT JOIN pay_order  po ON pr.tradeNo=po.out_trade_no WHERE pr.refundTime LIKE ?";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(billDate+"%");
+		if(status!=null){		
+			sb.append(" AND pr.refundStatus=?");
+			params.add(status);
+		}	
+		if(pattern!=null){		
+			sb.append(" AND po.pattern=? ");
+			params.add(pattern);
+		}	
+		List<CheckBill> cbList=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		if(cbList!=null&&cbList.size()>0){
+			if(cbList.get(0).getAmount()==null){
+				return 0.00;	
+			}
+			return cbList.get(0).getAmount();	
+		}
+		return 0.00;
+		
+	}
+	
+	/**
+	 * 订单总数量
+	 * @param billDate
+	 * @param pattern
+	 * @param Status
+	 * @return Boolean
+	 */
+	public Integer  totalNumber(String billDate,Integer status,Integer pattern)throws Exception{
+		String sql="SELECT COUNT(0) AS total FROM pay_order WHERE time_expire LIKE ? AND pattern=? ";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(billDate+"%");
+		params.add(pattern);
+		if(status!=null&&status==4){
+		    sb.append(" AND payStatus IN (1,2,3) ");	
+		}else if(status==null){
+			sb.append(" AND payStatus=?");	
+			params.add(status);
+		}
+		List<CheckBill> cbList=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		if(cbList!=null){
+			return cbList.get(0).getTotal();
+		}
+		return 0;
+		
+	}		
+	
+	
+	/**
+	 * 退款总数量
+	 * @param billDate
+	 * @param pattern
+	 * @param Status
+	 * @return Boolean
+	 */
+	public Integer  totalRefundNum(String billDate,Integer status,Integer pattern)throws Exception{
+		String sql="SELECT COUNT(0) AS total FROM pay_refund pr LEFT JOIN pay_order  po ON pr.tradeNo=po.out_trade_no WHERE pr.refundTime LIKE ? AND po.pattern=? AND pr.refundStatus=?";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(billDate+"%");
+		params.add(pattern);
+		params.add(status);
+		List<CheckBill> cbList=jdbc.query(sql, params.toArray(),new BeanPropertyRowMapper(CheckBill.class));
+		if(cbList!=null){
+			return cbList.get(0).getTotal();
+		}
+		return 0;
+		
+	}		
+}

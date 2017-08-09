@@ -1,0 +1,19 @@
+package com.catic.mobilehos.service;
+
+import java.util.Date;
+import java.util.List;
+
+import com.catic.mobilehos.po.TradePO;
+import com.catic.mobilehos.service.vo.Page;
+import com.catic.mobilehos.service.vo.TradeVO;
+
+/**
+ * 充值记录
+ * @author Administrator
+ *
+ */
+public interface TradeService {
+	Page<TradeVO> queryTradesByParas(String cardNo, String tradeNo, String transactionId, String status, String startSQLDate, String endSQLDate, int page,
+			int pageSize);
+	List<TradePO> showTradeInfo(String tradeNo);
+}

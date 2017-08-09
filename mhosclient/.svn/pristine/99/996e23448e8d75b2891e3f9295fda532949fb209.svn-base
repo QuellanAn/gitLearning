@@ -1,0 +1,231 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.ICheckBillDetailsDao;
+import com.catic.mobilehos.pay.entity.CheckBillDetails;
+import com.catic.mobilehos.pay.entity.PayOrder;
+import com.catic.mobilehos.utils.Page;
+
+@Repository("checkBillDetailsDao")
+public class CheckBillDetailsDaoImpl extends BaseDao implements ICheckBillDetailsDao {
+
+	@SuppressWarnings("unchecked")
+	public List<CheckBillDetails> findAll(CheckBillDetails cbd,Page page)throws Exception{
+		String sql="";
+		if(page==null){
+	//	  sql="SELECT count(0) AS count FROM pay_bill_detail pbd LEFT JOIN pay_order po ON pbd.orderId=po.orderId WHERE 1=1";	
+			sql="SELECT count(0) AS count  FROM pay_bill_detail pbd LEFT JOIN pay_transactionflow tf ON pbd.orderCode=tf.outTradeNo AND pbd.transType=tf.transType LEFT JOIN pay_order po ON pbd.orderCode=po.out_trade_no WHERE 1=1";
+		}else{
+    //      sql="SELECT pbd.*,po.payStatus,po.creatDate,po.out_trade_no FROM pay_bill_detail pbd LEFT JOIN pay_order po ON pbd.orderId=po.orderId WHERE 1=1";
+			sql="SELECT pbd.*,tf.transTime,tf.transType AS ptTransType,po.payStatus FROM pay_bill_detail pbd LEFT JOIN pay_transactionflow tf ON pbd.orderCode=tf.outTradeNo AND pbd.transType=tf.transType LEFT JOIN pay_order po ON pbd.orderCode=po.out_trade_no WHERE 1=1";
+		}
+		StringBuffer sb=new StringBuffer(sql);
+		List<Object> params=new ArrayList<Object>();
+		if(StringUtils.isNotBlank(cbd.getBillDate())){
+			sb.append(" AND pbd.billDate LIKE ?");
+			params.add(cbd.getBillDate()+"%");			
+		}
+		if(cbd.getBillStatus()!=null){
+			sb.append(" AND pbd.billStatus=?");
+			params.add(cbd.getBillStatus());
+		}
+		if(cbd.getHandle()!=null){
+			sb.append(" AND pbd.handle=?");
+			params.add(cbd.getHandle());
+		}
+		if(cbd.getAccountCode()!=null){
+			sb.append(" AND pbd.accountCode=?");
+			params.add(cbd.getAccountCode());
+		}
+	/*	if(cbd.getPattern()!=null){
+			sb.append(" AND po.pattern=?");
+			params.add(cbd.getPattern());
+		}*/
+		if(page!=null){
+			sb.append(" ORDER BY po.creatDate LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		
+		List<CheckBillDetails> cbdlist=jdbc.query(sb.toString(),params.toArray(),new BeanPropertyRowMapper(CheckBillDetails.class) );
+		return cbdlist;
+		
+	}
+	
+	/**
+	 * 更新状态
+	 * @param orderId
+	 * @param status
+	 * @return Boolean
+	 */
+	public Boolean updateStatus(String id,String handle,String remark) throws Exception{
+		String sql="UPDATE pay_bill_detail SET handle=? ";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(handle);
+		if(StringUtils.isNotBlank(remark)){
+			sb.append(",remark=?");
+			params.add(remark);
+		}
+		sb.append("  WHERE id=?");
+		params.add(id);
+		int count=jdbc.update(sb.toString(), params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+		
+	}
+	
+	/**
+	 * 更新第三方支付状态和his状态
+	 */
+	public Boolean updateOutHis(String id,Integer outStatus,Integer hisStatus)throws Exception{
+		List<Object> params=new ArrayList<Object>();
+		String sql="UPDATE pay_bill_detail SET ";
+		if(outStatus!=null){
+			sql+=" outStatus=?";
+			params.add(outStatus);
+			if(hisStatus!=null){
+				sql+=",hisStatus=?";
+				params.add(hisStatus);
+			}
+		}else{
+			if(hisStatus!=null){
+				sql+=" hisStatus=?";
+				params.add(hisStatus);
+			}
+		}
+		
+		sql+=" WHERE id=?";
+		params.add(id);
+		int count=jdbc.update(sql, params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;		
+	}
+	
+	/**
+	 * 更该对账状态
+	 * @param billStatus
+	 * @param orderCode
+	 * @return
+	 * @throws Exception
+	 */
+	public Boolean reBillStatus(Integer billStatus,String id) throws Exception{
+		String sql="UPDATE pay_bill_detail SET billStatus=?  WHERE id=?";
+		List<Object> params=new ArrayList<Object>();
+		params.add(billStatus);
+		params.add(id);
+		int count=jdbc.update(sql, params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+		
+	}
+
+	@Override
+	public CheckBillDetails findByOId(String orderId) {
+		String  sql="SELECT orderId,orderCode,outStatus,hisStatus,actualPay/100.0 AS actualPay,createTime FROM pay_bill_detail WHERE orderId=?";	
+		List<Object> params=new ArrayList<Object>();
+		params.add(orderId);
+		List<CheckBillDetails> polist=jdbc.query(sql, params.toArray(),new BeanPropertyRowMapper(CheckBillDetails.class));			
+		if(polist!=null&&polist.size()>0){				
+			return polist.get(0);	
+		}
+		return null;	
+	}
+	
+	/**
+	 * 根据订单号查询对账明细
+	 * @param outTrandeNo
+	 * @return
+	 * @throws Exception
+	 */
+	public CheckBillDetails findByTrandeNo(String outTrandeNo,Integer transType) throws Exception{
+		String sql="SELECT pbd.*,po.payStatus FROM pay_bill_detail pbd LEFT JOIN pay_order po ON pbd.orderCode=po.out_trade_no WHERE pbd.orderCode=?";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(outTrandeNo);
+		if(transType!=null){
+			sb.append(" AND transType=?");
+			params.add(transType);
+		}
+		List<CheckBillDetails> list=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBillDetails.class) );
+		if(list!=null&&list.size()>0){
+			return list.get(0);
+		}
+		return null;	
+	}
+	
+	@Override
+	public CheckBillDetails find(String id) throws Exception{
+		String  sql="select  pbd.*,po.payStatus FROM pay_bill_detail pbd LEFT JOIN pay_order po ON pbd.orderCode=po.out_trade_no where 1=1 ";	
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		sb.append(" and id=?");
+		params.add(id);
+		List<CheckBillDetails> polist=jdbc.query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(CheckBillDetails.class));			
+		if(polist!=null&&polist.size()>0){				
+			return polist.get(0);	
+		}
+		return null;	
+	}
+	
+	public Boolean existUnhandled(String accountCode,String date) throws Exception{
+		String  sql="select count(0) FROM pay_bill_detail WHERE  billStatus=0 AND handle=0";	
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		if(StringUtils.isNotBlank(accountCode)){
+			sb.append(" AND accountCode=?");
+			params.add(accountCode);	
+		}
+		if(StringUtils.isNotBlank(date)){
+			sb.append(" AND billDate LIKE ?");
+			params.add(date+"%");	
+		}
+		int count=jdbc.queryForInt(sb.toString(),params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 更新对账单中HIS的信息
+	 * @param hisStatus
+	 * @param hisAccount
+	 * @param billStatus
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public Boolean upHis(Integer hisStatus,Integer hisAmount,Integer billStatus,String id ) throws Exception{
+		String  sql="UPDATE pay_bill_detail SET hisAmount=?,hisStatus=?";
+		StringBuilder sb=new StringBuilder(sql);
+		List<Object> params=new ArrayList<Object>();
+		params.add(hisAmount);
+		params.add(hisStatus);
+		if(billStatus!=null){
+			sb.append(",billStatus=?");
+			params.add(billStatus);
+		}
+		sb.append(" WHERE id=?");
+		params.add(id);
+		int count=jdbc.update(sb.toString(),params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+	
+}

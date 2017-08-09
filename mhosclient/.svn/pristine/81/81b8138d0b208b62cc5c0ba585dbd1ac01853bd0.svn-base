@@ -1,0 +1,75 @@
+$(document).ready(function() {
+	
+	//显示配置菜单
+	loadinfocats();
+	datalist_ctrl.loaddatalist("unpaid/payTerAction_findAllInfo?pageNo="+$("#hid_pageNo").val());
+	$("#act_query").click(function(e){
+		var paras = $("#form_query").serialize();
+		var pageNo=$("#hid_pageNo").val();
+		var url = "unpaid/payTerAction_findAllInfo?pageNo="+pageNo+"&" + paras;
+		datalist_ctrl.loaddatalist(url);
+		return false;
+	});
+	
+});
+
+function refresh_totalcount(){
+	$("#totalcount").html($("#hid_totalcount").val());
+}
+
+var datalist_ctrl = {
+		loaddatalist:function(url){
+				var cnt = $('#div_cnt_table');
+				$.get(url , function(data, status){
+					if (data && data.msg){
+						alert(data.msg);
+					}else if (data){
+						cnt.empty();
+						cnt.append(data);
+					}
+				});
+			},
+		topage: function(url){
+			this.loaddatalist(url);
+		}
+	};
+
+function updateTerminal(id){
+	document.location.href="unpaid/payTerAction_toUpdate?id="+id;
+};
+
+function deleteTerminal(id){
+	if (confirm("你确定删除该信息吗？")){
+		$.post("unpaid/payTerAction_delete",
+				{id:id},
+				function success(data,status){
+					if (status = 'success'){
+						var cnt = $('#div_cnt_table');
+						cnt.empty();
+						cnt.append(data);
+					}else{
+						//alert('删除失败！');
+						showTips('删除失败！',250,2);
+						
+					}
+				});
+	}
+};
+
+function toAdd() {
+	document.location.href="unpaid/payTerAction_toSave";
+}
+
+function loadinfocats(){
+	var url = "unpaid/allYqJson";
+	var dis = $('#district');
+	dis.empty();
+	dis.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var jarr = eval(data);
+		for (var i in jarr){
+			var o = $('<option></option>').val(jarr[i].yqId).html(jarr[i].name);
+			dis.append(o.get());
+		}
+	});
+}

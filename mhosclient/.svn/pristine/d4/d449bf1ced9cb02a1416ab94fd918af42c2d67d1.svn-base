@@ -1,0 +1,81 @@
+package com.catic.mobilehos.pay.action;
+
+import java.util.List;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.entity.PayLog;
+/*
+ * 执行日志
+ */
+@Controller
+@Scope("prototype")
+@SuppressWarnings("serial")
+public class PayLogAction extends BaseAction {
+
+private List<PayLog>  plList;
+private PayLog        pl;
+private String        orderId;
+private String        out_trade_no;
+	
+	@SuppressWarnings("finally")
+	public String findLog(){
+	
+	    try {
+	    	pl=new PayLog();
+	    	pl.setOut_trade_no(out_trade_no);
+	        plList=payLogBiz.findPayLog(pl);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally{
+			return SUCCESS;
+		}
+	}
+
+	
+	
+	
+	
+	public List<PayLog> getPlList() {
+		return plList;
+	}
+
+	public void setPlList(List<PayLog> plList) {
+		this.plList = plList;
+	}
+
+	public PayLog getPl() {
+		return pl;
+	}
+
+	public void setPl(PayLog pl) {
+		this.pl = pl;
+	}
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+
+
+
+
+	public String getOut_trade_no() {
+		return out_trade_no;
+	}
+
+
+
+
+
+	public void setOut_trade_no(String out_trade_no) {
+		this.out_trade_no = out_trade_no;
+	}
+	
+	
+}

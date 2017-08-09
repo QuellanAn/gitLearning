@@ -1,0 +1,122 @@
+$(document).ready(function() {
+	// 加载院区
+	loadinfocats();
+	// 加载设备类型
+	loadFacilityType();
+	$.jBox.tip("数据加载中...", 'loading');
+	datalist_ctrl.loaddatalist("selfService/selfServiceManageAction_findAllInfo?pageNo="+$("#hid_pageNo").val());
+	$("#act_query").click(function(e){
+		$.jBox.tip("数据加载中...", 'loading');
+		var paras = $("#form_query").serialize();
+		var pageNo=$("#hid_pageNo").val();
+		var url = "selfService/selfServiceManageAction_findAllInfo?pageNo="+pageNo+"&" + paras;
+		datalist_ctrl.loaddatalist(url);
+		return false;
+	});
+	
+});
+
+function refresh_totalcount(){
+	$("#totalcount").html($("#hid_totalcount").val());
+}
+
+var datalist_ctrl = {
+	loaddatalist : function(url) {
+		var cnt = $('#div_cnt_table');
+		$.get(url, function(data, status) {
+			if (data && data.msg) {
+				jBox.alert(data.msg, 'error');
+			} else if (data) {
+				window.setTimeout(function() {
+					if (data != null) {
+						cnt.empty();
+						cnt.append(data);
+						$.jBox.tip('数据加载完成。', 'success');
+					}
+				}, 500);
+			}
+		});
+	},
+	topage : function(url) {
+		this.loaddatalist(url);
+	}
+};
+
+/**
+ * 跳转到添加页面
+ */
+function toAdd() {
+	document.location.href="selfService/selfServiceManageAction_toSave";
+}
+
+/**
+ * 跳转到更新页面
+ * @param id
+ */
+function toUpdate(id){
+	document.location.href="selfService/selfServiceManageAction_toUpdate?id="+id;
+}
+
+/**
+ * 删除终端
+ * @param id
+ */
+function deleteTerminal(id){
+	var submit = function (v, h, f) {
+	    if (v == 'ok') {
+	    	$.post("selfService/selfServiceManageAction_delete",
+				{id:id},
+				function success(data,status){
+					if (status = 'success'){
+						var cnt = $('#div_cnt_table');
+						 cnt.empty();
+						 cnt.html(data);
+					}else{
+						window.setTimeout(function () { 
+							$.jBox.tip('删除成功。', 'error'); 
+						}, 500);
+					}
+				});
+	    }else if (v == 'cancel') {
+	    	jBox.tip("取消", 'info');
+	    }
+
+	    return true; //close
+	};
+	$.jBox.confirm("确定要删除数据吗？", "提示", submit)
+};
+
+/**
+ * 加载院区选项
+ */
+function loadinfocats(){
+	var url = "unpaid/allYqJson";
+	var dis = $('#district');
+	dis.empty();
+	dis.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var jarr = eval(data);
+		for (var i in jarr){
+			var o = $('<option></option>').val(jarr[i].yqId).html(jarr[i].name);
+			dis.append(o.get());
+		}
+	});
+}
+
+/**
+ * 加载设备类型
+ */
+function loadFacilityType(){
+	var url = 'unpaid/payDictionaryAction_findAll?dictionaryCode='+"facility_type";
+	var body = $('#facilityType');
+	body.empty();
+	body.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var arr1 = eval(data);
+        var arr=eval("("+arr1.data+")");
+		for (var i in arr){
+			var o = $('<option></option>').val(arr[i].codeNo).html(arr[i].codeName);
+			body.append(o.get());
+		}
+	});
+};

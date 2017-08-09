@@ -1,0 +1,178 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"
+	import="java.util.*, com.catic.mobilehos.service.vo.*"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+
+<%
+	Page<DoctorVO> pageBean = (Page<DoctorVO>) request
+	.getAttribute("pageBean");
+	List<DoctorVO> lst = pageBean.getCurPageData();
+
+%>
+
+
+<input id="hid_totalcount" type="hidden"
+	value="<%=pageBean.getTotalRecord()%>" />
+<script type="text/javascript">
+	refresh_unpubcount();
+</script>
+<table id="tb_cnt" class="list-table" style="width:850px;">
+	<thead>
+		<tr>
+			<th width="4%"><input type="checkbox" name="selectAll" id="selectAll" onclick="selectAll();"/></th>
+			<th width="10%">医生排序</th>
+			<th width="10%">照片</th>
+			<th width="8%">姓名</th>
+			<th width="8%">职位</th>
+			<th width="12%">科室</th>
+			<th width="7%">工号</th>
+			<th width="7%">专家</th>
+			<th width="7%">状态</th>
+			<th width="8%">信息度</th>
+			<th width="15%">操作</th>
+		</tr>
+	</thead>
+
+	<tbody id="tb_cnt_body">
+		<%
+			int num=1;
+			for (DoctorVO v : lst) {
+		%>
+		<tr>
+			<td align="center"><input type="checkbox" id="xuan" name="xzsj" value="<%=v.getDoctorId()%>"/></td>
+			<td align="center"><%=v.getSortNumber()%></td>
+			<td align="center"><img style="width: 50px;height:50px;" src="<%=v.getPhoto()%>" onerror="this.onerror=null;this.src='resources/images/doctor.png;' "></td>
+			<td align="center"><%=v.getDoctorName()%></td>
+			<td align="center"> <%=v.getJobName()%></td>
+			<td align="center">
+			<%
+			 	if(v.getDepartmentName()==null||v.getDepartmentName()=="null"||v.getDepartmentName()==""){
+			 	%>
+			<%=v.getDeptName()%>
+			
+			 <% 
+			 	} else{
+			 %>
+			 
+			  <%=v.getDepartmentName()%>
+			  
+			  <%
+			 	}
+			 %>
+			
+			 </td>
+			 <td align="center">
+			 <%=v.getCode()%>	 
+			 </td>
+			 <td align="center">
+			 <%
+			 	if(v.getIsExpert()==1){
+			 	%>
+			 	是
+			 <% 
+			 	} else{
+			 %>
+			 	否
+			 <%
+			 	}
+			 %>
+			 </td>
+			 <td align="center">
+			 <%
+			 	if(v.getStatus()==1){
+			 	%>
+			 	正常
+			 <% 
+			 	} else{
+			 %>
+			 	冻结
+			 <%
+			 	}
+			 %>
+			 </td>
+			 <td align="center"><%=v.getIntegrity() %></td>
+			<td align="left">&nbsp;&nbsp;
+			<a class="act_edit" id="act_edit_<%=v.getDoctorId()%>"
+				href="javascript:act_edit('<%=v.getDoctorId()%>');">
+					编辑 </a>&nbsp;
+			<a href="javascript:operate('<%=v.getSortNumber()%>','up','<%=num++ %>');">上移</a>
+					<br/>
+				<a></a><br/>&nbsp;&nbsp;
+			<a class="act_delete" id="act_delete_<%=v.getDoctorId()%>"
+				href="javascript:deleteDoctor('<%=v.getDoctorId()%>','<%=v.getDoctorName()%>');">
+					删除</a>&nbsp;&nbsp;
+			<a href="javascript:operate('<%=v.getSortNumber()%>','down','<%=num++ %>');">下移</a>
+					</td>
+		</tr>
+		<%
+			}
+		%>
+	</tbody>
+</table>
+
+
+<div class="pagination-wrap f-fr">
+
+<a href="#" style="display: none;" id="currentPage"
+		onclick="javascript:datalist_ctrl.topage('<%=pageBean.getQueryUrl()%>'+'&page='+'<%=pageBean.getCurPage()%>');return false;">
+		刷新 </a>
+
+
+	<%
+		if (pageBean.isFirstPage()) {
+	%>
+	<a class="pagination">首页</a>
+	<%
+		} else {
+	%>
+	<a href="#" class="pagination"
+		onclick="javascript:datalist_ctrl.topage('<%=pageBean.getFirstPageUrl()%>');return false;">
+		首页 </a>
+	<%
+		}
+	%>
+	<%
+		if (pageBean.isFirstPage()) {
+	%>
+	<a class="pagination">上页</a>
+	<%
+		} else {
+	%>
+	<a href="#" class="pagination"
+		onclick="javascript:datalist_ctrl.topage('<%=pageBean.getPrevPageUrl()%>');return false;">
+		上页 </a>
+		
+		
+		
+	<%
+		}
+	%>
+	<%
+		if (pageBean.isLastPage()) {
+	%>
+	<a class="pagination">下页</a>
+	<%
+		} else {
+	%>
+	<a href="#" class="pagination"
+		onclick="javascript:datalist_ctrl.topage('<%=pageBean.getNextPageUrl()%>'); return false;">
+		下页 </a>
+	<%
+		}
+	%>
+	<%
+		if (pageBean.isLastPage()) {
+	%>
+	<a class="pagination">末页</a>
+	<%
+		} else {
+	%>
+	<a href="#" class="pagination"
+		onclick="javascript:datalist_ctrl.topage('<%=pageBean.getLastPageUrl()%>');return false;">
+		末页 </a>
+	<%
+		}
+	%>
+	&nbsp; <span class="pagination">共<%if(pageBean.getTotalPage()>0){out.print(pageBean.getCurPage()+"/");}%><%=pageBean.getTotalPage()%>页
+	</span>
+</div>

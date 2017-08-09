@@ -1,0 +1,174 @@
+package com.catic.mobilehos.pay.biz.impl;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
+import jxl.Workbook;
+import jxl.format.Alignment;
+import jxl.format.Colour;
+import jxl.format.UnderlineStyle;
+import jxl.format.VerticalAlignment;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+
+import org.springframework.stereotype.Service;
+
+import com.catic.mobilehos.pay.biz.BaseBiz;
+import com.catic.mobilehos.pay.biz.ICheckBillBiz;
+import com.catic.mobilehos.pay.entity.CheckBill;
+import com.catic.mobilehos.pay.entity.CheckBillDetails;
+import com.catic.mobilehos.utils.Page;
+
+
+@Service("checkBillBiz")
+public class CheckBillBizImpl extends BaseBiz implements ICheckBillBiz{
+	@Override
+	public List<CheckBill> findAll(CheckBill checkBill,Page page) throws Exception{
+		
+		return checkBillDao.findAll(checkBill,page);
+	}
+	@Override
+	public InputStream saveExport(List<CheckBill> list,List<CheckBillDetails> lcbd) throws Exception{
+		ByteArrayOutputStream baos=new ByteArrayOutputStream();
+		if(list!=null){
+			saveOnOutputStram(list,baos);
+		}
+		if(lcbd!=null){
+			saveOnOutputStram1(lcbd,baos);
+		}
+		return new ByteArrayInputStream(baos.toByteArray());
+	}
+
+	private void saveOnOutputStram(List<CheckBill> list,OutputStream os) throws Exception{
+		WritableWorkbook wwb=Workbook.createWorkbook(os);
+		WritableSheet ws=wwb.createSheet("sheet", 0);
+		WritableFont wf=new WritableFont(WritableFont.ARIAL,WritableFont.DEFAULT_POINT_SIZE, WritableFont.NO_BOLD,false,UnderlineStyle.NO_UNDERLINE,Colour.BLACK);
+		WritableCellFormat wcf=new WritableCellFormat(wf);
+		wcf.setAlignment(Alignment.CENTRE);
+		wcf.setVerticalAlignment(VerticalAlignment.CENTRE);
+		ws.getSettings().setDefaultColumnWidth(17);
+		
+		ws.addCell(new jxl.write.Label(0,0,"账单日期",wcf));
+		ws.addCell(new jxl.write.Label(1,0,"订单总数(笔)",wcf));
+		ws.addCell(new jxl.write.Label(2,0,"支付金额(元)",wcf));
+		ws.addCell(new jxl.write.Label(3,0,"第三方平台(元)",wcf));
+		ws.addCell(new jxl.write.Label(4,0,"HIS平台(元)",wcf));
+		ws.addCell(new jxl.write.Label(5,0,"对账日期",wcf));
+		ws.addCell(new jxl.write.Label(6,0,"对账状态",wcf));
+		ws.addCell(new jxl.write.Label(7,0,"操作",wcf));
+		for(int i=0;i<list.size();i++){	
+			int j=0;
+			ws.addCell(new jxl.write.Label(j,i+1,list.get(i).getBillDate(),wcf));
+			ws.addCell(new jxl.write.Label(j+1,i+1,list.get(i).getTotal()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+2,i+1,list.get(i).getAmount()+"",wcf));
+		/*	ws.addCell(new jxl.write.Label(j+3,i+1,list.get(i).getHisAmount()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+4,i+1,list.get(i).getOutAmout()+"",wcf));*/
+			ws.addCell(new jxl.write.Label(j+5,i+1,list.get(i).getCreateTime(),wcf));
+			if(list.get(i).getBillStatus()==0){
+				ws.addCell(new jxl.write.Label(j+6,i+1,"正常",wcf));	
+			}else{
+				ws.addCell(new jxl.write.Label(j+6,i+1,"异常",wcf));	
+			}
+			if(list.get(i).getStatus()==0){
+				ws.addCell(new jxl.write.Label(j+7,i+1,"待确认",wcf));
+			}else{
+				ws.addCell(new jxl.write.Label(j+7,i+1,"确认",wcf));
+			}
+			
+		}
+		wwb.write();
+		wwb.close();
+	}
+	
+	
+	private void saveOnOutputStram1(List<CheckBillDetails> list,OutputStream os) throws Exception{
+		WritableWorkbook wwb=Workbook.createWorkbook(os);
+		WritableSheet ws=wwb.createSheet("sheet", 0);
+		WritableFont wf=new WritableFont(WritableFont.ARIAL,WritableFont.DEFAULT_POINT_SIZE, WritableFont.NO_BOLD,false,UnderlineStyle.NO_UNDERLINE,Colour.BLACK);
+		WritableCellFormat wcf=new WritableCellFormat(wf);
+		wcf.setAlignment(Alignment.CENTRE);
+		wcf.setVerticalAlignment(VerticalAlignment.CENTRE);
+		ws.getSettings().setDefaultColumnWidth(17);
+		
+		ws.addCell(new jxl.write.Label(0,0,"订单号",wcf));
+		ws.addCell(new jxl.write.Label(1,0,"支付流水号",wcf));
+		ws.addCell(new jxl.write.Label(2,0,"缴费金额(元)",wcf));
+		ws.addCell(new jxl.write.Label(3,0,"支付方式",wcf));
+		ws.addCell(new jxl.write.Label(4,0,"支付类型",wcf));
+		ws.addCell(new jxl.write.Label(5,0,"第三方支付",wcf));
+		ws.addCell(new jxl.write.Label(6,0,"支付平台",wcf));
+		ws.addCell(new jxl.write.Label(7,0,"HIS方",wcf));
+		ws.addCell(new jxl.write.Label(8,0,"对账状态",wcf));
+		ws.addCell(new jxl.write.Label(9,0,"失败原因",wcf));
+		for(int i=0;i<list.size();i++){	
+			int j=0;
+			ws.addCell(new jxl.write.Label(j,i+1,list.get(i).getOut_trade_no(),wcf));
+			ws.addCell(new jxl.write.Label(j+1,i+1,list.get(i).getOut_trade_no()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+2,i+1,list.get(i).getActualPay()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+3,i+1,list.get(i).getPattern()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+4,i+1,list.get(i).getPayType()+"",wcf));
+			if(list.get(i).getOutStatus()!=null&&list.get(i).getOutStatus()==0){
+				ws.addCell(new jxl.write.Label(j+5,i+1,"成功",wcf));	
+			}else{
+				ws.addCell(new jxl.write.Label(j+5,i+1,"失败",wcf));	
+			}
+			if(list.get(i).getPayType()!=null&&list.get(i).getPayType()==0){
+				ws.addCell(new jxl.write.Label(j+6,i+1,"成功",wcf));
+			}else{
+				ws.addCell(new jxl.write.Label(j+6,i+1,"失败",wcf));
+			}
+			if(list.get(i).getHisStatus()!=null&&list.get(i).getHisStatus()==0){
+				ws.addCell(new jxl.write.Label(j+7,i+1,"成功",wcf));
+			}else{
+				ws.addCell(new jxl.write.Label(j+7,i+1,"失败",wcf));
+			}
+			
+			ws.addCell(new jxl.write.Label(j+8,i+1,list.get(i).getFailReason(),wcf));
+		}
+		wwb.write();
+		wwb.close();
+	}
+
+	@Override
+	public Double totalAmount(String billDate, Integer status,Integer pattern) throws Exception {
+		return checkBillDao.totalAmount(billDate, status,pattern);
+	}
+
+	@Override
+	public Integer totalNumber(String billDate, Integer status,Integer pattern)
+			throws Exception {
+		return checkBillDao.totalNumber(billDate, status,pattern);
+	}
+
+	@Override
+	public Double totalRefund(String billDate, Integer status,Integer pattern) throws Exception {
+		return checkBillDao.totalRefund(billDate, status,pattern);
+	}
+	@Override
+	public Integer totalRefundNum(String billDate, Integer status,
+			Integer pattern) throws Exception {
+		return checkBillDao.totalRefundNum(billDate, status, pattern);
+	}
+	
+	@Override
+	public Boolean updateStatus(String id, Integer status)
+			throws Exception {
+		return checkBillDao.updateStatus(id, status);
+	}
+	@Override
+	public List<CheckBill> findAll_WeChat(CheckBill checkBill, Page page)
+			throws Exception {
+		return checkBillDao.findAll_WeChat(checkBill, page);
+	}
+	@Override
+	public List<CheckBill> findAll_AliPay(CheckBill checkBill, Page page)
+			throws Exception {
+		return checkBillDao.findAll_AliPay(checkBill, page);
+	}
+
+}

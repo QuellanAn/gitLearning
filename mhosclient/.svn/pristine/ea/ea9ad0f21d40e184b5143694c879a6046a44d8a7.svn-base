@@ -1,0 +1,144 @@
+package com.catic.mobilehos.action;
+
+import java.io.File;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.catic.mobilehos.service.HospitalGuideService;
+import com.catic.mobilehos.service.ServiceResult;
+import com.catic.mobilehos.service.vo.HosIntroVO;
+
+/**
+ * 后台医院介绍配置
+ * @author xieweipeng
+ *
+ */
+public class HosIntroCfgAction extends BaseAction {
+
+	private static final long serialVersionUID = 1L;
+	
+	private Log log = LogFactory.getLog(this.getClass());
+	
+	private HosIntroVO hosIntroVO;
+	
+	private File hosImagePrev;
+	
+	private HospitalGuideService hospitalGuideService;
+	
+
+	public HospitalGuideService getHospitalGuideService() {
+		return hospitalGuideService;
+	}
+
+	public void setHospitalGuideService(HospitalGuideService hospitalGuideService) {
+		this.hospitalGuideService = hospitalGuideService;
+	}
+	
+
+	public HosIntroVO getHosIntroVO() {
+		return hosIntroVO;
+	}
+
+	public void setHosIntroVO(HosIntroVO hosIntroVO) {
+		this.hosIntroVO = hosIntroVO;
+	}
+
+	public File getHosImagePrev() {
+		return hosImagePrev;
+	}
+
+	public void setHosImagePrev(File hosImagePrev) {
+		this.hosImagePrev = hosImagePrev;
+	}
+
+	/**
+	 * 显示医院介绍信息
+	 * @return
+	 */
+	public String showHosIntroCfgPage(){
+		try{
+			this.hosIntroVO = hospitalGuideService.getHospitalIntroductionWithVO();
+			return SUCCESS;
+		}catch(Exception e){
+			log.error(null, e);
+			return ERROR;
+		}
+	}
+	
+	
+	/**
+	 * 显示医院介绍配置页
+	 * @return
+	 */
+	public String showHosIntroCfgEditPage(){
+		try{
+			this.hosIntroVO = hospitalGuideService.getHospitalIntroductionWithVO();
+			return SUCCESS;
+		}catch(Exception e){
+			log.error(null, e);
+			return ERROR;
+		}
+	}
+	
+	public void validateSaveHosIntro(){
+		log.debug("validateSaveHosIntro start...");
+	}
+	
+	/**
+	 * 保存医院介绍
+	 * @return
+	 */
+	public String saveHosIntro(){
+		try{
+			String phone=hosIntroVO.getPhone().replace(";", "<br/>");
+			hosIntroVO.setPhone(phone);
+			System.out.println("saveHostInfro start...");
+			
+			ServiceResult sr = 	hospitalGuideService.saveHospitalIntroduction(hosIntroVO);
+			
+			System.out.println("edit hosinfo is : " + sr.isSuccess() + "  " + System.currentTimeMillis());
+			
+			if (sr.isSuccess()){
+				return SUCCESS;
+			}else{
+				this.addActionError(sr.getErrMsg());
+				return ERROR;
+			}
+		}catch(Exception e){
+			log.error(null, e);
+			return ERROR;
+		}
+	}
+	
+	/**
+	 * 获取医院的图片
+	 * @return
+	 */
+	public String getHosImage(){
+		try{
+			this.hosIntroVO = hospitalGuideService.getHospitalIntroductionWithVO();
+			return SUCCESS;
+		}catch(Exception e){
+			log.error(null, e);
+			return ERROR;
+		}
+		
+	}
+	
+	
+	/**
+	 * 预览医院的图片
+	 */
+	public void prevHosImage(){
+		try{
+			ServiceResult sr = this.hospitalGuideService.saveHosIntroImage(
+					request.getServletContext(), hosIntroVO.getPic());
+			this.writeServiceReuslt(sr);
+		}catch(Exception e){
+			log.error(null, e);
+		}
+
+	}
+
+}

@@ -1,0 +1,152 @@
+package com.catic.mobilehos.utils;
+
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+  
+public class ExportExcel {
+	public static void excelOut(String[] cloumName, List<List<Object>> list,String fileName,
+		HttpServletRequest request,HttpServletResponse response){  
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet sheet = workbook.createSheet(fileName);
+		HSSFRow oneRow=sheet.createRow(0);
+		oneRow.setHeight((short) 500);
+		HSSFCell cell = null;
+		HSSFCellStyle style = workbook.createCellStyle();
+		style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		style.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		HSSFFont font = workbook.createFont();
+		font.setFontName("宋体");
+		style.setFont(font);
+		style.setWrapText(true);
+		
+		HSSFCellStyle style1 = workbook.createCellStyle();
+		style1.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		style1.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		style1.setFillForegroundColor(HSSFColor.AQUA.index);
+		style1.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND); 
+		style1.setFont(font); 
+          
+        HSSFRow row = sheet.createRow(0);    
+        for(int i = 0; i < cloumName.length; i++){    
+            //单元格  
+        	cell = row.createCell(i);    
+        	cell.setCellStyle(style1);    
+        	cell.setCellValue(cloumName[i]);   
+        }    
+          
+        for (int i = 0; i < list.size(); i++){    
+            row = sheet.createRow(i + 1);    
+            List<Object> dataList = list.get(i);    
+            for (int j = 0; j < dataList.size(); j++) {  
+                // 表格内容样式设置  
+            	cell = row.createCell(j);
+            	cell.setCellStyle(style);    
+            	cell.setCellValue(String.valueOf(dataList.get(j)));   
+            	sheet.autoSizeColumn(( short ) j);
+            }  
+         }  
+        
+        try{   
+        	response.reset();
+        	OutputStream os = response.getOutputStream();
+			response.setHeader("Content-disposition","attachment; filename="+URLEncoder.encode(fileName, "utf-8")+".xls");//设定输出文件头
+			response.setContentType("application/msexcel");//定义输出类型
+            workbook.write(os);
+            os.flush();  
+            os.close();
+            os.close();
+        } catch (Exception e){  
+             e.printStackTrace();    
+        }
+	}
+	
+	/**
+	 * 自定义表头的报表导出
+	 * @param interf 自定义表头接口实现
+	 * @param list 数据内容list
+	 * @param fileName 文件名称
+	 * @param headerRows 表头占据的行数
+	 * @param request HttpServletRequest
+	 * @param response HttpServletResponse
+	 */
+	public static void excelOutWithCustomHeader(CustomHeaderInterf interf, List<List<Object>> list,String fileName, int headerRows, 
+			HttpServletRequest request,HttpServletResponse response){  
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet sheet = workbook.createSheet(fileName);
+		HSSFRow oneRow=sheet.createRow(0);
+		oneRow.setHeight((short) 500);
+		HSSFCell cell = null;
+		
+		// 内容单元格的样式
+		HSSFCellStyle style = workbook.createCellStyle();
+		style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		style.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		HSSFFont font = workbook.createFont();
+		font.setFontName("宋体");
+		style.setFont(font);
+		style.setWrapText(true);
+		
+		// 表头单元格的样式
+		HSSFCellStyle style1 = workbook.createCellStyle();
+		style1.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		style1.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		style1.setFillForegroundColor(HSSFColor.AQUA.index);
+		style1.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND); 
+		style1.setFont(font); 
+          
+        HSSFRow row = sheet.createRow(0);    
+        if(interf != null){
+        	// 调用自定义表头的实现方法
+        	interf.dealCustomHeader(sheet, style1);
+        }
+          
+        for (int i = 0; i < list.size(); i++){    
+            row = sheet.createRow(i + headerRows);    
+            List<Object> dataList = list.get(i);    
+            for (int j = 0; j < dataList.size(); j++) {  
+                // 表格内容样式设置  
+            	cell = row.createCell(j);
+            	cell.setCellStyle(style);    
+            	cell.setCellValue(String.valueOf(dataList.get(j)));   
+            	sheet.autoSizeColumn(( short ) j);
+            }  
+         }  
+        
+        try{ 
+        	response.reset();
+        	OutputStream os = response.getOutputStream();
+			response.setHeader("Content-disposition","attachment; filename="+URLEncoder.encode(fileName, "utf-8")+".xls");//设定输出文件头
+			response.setContentType("application/msexcel");//定义输出类型
+            workbook.write(os);
+            os.close();
+        } catch (Exception e){  
+             e.printStackTrace();    
+        }
+	}
+	
+	/**
+	 * 自定义表头处理接口定义
+	 * @author 朱伟权
+	 */
+	public interface CustomHeaderInterf{
+		
+		/**
+		 * 自定义表头处理方法
+		 * @param sheet excel的sheet对象
+		 * @param style 表头单元格样式
+		 */
+		void dealCustomHeader(HSSFSheet sheet, HSSFCellStyle style);
+	}
+}

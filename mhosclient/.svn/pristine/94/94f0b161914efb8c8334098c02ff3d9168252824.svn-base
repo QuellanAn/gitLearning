@@ -1,0 +1,115 @@
+$(document).ready(function() {
+	$('input[name=sq_startdate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=sq_enddate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$("a.selectTime:eq(0)").click();
+	
+	$("#act_query").click(function(){
+		updateChart();
+	});
+	
+	// 默认显示图表
+	updateChart();
+});
+
+/**
+ * 更新显示的图表
+ */
+function updateChart(){
+	updateLineChart();
+}
+
+/**
+ * 更新显示的图表(折线图)
+ */
+function updateLineChart(){
+	var beginDate = $("#beginDate").val();
+	var endDate = $("#endDate").val();
+	var myChart = echarts.init(document.getElementById('Section1'));
+	var title = "缴费情况分析变化趋势图";
+	myChart.showLoading({
+        text: '读取数据中...' // loading，是在读取数据的时候显示
+    });
+	$.ajax({
+		type : "post",
+		url : "paymentStatisticsAction_getCountByDate",
+		data:{"beginDate":beginDate, "endDate":endDate},
+		dataType : "json",
+		async : true,
+		success : function(data) {
+			var rows = eval(data.list);
+			var arr = [];
+			var arrSuccess = [];
+			var arrFail = [];
+			//调用函数获取值，转换成数组模式  
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].admDate);
+				arrSuccess.push(rows[i].successCount);
+				arrFail.push(rows[i].failCount);
+			}
+			option = {
+				title : {
+					text : title,
+					x:'center',
+					y:'bottom'
+				},
+				tooltip : {
+					trigger : 'axis',
+			        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+			            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+			        }
+				},
+				toolbox : {
+					show : true,
+					feature : {
+						restore : {show: true},
+			            saveAsImage : {show: true}
+					}
+				},
+				xAxis : {
+					type : 'category',
+					boundaryGap: true,
+					splitLine : {
+						show : false
+					},
+					data : arr
+				},
+				grid : {
+					left : '3%',
+					right : '4%',
+					bottom : '12%',
+					containLabel : true
+				},
+				yAxis : {name : "用户量(人)"},
+				series : [ 
+				           {
+				        	   name:'未缴费-数量',
+				        	   type:'bar',
+				        	   stack: '缴费情况',
+				        	   data:arrFail
+				           },
+				           {
+				        	   name:'缴费成功-数量',
+				        	   type:'bar',
+				        	   stack: '缴费情况',
+				        	   data:arrSuccess
+				           }
+				  ]
+			};
+			myChart.setOption(option);
+			myChart.hideLoading();
+		},error : function(errorMsg) {
+	         alert("图表请求数据失败!");
+	         myChart.hideLoading();
+		}
+	});
+}
+
+/**
+ * 点击“最近7天”等设置时间区间
+ */
+function setSelectTime(days){
+	var beginDate = getDayAdd((-1) * (days - 1));
+	var endDate = getTodayDate();
+	$("#beginDate").val(beginDate);
+	$("#endDate").val(endDate);
+}

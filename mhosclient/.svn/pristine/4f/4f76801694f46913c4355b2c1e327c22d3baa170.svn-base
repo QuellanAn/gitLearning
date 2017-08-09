@@ -1,0 +1,32 @@
+package com.catic.mobilehos.dao;
+
+import java.util.List;
+
+import com.catic.mobilehos.po.ServiceEvaluationHosPO;
+public interface ServiceEvaluationHosDAO {
+
+	/**
+	 * 根据时间，总体评价，查询服务评价
+	 * @param overallEvaluation
+	 * @param startDate
+	 * @param endDate
+	 * @param offset
+	 * @param length
+	 * @return
+	 */
+	List<ServiceEvaluationHosPO> findListByParas (String doctorName,String departmentCode,String overallEvaluation, java.sql.Date startDate, java.sql.Date endDate, int offset, int length);
+	/**
+	 * 根据时间，总体评价，查询记录数量
+	 * @param overallEvaluation
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 */
+	int countServiceEvaluationHos (String doctorName,String departmentCode,String overallEvaluation, java.sql.Date startDate, java.sql.Date endDate);
+	
+	
+	
+	ServiceEvaluationHosPO findServiceEvaluationHosById(Integer serviceEvaluationId);
+	
+	int statisticServiceEvaluationHos(String departmentCode,String overallEvaluation,java.sql.Date startDate, java.sql.Date endDate);
+}

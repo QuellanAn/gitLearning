@@ -1,0 +1,1103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+
+	<!-- 后台管理页面的基础包 -->
+	<package name="mngsys_default" namespace="/"
+		extends="struts-default,json-default">
+		
+		<!-- <interceptors> 
+			定义权限控制拦截器
+			<interceptor name="authority" class="com.catic.mobilehos.interceptor.ManagerInterceptor" /> 
+			
+			定义一个包含权限控制的拦截器栈
+			<interceptor-stack name="mydefault">
+				<interceptor-ref name="authority" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors> 
+		定义默认拦截器
+		<default-interceptor-ref name="mydefault" />
+		<global-results> 
+			<result name="none" type="redirect">/login.jsp</result>
+		</global-results> -->
+		
+		
+		
+		<default-action-ref name="index" />
+
+		<global-results>
+			<result name="error">error.jsp
+			</result>
+		</global-results>
+
+		<!-- <global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception"
+				result="error" />
+		</global-exception-mappings> -->
+
+		<action name="index">
+			<result name="index_result">
+				/indexs.jsp
+			</result>
+		</action>
+		<!-- <action name="login" class="com.catic.mobilehos.action.LoginAction">
+			<result name="error">/login.jsp</result>
+			<result name="success" type="redirect">/index.jsp</result>
+		</action> -->
+		<action name="logout" class="com.catic.mobilehos.action.LoginAction"
+			method="logout">
+			<result name="success" type="redirect">/login.jsp</result>
+		</action>
+	</package>
+
+	<package name="usermanage" namespace="/usermanage" extends="mngsys_default">
+		<action name="getallusers" class="com.catic.mobilehos.action.UserMngAction"
+			method="getAllUsers">
+			<result type="json"></result>
+		</action>
+		<action name="specialist_*" class="com.catic.mobilehos.action.SpecialistAction"
+			method="{1}">
+			<result name="all">/specialist/allSpecialist.jsp</result>
+			<result name="success">/specialist/datalist.jsp</result>
+			<result name="toSave">/specialist/save.jsp</result>
+			<result name="toModify">/specialist/modify.jsp</result>
+		</action>
+	</package>
+
+	<!-- 后台管理页面-业务-发布资讯 -->
+	<package name="hosinfomng" namespace="/hosinfomng" extends="mngsys_default">
+		<action name="showaddhosinfopage" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="showAddHosInfoPage">
+			<interceptor-ref name="chainStack"></interceptor-ref>
+			<result>/hosinfomng/add_edit_hosinfo.jsp</result>
+			<result name="error">/hosinfomng/add_edit_hosinfo.jsp</result>
+		</action>
+
+		<action name="showedithosinfopage" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="showEditHosInfoPage">
+			<interceptor-ref name="chainStack"></interceptor-ref>
+			<result>/hosinfomng/add_edit_hosinfo.jsp</result>
+			<result name="error">/hosinfomng/add_edit_hosinfo.jsp</result>
+		</action>
+
+		<action name="addhosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="addHosInfo">
+			<result type="redirect">/hosinfomng/hos_pub_info_main.jsp</result>
+			<result name="input" type="chain">showaddhosinfopage</result>
+			<result name="error" type="chain">showaddhosinfopage</result>
+		</action>
+
+		<action name="uploadHosPubInfoHtmlImg"
+			class="com.catic.mobilehos.action.HosPubInfoHtmlImgUploadAction">
+			<result type="json"></result>
+		</action>
+
+		<action name="edithosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="editHosInfo">
+			<result type="redirect">/hosinfomng/hos_pub_info_main.jsp</result>
+			<result name="input" type="chain">showedithosinfopage</result>
+			<result name="error" type="chain">showedithosinfopage</result>
+		</action>
+
+		<action name="deletehosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="deleteHosInfo">
+			<result>/hosinfomng/hos_pub_info_datalist.jsp</result>
+		</action>
+		
+		<action name="deletehospub" class="com.catic.mobilehos.action.HosInfoMngAction" method="deleteHosPub" />
+
+		<action name="prevtemphosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="prevTempHosInfo">
+			<result>/hosinfomng/prev_temp_hosinfo.jsp</result>
+			<result name="input" type="chain">/hosinfomng/showaddhosinfopage
+			</result>
+			<result name="error" type="chain">/hosinfomng/showaddhosinfopage
+			</result>
+		</action>
+
+		<action name="prevunpubhosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="prevUnpubHosInfo">
+			<result>/hosinfomng/prev_unpub_hosinfo.jsp</result>
+		</action>
+
+		<action name="prevsphosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="prevUnpubHosInfo">
+			<result>/hosinfomng/prev_sp_hosinfo.jsp</result>
+		</action>
+
+		<action name="prevpubhosinfo" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="prevUnpubHosInfo">
+			<result>/hosinfomng/prev_pub_hosinfo.jsp</result>
+		</action>
+
+		<action name="uploadimage" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="uploadImage">
+			<result type="json"></result>
+		</action>
+
+		<action name="getinfocats" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="getInfoCatsJson">
+			<result type="json"></result>
+		</action>
+
+		<action name="getunapprovedhospubinfolist" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="getUnApprovedHosPubInfoList">
+			<result>/hosinfomng/hos_pub_info_datalist.jsp</result>
+		</action>
+
+		<action name="getWaitAppHosPubInfoList" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="getWaitAppHosPubInfoList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/hosinfomng/hos_pub_info_datalist_sp.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+		<action name="getApprovedHosPubInfoList" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="getApprovedHosPubInfoList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/hosinfomng/hos_pub_info_datalist_pub.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+
+		<action name="getunapprovedcatmenu" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="getUnApprovedCatMenu">
+			<result>/hosinfomng/hos_pub_info_catmenu.jsp</result>
+		</action>
+
+		<action name="editcatname" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="editCatName">
+			<result type="json"></result>
+		</action>
+
+		<action name="addcat" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="addCat">
+			<result type="json"></result>
+			<result name="input" type="json"></result>
+		</action>
+
+		<action name="deletecat" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="deleteCat">
+			<result type="json"></result>
+			<result name="input" type="json"></result>
+		</action>
+
+		<action name="submitApproved" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="submitApproved">
+			<result type="json"></result>
+		</action>
+
+		<action name="submitUnApproved" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="submitUnApproved">
+			<result type="json"></result>
+		</action>
+
+		<action name="submitCancel" class="com.catic.mobilehos.action.HosInfoMngAction"
+			method="submitCancel">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result type="json"></result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+	</package>
+
+	<!-- 后台管理页面-业务-业务记录 -->
+	<package name="busrecord" namespace="/busrecord" extends="mngsys_default">
+		<action name="getAppRegOrdersList"
+			class="com.catic.mobilehos.action.AppRegOrdersBusMngAction" method="getAppRegOrdersList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/appreg/app_reg_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+		<action name="showPatient"
+			class="com.catic.mobilehos.action.AppRegOrdersBusMngAction" method="showPatient">
+			<result>/busrecord/appreg/patient_data.jsp</result>
+		</action>
+
+		<action name="showRegInfo"
+			class="com.catic.mobilehos.action.AppRegOrdersBusMngAction" method="showRegInfo">
+			<result>/busrecord/appreg/show_reg_info.jsp</result>
+		</action>
+
+		<action name="showPayInfo" class="com.catic.mobilehos.action.PayAction"
+			method="showPayInfo">
+			<result>/busrecord/pay/show_pay_info.jsp</result>
+		</action>
+		
+		<action name="showPayPatient"
+			class="com.catic.mobilehos.action.PayAction" method="showPatient">
+			<result>/busrecord/pay/pay_data.jsp</result>
+		</action>
+		
+		<action name="getOrdersPayList" class="com.catic.mobilehos.action.OrdersPayAction"
+			method="getOrdersPayList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/orderpay/order_pay_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+		<action name="getPayList" class="com.catic.mobilehos.action.PayAction"
+			method="getPayList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/pay/pay_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+		<action name="getPayCheckList" class="com.catic.mobilehos.action.PayCheckAction"
+			method="getPayCheckList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/paycheck/pay_check_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+
+
+		<action name="getEvaluateList"
+			class="com.catic.mobilehos.action.ServiceEvaluationAction" method="getEvaluateList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/evaluate/eva_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+
+		<action name="getEvaluateHosList"
+			class="com.catic.mobilehos.action.ServiceEvaluationHosAction" method="getEvaluateList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/evaluate/eva_hos_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+
+		<action name="findEvaluateHosDetail"
+			class="com.catic.mobilehos.action.ServiceEvaluationHosAction" method="findEvaluateHosDetail">
+			<result name="success">/busrecord/evaluate/eva_hos_detail.jsp</result>
+		</action>
+
+		<action name="showQuestionnaire"
+			class="com.catic.mobilehos.action.ServiceEvaluationAction" method="showQuestionnaire">
+			<result name="success">/busrecord/evaluate/ques_datalist.jsp</result>
+		</action>
+
+		<action name="getDepartmentNameJson"
+			class="com.catic.mobilehos.action.ServiceEvaluationAction" method="getDepartmentNameJson">
+			<result type="json">
+			</result>
+		</action>
+
+		<action name="getDoctorNameJson"
+			class="com.catic.mobilehos.action.ServiceEvaluationAction" method="getDoctorNameJson">
+			<result type="json">
+			</result>
+		</action>
+
+
+		<action name="getMessagesList" class="com.catic.mobilehos.action.MsgBusMngAction"
+			method="getMessagesList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/msg/msg_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+
+		<action name="getMsgBusTypeJson" class="com.catic.mobilehos.action.MsgBusMngAction"
+			method="getMsgBusTypeJson">
+			<result type="json">
+			</result>
+		</action>
+
+		<!-- 充值记录 -->
+		<action name="getTradeList"
+			class="com.catic.mobilehos.action.TradeAction" method="getTradeList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/trade/trade_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<action name="showTradeInfo" class="com.catic.mobilehos.action.TradeAction"
+			method="showTradeInfo">
+			<result>/trade/show_reg_info.jsp</result>
+		</action>
+		<!-- 2017-4-11 挂号记录 -->
+		<action name="showRegist"
+			class="com.catic.mobilehos.action.AppRegOrdersBusMngAction" method="showPatient">
+			<result>/busrecord/appreg/regist_data.jsp</result>
+		</action>
+		<action name="getAppRegOrdersRegistList"
+			class="com.catic.mobilehos.action.AppRegOrdersBusMngAction" method="getAppRegOrdersList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/appreg/regist_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<!-- 缴费记录 -->
+		<action name="getCardPayList"
+			class="com.catic.mobilehos.action.CardPayAction" method="getCardPayList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/appreg/payMent_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<action name="showInfo"
+			class="com.catic.mobilehos.action.CardPayAction" method="showInfo">
+			<result>/busrecord/appreg/payMent_data.jsp</result>
+		</action>
+		<action name="getCardPayDetailList1"
+			class="com.catic.mobilehos.action.CardPayAction" method="getCardPayDetailList">
+			<result>/busrecord/appreg/payMentDetail_data.jsp</result>
+		</action>
+		<action name="getCardPayDetailList"
+			class="com.catic.mobilehos.action.CardPayAction" method="getCardPayDetailList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/appreg/payMentDetail_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		
+		<action name="getItems"
+			class="com.catic.mobilehos.action.ItemsAction" method="getItems">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/busrecord/payRecord/payRecord_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<!-- 在线建档记录 -->
+		<action name="getPatientsList"
+			class="com.catic.mobilehos.action.PatientsAction" method="getPatientsList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/patients/patients_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<action name="showPatient" class="com.catic.mobilehos.action.PatientsAction"
+			method="showPatient">
+			<result>/patients/show_patients_info.jsp</result>
+		</action>
+		<!-- 就诊人管理 -->
+		<action name="getPatientsUserList"
+			class="com.catic.mobilehos.action.PatientsAction" method="getPatientsList">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/manager/patientsUser/patients_user_datalist.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<action name="showPatientUser" class="com.catic.mobilehos.action.PatientsAction"
+			method="showPatientUser">
+			<result>/manager/patientsUser/show_patients_user_info.jsp</result>
+		</action>
+		<action name="updatePatientOrUser" class="com.catic.mobilehos.action.PatientsAction"
+			method="updatePatientOrUser">
+			<result name="updatePatient">/manager/patientsUser/patients_user_main.jsp</result>
+			<result name="updateUser">/manager/user/user.jsp</result>
+		</action>
+		<action name="updateAllPatientOrUser" class="com.catic.mobilehos.action.PatientsAction"
+			method="updateAllPatientOrUser">
+			<result name="updatePatient">/manager/patientsUser/patients_user_main.jsp</result>
+			<result name="updateUser">/manager/user/user.jsp</result>
+		</action>
+	</package>
+
+	<!-- 后台管理页面-配置-基础内容配置 -->
+	<package name="basiccfg" namespace="/config/basic" extends="mngsys_default">
+		<action name="showHosIntroCfgPage" class="com.catic.mobilehos.action.HosIntroCfgAction"
+			method="showHosIntroCfgPage">
+			<interceptor-ref name="chainStack"></interceptor-ref>
+			<result>/config/basic/hos_intro.jsp</result>
+		</action>
+		<action name="prevHosImage" class="com.catic.mobilehos.action.HosIntroCfgAction"
+			method="prevHosImage">
+			<result type="json"></result>
+		</action>
+
+		<action name="showHosIntroCfgEditPage" class="com.catic.mobilehos.action.HosIntroCfgAction"
+			method="showHosIntroCfgEditPage">
+			<interceptor-ref name="chainStack"></interceptor-ref>
+			<result>/config/basic/hos_intro_edit.jsp</result>
+		</action>
+		<action name="getHosImage" class="com.catic.mobilehos.action.HosIntroCfgAction"
+			method="getHosImage">
+			<result name="success" type="stream">
+				<param name="contentType">image/jpeg</param>
+				<param name="inputName">hosIntroVO.pictureStream</param>
+				<param name="bufferSize">2048</param>
+			</result>
+		</action>
+
+		<action name="saveHosIntro" class="com.catic.mobilehos.action.HosIntroCfgAction"
+			method="saveHosIntro">
+			<result type="redirect">showHosIntroCfgPage</result>
+			<result name="error" type="chain">showHosIntroCfgEditPage</result>
+		</action>
+
+
+		<action name="res_notice">
+			<result>/config/basic/res_notice.jsp</result>
+		</action>
+
+		<action name="getNoticePO" class="com.catic.mobilehos.action.NoticeAction"
+			method="getNoticePO">
+			<result type="json"></result>
+		</action>
+
+		<action name="saveNoticePO" class="com.catic.mobilehos.action.NoticeAction"
+			method="saveNoticePO">
+			<result type="json"></result>
+		</action>
+
+		<action name="updateNoticePO" class="com.catic.mobilehos.action.NoticeAction"
+			method="updateNoticePO">
+			<result type="json"></result>
+		</action>
+
+		<!-- <action name="guide">
+			<result>/config/basic/guide.jsp</result>
+		</action> -->
+		<action name="getBaseContentList" class="com.catic.mobilehos.action.BasicCntCfgAction"
+			method="getBaseContentList">
+			<interceptor-ref name="chainStack"></interceptor-ref>
+			<result>/config/wechat/basecontent_cfg_list.jsp</result>
+		</action>
+
+		<action name="getGuide" class="com.catic.mobilehos.action.BasicCntCfgAction"
+			method="getGuide">
+			<result type="json"></result>
+		</action>
+		
+		<action name="toAddBase">
+			<result>/config/wechat/add_edit_basecontent.jsp</result>
+		</action>
+
+		<action name="saveGuide" class="com.catic.mobilehos.action.BasicCntCfgAction"
+			method="saveGuide">
+			<result type="redirect">/config/wechat/basecontent_cfg.jsp</result>
+		</action>
+		
+		<action name="deleteBaseContent" class="com.catic.mobilehos.action.BasicCntCfgAction"
+			method="deleteBaseContent">
+			<result>/config/wechat/basecontent_cfg_list.jsp</result>
+		</action>
+		
+		<action name="toUpdateBase" class="com.catic.mobilehos.action.BasicCntCfgAction"
+			method="toUpdateBase">
+			<result>/config/wechat/add_edit_basecontent.jsp</result>
+		</action>
+		
+		<action name="updateGuide" class="com.catic.mobilehos.action.BasicCntCfgAction"
+			method="updateGuide">
+			<result type="json"></result>
+		</action>
+		
+		<action name="cntCfgImagUpload"
+			class="com.catic.mobilehos.action.BasicCntCfgImgUploadAction">
+			<result type="json"></result>
+		</action>
+
+		<action name="fun">
+			<result>/config/basic/fun.jsp</result>
+		</action>
+
+		<action name="faq">
+			<result>/config/basic/faq.jsp</result>
+		</action>
+		
+		<action name="getHelpAnswerList" class="com.catic.mobilehos.action.HelpAnswerAction"
+			method="getHelpAnswerList">
+			<interceptor-ref name="chainStack"></interceptor-ref>
+			<result>/config/basic/help_list.jsp</result>
+		</action>
+		
+		<action name="toUpdateHelp" class="com.catic.mobilehos.action.HelpAnswerAction"
+			method="toUpdateHelp">
+			<result>/config/basic/add_edit_helpanswer.jsp</result>
+		</action>
+		
+		<action name="AddUpdateHelp" class="com.catic.mobilehos.action.HelpAnswerAction"
+			method="AddUpdateHelp">
+			<result>/config/basic/help.jsp</result>
+		</action>
+		
+		<action name="deleteHelp" class="com.catic.mobilehos.action.HelpAnswerAction"
+			method="deleteHelp">
+			<result>/config/basic/help.jsp</result>
+		</action>
+
+	</package>
+
+	<!-- 微信菜单管理 -->
+	<package name="menu" namespace="/config/menu" extends="mngsys_default">
+		<action name="showWechatMenu" class="com.catic.mobilehos.action.WechatMenuAction"
+			method="showWechatMenu">
+			<result>/config/menu/menu.jsp</result>
+		</action>
+		<action name="loadWechatMenu" class="com.catic.mobilehos.action.WechatMenuAction"
+			method="loadWechatMenu">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<action name="saveMenuContent" class="com.catic.mobilehos.action.WechatMenuAction"
+			method="saveMenuContent">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		<action name="deleMenuContent" class="com.catic.mobilehos.action.WechatMenuAction"
+			method="deleMenuContent">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		
+		<action name="pubMenuContent" class="com.catic.mobilehos.action.WechatMenuAction"
+			method="pubMenuContent">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+		
+		<!-- <action name="getmenuJson"
+			class="com.catic.mobilehos.action.WechatMenuAction" method="getmenuJson">
+			<result type="json">
+			</result>
+		</action> -->
+		
+		
+
+	</package>
+
+	<!-- 后台管理页面-消息模版配置 -->
+	<package name="msgtemplate" namespace="/config/msgtemplate"
+		extends="mngsys_default">
+		<action name="showMsgTemplateCfgPage" class="com.catic.mobilehos.action.MsgTemplateMngAction"
+			method="showMsgTemplateCfgPage">
+			<result>/config/msgtemplate/msg_template_cfg.jsp</result>
+		</action>
+
+		<action name="loadMsgCfg" class="com.catic.mobilehos.action.MsgTemplateMngAction"
+			method="loadMsgCfg">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+
+		</action>
+		<action name="saveMsgCfg" class="com.catic.mobilehos.action.MsgTemplateMngAction"
+			method="saveMsgCfg">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+	</package>
+
+	<!-- 后台管理页面-科室配置 -->
+	<package name="departmentcfg" namespace="/config/department"
+		extends="mngsys_default">
+		<action name="getDepartments"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="getDepartments">
+			<result>/config/department/department_cfg_datalist.jsp</result>
+		</action>
+		<action name="toUpdate"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="toUpdate">
+		<!-- 	<result name="toUpdate">/config/department/department_cfg_update.jsp</result> -->
+		<result name="toUpdate">/config/department/update.jsp</result>	
+		</action>
+		<action name="saveDepartment"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="saveDepartment">
+			<result name="saveDepartment">/config/department/department_cfg.jsp</result>	
+		</action>
+		<action name="validateCode"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="validateCode">
+		</action>
+		
+		<action name="findAllDeptment"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="findAllDeptment">
+	    </action>
+	    <action name="findAllDeptmentTree"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="findAllDeptmentTree">
+	    </action>
+	    <action name="delDepartment"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="delDepartment">
+	    </action>
+	    <action name="importExcle"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="readXls">
+			<result>/config/department/department_cfg.jsp</result>	
+	    </action>
+	    <action name="exportExcle"
+			class="com.catic.mobilehos.action.DepartmentCfgMngAction" method="exporDepartInfo">
+			<result>/config/department/department_cfg.jsp</result>	
+	    </action>
+		
+	</package>
+
+	<!-- 后台管理页面-医生管理 -->
+	<package name="doctorcfg" namespace="/config/doctor"
+		extends="mngsys_default">
+	<action name="searchDoctors"
+		class="com.catic.mobilehos.action.DoctorMngAction" method="searchDoctors">
+		<result>/config/doctor/doctor_cfg_datalist.jsp</result>
+	</action>
+	
+	<action name="toSaveOrUpdate"
+			class="com.catic.mobilehos.action.DoctorMngAction" method="toSaveOrUpdate">
+			<result name="toSaveOrUpdate">/config/doctor/doctor_cfg_update.jsp</result>
+			
+		</action>
+		<action name="saveOrUpdateDoctor"
+			class="com.catic.mobilehos.action.DoctorMngAction" method="saveOrUpdateDoctor">
+			
+		</action>
+		
+		<action name="delDoctor"
+			class="com.catic.mobilehos.action.DoctorMngAction" method="delDoctor">	
+		</action>
+		<action name="findJobList"
+			class="com.catic.mobilehos.action.DoctorMngAction" method="findJobList">	
+		</action>
+		<action name="moveByOperate"
+			class="com.catic.mobilehos.action.DoctorMngAction" method="moveByOperate">	
+		</action>
+		
+		<action name="exportDoctorByExcle"
+			class="com.catic.mobilehos.action.DoctorMngAction" method="exportDoctorByExcle">
+			<result>/config/doctor/doctor_cfg.jsp</result>	
+	    </action>
+	</package>
+
+	<package name="wechatMessageCfg" namespace="/config/wechat"
+		extends="mngsys_default">
+		<action name="showWechatCfg" class="com.catic.mobilehos.action.WechatCfgAction"
+			method="loadWechatCfgAction">
+			<result>/config/wechat/msg_template_cfg.jsp</result>
+		</action>
+		<action name="saveWechatCfg" class="com.catic.mobilehos.action.WechatCfgAction"
+			method="saveWechatCfgAction">
+			<result type="json">
+				<param name="root">simpleJsonResult</param>
+			</result>
+		</action>
+	</package>
+
+	<!-- 后台管理页面-配置-客户端版本分布 -->
+	<package name="basicver" namespace="/config/version" extends="mngsys_default">
+		<action name="showVersion">
+			<result>/config/version/cli_ver.jsp</result>
+		</action>
+		<action name="addVersion">
+			<result>/config/version/cli_ver_add.jsp</result>
+		</action>
+		<action name="editVersion">
+			<result>/config/version/cli_ver_edit.jsp</result>
+		</action>
+
+		<action name="getVersionNo" class="com.catic.mobilehos.action.CliVersionAction"
+			method="getVersionNo">
+			<result type="json"></result>
+		</action>
+
+		<action name="getCliVersions" class="com.catic.mobilehos.action.CliVersionAction"
+			method="getCliVersions">
+			<result name="success">/config/version/cli_ver_datalist.jsp</result>
+		</action>
+
+		<action name="saveCliVersion" class="com.catic.mobilehos.action.CliVersionAction"
+			method="saveCliVersion">
+			<result type="redirectAction">showVersion</result>
+		</action>
+
+		<action name="updateCliVersion" class="com.catic.mobilehos.action.CliVersionAction"
+			method="updateCliVersion">
+			<result name="success">/config/version/cli_ver_edit.jsp</result>
+		</action>
+
+		<action name="updateCliVersionAction" class="com.catic.mobilehos.action.CliVersionAction"
+			method="updateCliVersionAction">
+			<result type="redirectAction">showVersion</result>
+		</action>
+
+		<action name="delCliVersion" class="com.catic.mobilehos.action.CliVersionAction"
+			method="delCliVersion">
+			<result type="json"></result>
+		</action>
+	</package>
+
+
+
+
+	<!-- 会员管理 -->
+	<package name="user" namespace="/manager/user" extends="mngsys_default">
+		<action name="showUsers">
+			<result>/manager/user/user.jsp</result>
+		</action>
+
+		<action name="getUsers" class="com.catic.mobilehos.action.UserMngAction"
+			method="getUsers">
+			<result>/manager/user/user_datalist.jsp</result>
+		</action>
+
+		<action name="updateStatus" class="com.catic.mobilehos.action.UserMngAction"
+			method="updateStatus">
+			<result type="json"></result>
+		</action>
+
+		<action name="showPatients" class="com.catic.mobilehos.action.UserMngAction"
+			method="showPatients">
+			<result>/manager/user/patient_datalist.jsp</result>
+		</action>
+		<action name="showUserInfo" class="com.catic.mobilehos.action.UserMngAction"
+			method="showUserInfo">
+			<result>/manager/user/show_user_info.jsp</result>
+		</action>
+	</package>
+
+	<!-- 医护人员管理 -->
+	<!-- <package name="serUser" namespace="/manager/serUser" extends="mngsys_default"> -->
+	<!-- <action name="showSerUsers"> -->
+	<!-- <result>/manager/serUser/serUser.jsp</result> -->
+	<!-- </action> -->
+	<!-- <action name="getOpenfireUsers" class="com.catic.mobilehos.action.OpenFireUserAction" 
+		method="getAllOpenFireUser"> -->
+	<!-- <result>/manager/serUser/serUser_datalist.jsp</result> -->
+	<!-- </action> -->
+	<!-- <action name="addOpenFireUser" class="com.catic.mobilehos.action.OpenFireUserAction" 
+		method="addOpenFireUser"> -->
+	<!-- <result type="redirectAction">showSerUsers</result> -->
+	<!-- </action> -->
+	<!-- <action name="getOpenFireUser" class="com.catic.mobilehos.action.OpenFireUserAction" 
+		method="getOpenFireUser"> -->
+	<!-- <result type="json"></result> -->
+	<!-- </action> -->
+	<!-- <action name="updateOpenFireUser" class="com.catic.mobilehos.action.OpenFireUserAction" 
+		method="updateOpenFireUser"> -->
+	<!-- <result type="json"></result> -->
+	<!-- </action> -->
+	<!-- <action name="deleteOpenFireUser" class="com.catic.mobilehos.action.OpenFireUserAction" 
+		method="deleteOpenFireUser"> -->
+	<!-- <result type="json"></result> -->
+	<!-- </action> -->
+	<!-- </package> -->
+
+	<!-- 调查问卷管理 -->
+	<package name="questionnaire" namespace="/questionnaire"
+		extends="mngsys_default">
+		<action name="questionnaire">
+			<result>/questionnaire/questionnaire.jsp</result>
+		</action>
+
+		<action name="getQuestionnaiList"
+			class="com.catic.mobilehos.action.QuestionnaireListAction" method="getQuestionnaiList">
+			<result>/questionnaire/questionnaire_datalist.jsp</result>
+		</action>
+		<action name="saveQuestionnaire"
+			class="com.catic.mobilehos.action.QuestionnaireListAction" method="saveQuestionnaire">
+			<result name="success">/questionnaire/questionnaire.jsp</result>
+			<!-- <result type="redirectAction">questionnaire</result> -->
+
+		</action>
+		<action name="deleteQuestionnaire"
+			class="com.catic.mobilehos.action.QuestionnaireListAction" method="deleteQuestionnaire">
+			<result type="json"></result>
+		</action>
+
+		<action name="updateQuestionnaire"
+			class="com.catic.mobilehos.action.QuestionnaireListAction" method="updateQuestionnaire">
+			<result>/questionnaire/questionnaire_update.jsp</result>
+		</action>
+
+		<action name="updateQuestionnaireAtion"
+			class="com.catic.mobilehos.action.QuestionnaireListAction" method="updateQuestionnaireAtion">
+			<result type="redirectAction">questionnaire</result>
+		</action>
+
+		<action name="getQuestionnaireDetail"
+			class="com.catic.mobilehos.action.QuestionnaireListAction" method="getQuestionnaireDetail">
+			<result>/questionnaire/QuestionnaireDetail.jsp</result>
+		</action>
+
+	</package>
+
+	<!-- 系统用户管理 -->
+	<package name="sysUser" namespace="/manager/sysUser" extends="mngsys_default">
+		<action name="showSysUsers">
+			<result>/manager/sysUser/sysUser.jsp</result>
+		</action>
+
+		<action name="getSysUsers" class="com.catic.mobilehos.action.SysUsersAction"
+			method="getSysUsers">
+			<result>/manager/sysUser/sysUser_datalist.jsp</result>
+		</action>
+
+		<action name="existsUsername" class="com.catic.mobilehos.action.SysUsersAction"
+			method="existsUsername">
+			<result type="json"></result>
+		</action>
+
+		<action name="saveSysUser" class="com.catic.mobilehos.action.SysUsersAction"
+			method="saveSysUser">
+			<result type="redirectAction">showSysUsers</result>
+		</action>
+
+		<action name="getRoles" class="com.catic.mobilehos.action.SysUsersAction"
+			method="getRoles">
+			<result type="json"></result>
+		</action>
+
+		<action name="updateSysUser" class="com.catic.mobilehos.action.SysUsersAction"
+			method="updateSysUser">
+			<result>/manager/sysUser/sys_user_update.jsp</result>
+		</action>
+
+		<action name="updateSysUserAction" class="com.catic.mobilehos.action.SysUsersAction"
+			method="updateSysUserAction">
+			<result type="redirectAction">showSysUsers</result>
+		</action>
+
+		<action name="deleteSysUser" class="com.catic.mobilehos.action.SysUsersAction"
+			method="deleteSysUser">
+			<result type="json"></result>
+		</action>
+
+		<action name="showRoles">
+			<result>/manager/sysUser/role.jsp</result>
+		</action>
+
+		<action name="getRoles" class="com.catic.mobilehos.action.RolesAction"
+			method="getRoles">
+			<result>/manager/sysUser/role_datalist.jsp</result>
+		</action>
+
+		<action name="saveRole" class="com.catic.mobilehos.action.RolesAction"
+			method="saveRole">
+			<result type="redirectAction">showRoles</result>
+		</action>
+
+		<action name="updateRole" class="com.catic.mobilehos.action.RolesAction"
+			method="updateRole">
+			<result>/manager/sysUser/role_update.jsp</result>
+		</action>
+
+		<action name="updateRoleAction" class="com.catic.mobilehos.action.RolesAction"
+			method="updateRoleAction">
+			<result type="redirectAction">showRoles</result>
+		</action>
+
+		<action name="getAuthority" class="com.catic.mobilehos.action.RolesAction"
+			method="getAuthority">
+			<result type="json"></result>
+		</action>
+
+		<action name="deleteRole" class="com.catic.mobilehos.action.RolesAction"
+			method="deleteRole">
+			<result type="json"></result>
+		</action>
+
+		<action name="findAllRoles" class="com.catic.mobilehos.action.RolesAction"
+			method="findAllRoles">
+			<result type="json"></result>
+		</action>
+	</package>
+
+	<!-- 统计图表 -->
+	<package name="statisticsChart" namespace="/statistics"
+		extends="mngsys_default">
+		<action name="getMemberSeries" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getMemberSeries">
+			<result type="json"></result>
+		</action>
+
+		<action name="getRegistrationSeries" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getRegistrationSeries">
+			<result type="json"></result>
+		</action>
+
+		<action name="getRegistrationException" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getRegistrationException">
+			<result type="json"></result>
+		</action>
+
+		<action name="getChartTableView" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getChartTableView">
+			<result>/statistics/registration-table.jsp</result>
+		</action>
+
+		<action name="getChartTableData" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getChartTableData">
+			<result>/statistics/registration-table-list.jsp</result>
+		</action>
+
+		<action name="getTitleJson" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getTitleJson">
+			<result type="json"></result>
+		</action>
+
+		<action name="getEvaluateStatistics" class="com.catic.mobilehos.action.StatisticsAction"
+			method="getEvaluateStatistics">
+			<result>/statistics/answer.jsp</result>
+		</action>
+
+
+        <action name="getEvaluateHosStatistics"
+			class="com.catic.mobilehos.action.ServiceEvaluationHosAction" method="statisticEvaluateHos">
+			<interceptor-ref name="jsonValidationWorkflowStack"></interceptor-ref>
+			<result>/statistics/evaluateHosResult.jsp</result>
+			<result name="input" type="json">
+				<param name="root">simpleJsonErrResult</param>
+			</result>
+		</action>
+	</package>
+
+	<!--支付-->
+	<package name="pay" namespace="/unpaid" extends="mngsys_default">
+		
+		<action name="payOrderAction_*" class="com.catic.mobilehos.pay.action.PayOrderAction"
+			method="{1}">
+			<result>/payorder/datalist.jsp</result>
+			<result name="details">/payorder/details.jsp</result>
+			<result name="refund">/payorder/refund.jsp</result>
+			<result name="flow">/transFlow/datalist.jsp</result>
+		</action>
+		<action name="selectStatistics_*" class="com.catic.mobilehos.pay.action.PayOrderAction"
+			method="{1}">
+			<result type="json"></result>
+		</action>
+		<action name="payQueryAction_*" class="com.catic.mobilehos.pay.action.PayQueryAction"
+			method="{1}">
+		</action>
+		<action name="order_*" class="com.catic.mobilehos.pay.action.OrderAction" method="{1}" />
+		<action name="alipayAction_*" class="com.catic.mobilehos.pay.action.AlipayAction" method="{1}" />
+		<action name="payLogAction_*" class="com.catic.mobilehos.pay.action.PayLogAction" method="{1}">	<result>/payorder/log.jsp</result></action>
+		<action name="checkBillAction_*" class="com.catic.mobilehos.pay.action.CheckBillAction" method="{1}">
+		         <result>/check/datalist.jsp</result>
+		         <result name="toFindDetails">/check/details.jsp</result>
+		         <result name="details">/check/details_datalist.jsp</result>
+		         <result name="handle">/check/handle.jsp</result>
+		         <result name="findCheckDetails">/check/checkDetails.jsp</result>
+		         <result name="findCheckRefund">/check/checkDetails_refund.jsp</result>
+		         <result name="toRefund">/refund/refundDescribe.jsp</result>
+		         <result name="export" type="stream">
+		           <param name="contentType">application/vnd.ms-excel</param>
+		           <param name="inputName">excelStream</param>
+		           <param name="contentDisposition">
+		             attachment;filename=${excelFileName}
+		           </param>
+		           <param name="bufferSize">1024</param>
+		         </result>
+		         
+		</action>
+		<action name="refundAction_*" class="com.catic.mobilehos.pay.action.RefundAction" method="{1}">
+		         <result>/refund/datalist.jsp</result>
+		         <result name="details">/refund/details.jsp</result>
+		         <result name="refund">/payorder/payorder_main.jsp</result>
+		          <result name="toRefund">/refund/refundDescribe.jsp</result>
+		</action>
+		
+		<action name="yQConfigAction_*" class="com.catic.mobilehos.pay.action.YQConfigAction" method="{1}">
+		         <result>/yqconfig/datalist.jsp</result>
+		         <result name="toSave">/yqconfig/addYQ.jsp</result>
+		         <result name="addSuccess">/yqconfig/yqConfig_main.jsp</result>
+		         <result name="modify">/yqconfig/modifyYQ.jsp</result>
+		         <result name="modifySuccess">/yqconfig/yqConfig_main.jsp</result>
+		</action>
+		<action name="accountConfigAction_*" class="com.catic.mobilehos.pay.action.AccountConfigAction" method="{1}">
+		         <result>/transaction/accountConfig/datalist.jsp</result>
+		         <result name="toSave">/transaction/accountConfig/addAccount.jsp</result>
+		         <result name="addSuccess">/transaction/accountConfig/accountConfig_main.jsp</result>
+		         <result name="modify">/transaction/accountConfig/modifyAccount.jsp</result>
+		         <result name="modifySuccess">/transaction/accountConfig/accountConfig_main.jsp</result>
+		</action>
+		
+		<action name="payTerAction_*" class="com.catic.mobilehos.pay.action.PayTerminalAction" method="{1}">
+		         <result>/transaction/terminalConfig/detalist.jsp</result>
+		         <result name="toSave">/transaction/terminalConfig/addTerminal.jsp</result>
+		         <result name="toUpdate">/transaction/terminalConfig/updateTerminal.jsp</result>
+		         <result name="delete">/transaction/terminalConfig/payTerConfig_main.jsp</result>
+		         <result name="saveUpdate">/transaction/terminalConfig/payTerConfig_main.jsp</result>
+		</action>
+		
+		<action name="allYqJson" class="com.catic.mobilehos.pay.action.PayTerminalAction"
+			method="allYqJson">
+			<result type="json"></result>
+		</action>
+		
+		<action name="checkRecordAction_*" class="com.catic.mobilehos.pay.action.CheckRecordAction" method="{1}">
+		         <result name="bill">/checkRecord/billList.jsp</result>
+		         <result name="order">/checkRecord/orderList.jsp</result>
+		         <result name="detail">/checkRecord/details.jsp</result>
+		</action>
+		<action name="outOrderQueryAction_*" class="com.catic.mobilehos.pay.action.OutOrderQuery" method="{1}">
+		         <result name="trade">/transaction/orderQuery/datalist_trade.jsp</result>
+		         <result name="refund">/transaction/orderQuery/datalist_refund.jsp</result>		   
+		</action>
+		<action name="checkImportAction_*" class="com.catic.mobilehos.pay.action.CheckImportAction" method="{1}">
+		         <result name="success">/checkImportQuery/datalist.jsp</result>		
+		         <result name="details">/checkImportQuery/details.jsp</result>		    
+		</action>
+	</package>
+
+	<package name="manager" namespace="/" extends="mngsys_default">
+		<action name="menu_*" class="com.catic.mobilehos.menu_role_authority.action.MenuAction" method="{1}">
+			<result name="success">/indexs.jsp</result>
+		</action>
+	
+		<action name="manager_*" class="com.catic.mobilehos.menu_role_authority.action.ManagerAction" method="{1}">
+			<result name="success">/managers/allManager.jsp</result>
+			<result name="none">/managers/datalist.jsp</result>
+			<result name="save">/managers/saveManager.jsp</result>
+			<result name="modify">/managers/modifyManager.jsp</result>
+		</action>
+		
+		<action name="role_*" class="com.catic.mobilehos.menu_role_authority.action.RoleAction" method="{1}">
+			<result name="none">/role/allRole.jsp</result>
+			<result name="success">/role/datalist.jsp</result>
+			<result name="detail">/role/modifyRole.jsp</result>
+		</action>
+		<action name="roleMenu_*" class="roleMenuAction" method="{1}" />
+	</package>
+
+</struts>

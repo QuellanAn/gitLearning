@@ -1,0 +1,212 @@
+$(document).ready(function() {
+	$('input[name=sq_startdate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=sq_enddate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=sq_startmonth],input[name=sq_endmonth]').datepicker({
+		monthNamesShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],  // 区域化月名为中文  
+		prevText: '上月',         // 前选按钮提示  
+		nextText: '下月',         // 后选按钮提示  
+		changeYear: true,         // 年下拉菜单  
+		changeMonth: true,        // 月下拉菜单  
+		showButtonPanel: true,    // 显示按钮面板  
+		showMonthAfterYear: true, // 月份显示在年后面  
+		currentText: "本月",      // 当前日期按钮提示文字  
+		closeText: "确定",        // 关闭按钮提示文字  
+		dateFormat: "yy-mm",      // 日期格式
+	    onClose: function(dateText, inst) {
+	        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val(); 
+	        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val(); 
+	        $(this).datepicker('setDate', new Date(year, month, 1)); 
+	    }
+	});
+	loadUserSource();
+	$("a.selectTime:eq(0)").click();
+	
+	$("#act_query").click(function(){
+		updateChart();
+	});
+	
+	$('input[name=countType]').change(function(){
+		var countType = $(this).val();
+		if(countType == "day"){
+			$("#daySelect").show();
+			$("#monthSelect").hide();
+			$('input[name=sq_startdate],input[name=sq_enddate]').show();
+			$('input[name=sq_startmonth],input[name=sq_endmonth]').hide();
+		}else{
+			$("#monthSelect").show();
+			$("#daySelect").hide();
+			$('input[name=sq_startdate],input[name=sq_enddate]').hide();
+			$('input[name=sq_startmonth],input[name=sq_endmonth]').show();
+			if($('input[name=sq_startmonth]').val() == '' ||
+					$('input[name=sq_endmonth]').val() == ''){
+				// 默认选择最近3个月
+				$("a.selectMonth:eq(0)").click();
+			}
+		}
+	});
+	
+	// 选择月份时隐藏日期表格
+	$('input[name=sq_startmonth],input[name=sq_endmonth]').click(function(){
+		$("#ui-datepicker-div").addClass("monthDiv");
+		var currValue = $(this).val();
+		if(currValue != ''){
+			var year = currValue.split("-")[0];
+			var month = currValue.split("-")[1];
+			$(".ui-datepicker-year").val(year);
+			$(".ui-datepicker-month").val(parseInt(month) - 1);
+		}
+	});
+	
+	// 选择日期的时候恢复日期表格的显示
+	$('input[name=sq_startdate],input[name=sq_enddate]').click(function(){
+		$("#ui-datepicker-div").removeClass("monthDiv");
+	});
+});
+
+/**
+ * 更新显示的图表
+ */
+function updateChart(){
+	updateLineChart();
+}
+
+/**
+ * 更新显示的图表(折线图)
+ */
+function updateLineChart(){
+	var beginDate = $("#beginDate").val();
+	var endDate = $("#endDate").val();
+	// 充值来源
+	var userSource = $("#userSource").val();
+	// 统计类型，day为按日，month为按月
+	var countType = $("input[name=countType]:checked").val();
+	if(countType == "month"){
+		beginDate = $("#beginMonth").val();
+		endDate = $("#endMonth").val();
+	}
+	var myChart = echarts.init(document.getElementById('Section1'));
+	var title = "缴费量变化趋势图";
+	myChart.showLoading({
+        text: '读取数据中...' // loading，是在读取数据的时候显示
+    });
+	$.ajax({
+		type : "post",
+		url : "paymentStatisticsAction_getCountByDate",
+		data:{"beginDate":beginDate, "endDate":endDate, "paySource":userSource, "countDateType":countType,"ajaxType":"json"},
+		dataType : "json",
+		async : true,
+		success : function(data) {
+			if(eval(data).json!=null){
+				window.setTimeout(function () { window.top.location.href = "session.jsp"; }, 100);
+				return false;
+			}
+			var rows = eval(data.list);
+			var arr = [];
+			var arrY = [];
+			//调用函数获取值，转换成数组模式  
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].countDate);
+				arrY.push(rows[i].count);
+			}
+			var minValue = getyAxisMinValue(rows, "count");// 为了应对y轴数据比较大时折线波动小的问题，设置y轴最小值
+			option = {
+				title : {
+					text : title,
+					x:'center',
+					y:'bottom'
+				},
+				tooltip : {
+					trigger : 'axis',
+				},
+				toolbox : {
+					show : true,
+					feature : {
+						restore : {show: true},
+			            saveAsImage : {show: true}
+					}
+				},
+				xAxis : {
+					type : 'category',
+					boundaryGap: false,
+					splitLine : {
+						show : false
+					},
+					data : arr
+				},
+				grid : {
+					left : '3%',
+					right : '4%',
+					bottom : '12%',
+					containLabel : true
+				},
+				yAxis : {
+					name : "缴费量",
+					min : minValue
+				},
+				series : [ {
+					name : '缴费量',
+					type : 'line',
+					itemStyle : {
+                        normal : {  
+                        	color:'#44B549',  
+                            lineStyle:{  
+                                color:'#44B549'  
+                            }  
+                        }  
+                    },  
+					data : arrY
+				} ]
+			};
+			myChart.setOption(option);
+			myChart.hideLoading();
+		},error : function(errorMsg) {
+	         alert("图表请求数据失败!");
+	         myChart.hideLoading();
+		}
+	});
+}
+
+/**
+ * 加载用户来源列表
+ */
+function loadUserSource(){
+	var url = 'unpaid/payDictionaryAction_findAll?dictionaryCode='+"business_source";
+	var body = $('#userSource');
+	body.empty();
+	body.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var code = eval(data.code);
+		if(code == 0){
+			var arr1 = eval(data);
+			var arr=eval("("+arr1.data+")");
+			for (var i in arr){
+				var o = $('<option></option>').val(arr[i].codeNo).html(arr[i].codeName);
+				body.append(o.get());
+			}
+		}
+	});
+}
+
+/**
+ * 点击“最近7天”等设置时间区间
+ */
+function setSelectTime(days){
+	var beginDate = getDayAdd((-1) * (days - 1));
+	var endDate = getTodayDate();
+	$("#beginDate").val(beginDate);
+	$("#endDate").val(endDate);
+	
+	updateChart();
+}
+
+/**
+ * 点击“最近3个月”等设置时间区间
+ */
+function setSelectMonth(months){
+	var beginDate = getMonthAdd((-1) * (months - 1));
+	var endDate = getCurrMonth();
+	$("#beginMonth").val(beginDate);
+	$("#endMonth").val(endDate);
+	
+	updateChart();
+}

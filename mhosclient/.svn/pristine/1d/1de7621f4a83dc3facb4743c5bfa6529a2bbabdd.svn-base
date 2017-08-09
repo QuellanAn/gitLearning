@@ -1,0 +1,130 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<html>
+<head>
+<title>填写退款信息</title>
+<base href="<%=basePath%>/" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css"
+	href="resources/css/introduction-edit.css" />
+<script charset="utf-8" src="kindeditor/kindeditor-min.js"></script>
+<script charset="utf-8" src="kindeditor/lang/zh_CN.js"></script>
+<script type="text/javascript"
+	src="resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="resources/js/common.js"></script>
+<script type="text/javascript" src="resources/js/Toast.js"></script>
+</head>
+<!-- <s:if
+	test="#session.userName==null">
+	<script type="text/javascript">
+		location.href = $('base').attr('href') + "login.jsp";
+	</script>
+</s:if> -->
+
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg">
+				<li class="tab-crt">填写退款信息</li>
+			</ul>
+
+			<div class="tab-cnt" style="overflow: auto;">
+
+			<s:form method="post" id="form_refund" cssClass="introduction-fm">
+					<ul>
+						<li><span class="introduction-label f-fl" style="width:120px;"> <span
+								class="color-red">*</span>退款原因描述： </span>
+								<s:textfield
+								id="refundReason" name="refundReason"
+								cssClass="fm-text f-fl" style="width:550px;" />
+							<div class="f-clear"></div></li>
+
+						<li><span class="introduction-label f-fl" style="width:120px;"> <span
+								class="color-red">*</span>退款金额: </span> 
+								<s:textfield
+								id="amount" name="amount"
+								Class="fm-text f-fl" style="width:550px;" disabled="true"/>
+							<div class="f-clear"></div></li>
+
+						<li><span class="introduction-label f-fl" style="width:120px;"> <span
+								class="color-red">*</span>登录密码确认: </span> <s:textfield
+								id="password" name="password" type="password"
+								Class="fm-text f-fl" style="width:550px;"/>
+							<div class="f-clear"></div></li>
+					</ul>
+
+					<br />
+					<center>
+					    <s:hidden id="tradeNo1" name="tradeNo"/>
+					    <s:hidden id="tradeNo" name="outTradeNo"/>
+						<input id="refund" type="button"  value="退款"
+							class="normal-btn"  />
+					</center>
+					<s:hidden name="flag" id="flag"/>
+					<s:hidden name="id" id="checkDetialsId"/>
+			</s:form>
+			</div>
+		</div>
+		<div class="f-clear"></div>
+	</div>
+</body>
+
+<script type="text/javascript">
+//显示配置菜单
+	$('.menu-item-cnt').attr("style", "display:none;");
+	$('.menu-item-cnt:eq(1)').attr("style", "display:block");
+	
+	$("#refund").click(function(e){
+		var refundReason=$("#refundReason").val();
+		var amount=$("#amount").val();
+		var password=$("#password").val();	
+		var tradeNo=$("#tradeNo").val();
+		if(tradeNo.length==0){
+		  tradeNo=$("#tradeNo1").val();
+		}	
+	    var flag=$("#flag").val();	
+	    var id=$("#checkDetialsId").val();	
+		if($.trim(refundReason).length==0 ||$.trim(amount).length==0||$.trim(password).length==0){
+		alert("请输入完整的信息");
+		return false;
+		}
+		LoadingToast("正在执行退款，请稍等");
+       document.getElementById("refund").disabled=true; 
+		$.post("unpaid/refundAction_refund",{
+			refundReason:refundReason,
+			amount:amount,
+			password:password,
+			tradeNo:tradeNo,
+			flag:flag,
+			checkDetalsId:id
+				},
+	      	function(data){
+	      	 HiddenToast();
+	      	 document.getElementById("refund").disabled=false; 
+	      	var obj = eval(data);
+			if (obj.code==0){
+				alert("退款成功");
+		        window.location.href="payorder/payorder_main.jsp";
+			}else if(obj.code==7){
+				alert("密码错误");
+			}else {
+			    alert("退款失败");
+			}
+		});
+	});
+	
+	
+</script>
+</html>

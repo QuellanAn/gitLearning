@@ -1,0 +1,105 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.ICheckImportDao;
+import com.catic.mobilehos.pay.entity.CheckImport;
+import com.catic.mobilehos.utils.Page;
+
+@Repository("checkImportDao")
+public class CheckImportDaoImpl extends BaseDao implements ICheckImportDao {
+
+	/**
+	 * 查询对账单导入列表
+	 */
+	@Override
+	public List<CheckImport> findAll(Page page, CheckImport checkImport)
+			throws Exception {
+		String sql;
+		if (page == null) {
+			sql = "SELECT COUNT(0) AS count FROM pay_checkimport WHERE 1=1";
+
+		} else {
+			sql = "SELECT * FROM pay_checkimport WHERE 1=1";
+		}
+		StringBuilder sb = new StringBuilder(sql);
+		List<Object> params = new ArrayList<Object>();
+		if (StringUtils.isNotBlank(checkImport.getSource())) {
+			sb.append(" AND source=?");
+			params.add(checkImport.getSource());
+		}
+		if(StringUtils.isNotBlank(checkImport.getBillDate())){
+			sb.append(" AND billDate=?");
+			params.add(checkImport.getBillDate());
+		}
+		if (StringUtils.isNotBlank(checkImport.getOperator())) {
+			sb.append(" AND operator like ?");
+			params.add(checkImport.getOperator() + "%");
+		}
+		if (StringUtils.isNotBlank(checkImport.getStartDate())) {
+			sb.append(" AND createTime>?");
+			params.add(checkImport.getStartDate());
+		}
+		if (StringUtils.isNotBlank(checkImport.getEndDate())) {
+			sb.append(" AND createTime<?");
+			params.add(checkImport.getEndDate() + "23:59:59");
+		}
+		if (page != null) {
+			sb.append(" ORDER BY createTime DESC");
+			sb.append(" LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		List<CheckImport> list = jdbc.query(sb.toString(), params.toArray(),
+				new BeanPropertyRowMapper(CheckImport.class));
+		return list;
+	}
+
+	/**
+	 * 查询详情
+	 */
+
+	@Override
+	public CheckImport findDetails(String iid)
+			throws Exception {
+		String sql = "SELECT * FROM pay_checkimport WHERE 1=1";
+
+		StringBuilder sb = new StringBuilder(sql);
+		List<Object> params = new ArrayList<Object>();
+		if (StringUtils.isNotBlank(iid)) {
+			sb.append(" AND iid=?");
+			params.add(iid);
+		}	
+		List<CheckImport> list = jdbc.query(sb.toString(), params.toArray(),
+				new BeanPropertyRowMapper(CheckImport.class));
+		if (list != null && list.size() > 0) {
+			return list.get(0);
+		}
+		return null;
+	}
+	
+	public int save(CheckImport ci)throws Exception {
+		String sql="INSERT INTO pay_checkimport(billDate,name,fileName,filePath,submitNum,successNum,noFileName,noFilePath,source,operator,createTime)" +
+				"values(?,?,?,?,?,?,?,?,?,?,NOW())"; 
+		List<Object> param=new ArrayList<Object>();
+		param.add(ci.getBillDate());
+		param.add(ci.getName());
+		param.add(ci.getFileName());
+		param.add(ci.getFilePath());
+		param.add(ci.getSubmitNum());
+		param.add(ci.getSuccessNum());
+		param.add(ci.getNoFileName());
+		param.add(ci.getNoFilePath());
+		param.add(ci.getSource());
+		param.add(ci.getOperator());
+		int count=jdbc.update(sql, param.toArray());
+		return count;
+	}
+
+}

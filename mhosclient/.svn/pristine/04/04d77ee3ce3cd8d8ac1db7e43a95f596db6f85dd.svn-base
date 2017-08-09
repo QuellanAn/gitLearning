@@ -1,0 +1,333 @@
+package com.catic.mobilehos.dao.jdbc;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+
+import com.catic.mobilehos.dao.QuestionnaireDAO;
+import com.catic.mobilehos.po.QuestionPO;
+import com.catic.mobilehos.po.QuestionnairePO;
+
+public class QuestionnaireDAOImpl extends JdbcDaoSupport implements QuestionnaireDAO {
+	// private Log log = LogFactory.getLog(this.getClass());
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public int getCountQuestionnairePO(int id, int status, String title, String startdate, String enddate) {
+		// TODO Auto-generated method stub
+		boolean isParas = false;
+		String sql = "select count(*) from questionnaire where 1=1";
+		if(StringUtils.isNotBlank(title)){
+			sql+=" and title like '%"+title+"%'";
+		}
+		if(StringUtils.isNotBlank(startdate) && StringUtils.isNotBlank(enddate)){
+			sql+=" and createtime between '"+startdate+"' and '"+enddate+"'";
+		}
+		/*if (status == 0 || status == 1)
+			if (isParas) {
+				sql += " and status=" + status;
+			} else {
+				sql += "where status=" + status;
+			}*/
+		//System.out.println(sql);
+		return getJdbcTemplate().queryForInt(sql);
+	}
+
+	@Override
+	public List<QuestionnairePO> getQuestionnairePOsbyParas(int id, int status, int offset, int pageSize, String title, String startdate, String enddate) {
+		// TODO Auto-generated method stub
+
+		String sql = "select id,user_name,title,sub_title,`status`,createtime,updatetime from questionnaire where 1=1";
+		if(StringUtils.isNotBlank(title)){
+			sql+=" and title like '%"+title+"%'";
+		}
+		if(StringUtils.isNotBlank(startdate) && StringUtils.isNotBlank(enddate)){
+			sql+=" and createtime between '"+startdate+"' and '"+enddate+"'";
+		}
+		sql+=" ORDER BY createtime DESC limit ? ,?";
+		//System.out.println("sql "+sql);
+		List<QuestionnairePO> list = getJdbcTemplate().query(sql, new QuestionnairePO(), offset, pageSize);
+		return list;
+	}
+
+	@Override
+	public int createQuestionnairePO(final QuestionnairePO questionnairePO) {
+		// TODO Auto-generated method stub
+		final String sql = "insert into questionnaire(promulgator_id,title,sub_title,status,createtime) values (1,?,?,?,now())";
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		getJdbcTemplate().update(new PreparedStatementCreator() {
+
+			@Override
+			public PreparedStatement createPreparedStatement(Connection conn) throws SQLException {
+				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+				ps.setObject(1, questionnairePO.getTitle());
+				ps.setObject(2, questionnairePO.getSub_title());
+				ps.setObject(3, questionnairePO.getStatus());
+				// System.out.println("aaaaaaa");
+				return ps;
+			}
+		}, keyHolder);
+		// System.out.println("bbbbb" + keyHolder.getKey().longValue());
+		return keyHolder.getKey().intValue();
+	}
+
+	@Override
+	public void submitQuestions(QuestionPO quesPO) {
+		// TODO Auto-generated method stub
+
+		JdbcTemplate jt = this.getJdbcTemplate();
+		String sql = "insert into question (questionnaire_id,subject,type,option0,option1,option2,option3,option4,option5,option6,option7,option8,option9,createtime)"
+				+ "value (?,?,?,?,?,?,?,?,?,?,?,?,?,now())";
+		jt.update(sql, quesPO.getQuestionnaireId(), quesPO.getSubject(), quesPO.getType(), quesPO.getOption0(), quesPO.getOption1(), quesPO.getOption2(),
+				quesPO.getOption3(), quesPO.getOption4(), quesPO.getOption5(), quesPO.getOption6(), quesPO.getOption7(), quesPO.getOption8(),
+				quesPO.getOption9());
+	}
+
+	/**
+	 * 删除问卷和问题
+	 */
+	@Override
+	public void deleteQuestionnaire(int id) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "delete from questionnaire where id = ?";
+			jt.update(sql, id);
+
+			String sql1 = "delete from question where questionnaire_id = ?";
+			jt.update(sql1, id);
+			// return true;
+		} catch (DataAccessException ex) {
+			// log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public QuestionnairePO getQuestionnaireDetail(int qnId) {
+		// TODO Auto-generated method stub
+		try {
+
+			String sql = "SELECT id,title,sub_title,createtime from questionnaire";
+			final List<QuestionnairePO> questionnaire = new ArrayList<QuestionnairePO>();
+			getJdbcTemplate().query(sql, new RowCallbackHandler() {
+
+				@Override
+				public void processRow(ResultSet rs) throws SQLException {
+					QuestionnairePO po = new QuestionnairePO();
+					po.setId(rs.getInt("id"));
+					po.setTitle(rs.getString("title"));
+					po.setSub_title(rs.getString("sub_title"));
+					po.setCreatetime(rs.getTimestamp("createtime"));
+					questionnaire.add(po);
+				}
+			});
+			if (questionnaire.size() > 0) {
+				return questionnaire.get(0);
+			} else {
+				return null;
+			}
+		} catch (DataAccessException ex) {
+			// log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	/*
+	 * @Override public List<QuestionPO> getQuestionsByQuestionnaireId(int qnId)
+	 * { // TODO Auto-generated method stub try { String sql =
+	 * "SELECT id, questionnaire_id, `subject`, type, option0, option1, option2, option3, option4, option5, option6, option7, option8, option9 FROM question WHERE questionnaire_id = ?"
+	 * ; return getJdbcTemplate().query(sql, new
+	 * BeanPropertyRowMapper<QuestionPO>(QuestionPO.class), qnId);
+	 * 
+	 * } catch (DataAccessException ex) { // log.error(null, ex); return null; }
+	 * }
+	 */
+
+	/**
+	 * 创建调查问卷
+	 */
+	@Override
+	public int createQuestionnaire(final QuestionnairePO questionnaire) {
+
+		final String sql = "insert into questionnaire(user_name,title,sub_title,status,createtime) values (?,?,?,?,now())";
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		getJdbcTemplate().update(new PreparedStatementCreator() {
+
+			@Override
+			public PreparedStatement createPreparedStatement(Connection conn) throws SQLException {
+				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+				ps.setObject(1, questionnaire.getUserName());
+				ps.setObject(2, questionnaire.getTitle());
+				ps.setObject(3, questionnaire.getSub_title());
+				ps.setObject(4, questionnaire.getStatus());
+				return ps;
+			}
+		}, keyHolder);
+		return keyHolder.getKey().intValue();
+	}
+
+	/**
+	 * 插入问题
+	 */
+	@Override
+	public void addQuestions(QuestionPO question) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "insert into question(questionnaire_id,subject,type,option0,option1,option2,option3,option4,option5,option6,option7,option8,option9,createtime) value(?,?,?,?,?,?,?,?,?,?,?,?,?,now())";
+			jt.update(sql, question.getQuestionnaireId(), question.getSubject(), question.getType(), question.getOption0(), question.getOption1(),
+					question.getOption2(), question.getOption3(), question.getOption4(), question.getOption5(), question.getOption6(), question.getOption7(),
+					question.getOption8(), question.getOption9());
+		} catch (CannotGetJdbcConnectionException e) {
+			e.printStackTrace();
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 根据ID查找调查问卷
+	 */
+	/*
+	 * @Override public QuestionnairePO getQuestionnaire(int id) { // TODO
+	 * Auto-generated method stub System.out.println("进入到修改调查dao   id"+id);
+	 * 
+	 * String sql = "select * from questionnaire where id = ?";
+	 * 
+	 * final QuestionnairePO questionnairePO = new QuestionnairePO();
+	 * getJdbcTemplate().query(sql, new RowCallbackHandler() {
+	 * 
+	 * @Override public void processRow(ResultSet rs) throws SQLException { //
+	 * TODO Auto-generated method stub // QuestionnairePO questionnairePO = new
+	 * QuestionnairePO(); questionnairePO.setId(rs.getInt("id"));
+	 * questionnairePO.setTitle(rs.getString("title"));
+	 * questionnairePO.setSub_title(rs.getString("sub_title"));
+	 * questionnairePO.setStatus(rs.getInt("status"));
+	 * questionnairePO.setCreatetime(rs.getTimestamp("createtime"));
+	 * questionnairePO.setUpdatetime(rs.getTimestamp("updatetime")); } },id);
+	 * return questionnairePO; }
+	 */
+
+	@Override
+	public QuestionnairePO getQuestionnaireById(int id) {
+		// TODO Auto-generated method stub
+		try {
+			String sql = "SELECT * from questionnaire WHERE id = ?";
+			final List<QuestionnairePO> questionnaire = new ArrayList<QuestionnairePO>();
+			getJdbcTemplate().query(sql, new RowCallbackHandler() {
+
+				@Override
+				public void processRow(ResultSet rs) throws SQLException {
+					QuestionnairePO po = new QuestionnairePO();
+					po.setId(rs.getInt("id"));
+					po.setTitle(rs.getString("title"));
+					po.setSub_title(rs.getString("sub_title"));
+					po.setStatus(rs.getInt("status"));
+					po.setCreatetime(rs.getTimestamp("createtime"));
+					questionnaire.add(po);
+				}
+			}, id);
+			if (questionnaire.size() > 0) {
+				return questionnaire.get(0);
+			} else {
+				return null;
+			}
+		} catch (DataAccessException ex) {
+			// log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public List<QuestionPO> getQuestionsByQuestionnaireId(int id) {
+		// TODO Auto-generated method stub
+		try {
+			String sql = "SELECT * FROM question WHERE questionnaire_id = ?";
+			return getJdbcTemplate().query(sql, new BeanPropertyRowMapper<QuestionPO>(QuestionPO.class), id);
+
+		} catch (DataAccessException ex) {
+			// log.error(null, ex);
+			return null;
+		}
+
+	}
+
+	/**
+	 * 更新调查问卷
+	 */
+	@Override
+	public void updataQuestionnaire(QuestionnairePO questionnaire) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "update questionnaire set user_name = ? ,title = ?,sub_title = ?,status = ? ,updatetime = ? where id = ?";
+			jt.update(sql, questionnaire.getUserName(),questionnaire.getTitle(), questionnaire.getSub_title(), questionnaire.getStatus(), new Date(), questionnaire.getId());
+		} catch (CannotGetJdbcConnectionException e) {
+			e.printStackTrace();
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 更新问题
+	 */
+	@Override
+	public void updataQuestions(QuestionPO question) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			/*
+			 * String sql1 = "delete from question where questionnaire_id = ?";
+			 * jt.update(sql1, question.getQuestionnaireId());
+			 */
+
+			String sql = "insert into question(questionnaire_id,subject,type,option0,option1,option2,option3,option4,option5,option6,option7,option8,option9,createtime) value(?,?,?,?,?,?,?,?,?,?,?,?,?,now())";
+			jt.update(sql, question.getQuestionnaireId(), question.getSubject(), question.getType(), question.getOption0(), question.getOption1(),
+					question.getOption2(), question.getOption3(), question.getOption4(), question.getOption5(), question.getOption6(), question.getOption7(),
+					question.getOption8(), question.getOption9());
+		} catch (CannotGetJdbcConnectionException e) {
+			e.printStackTrace();
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 更新时，删除之前的问题
+	 */
+	@Override
+	public void deleteQuestions(QuestionnairePO questionnaire) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql1 = "delete from question where questionnaire_id = ?";
+			jt.update(sql1, questionnaire.getId());
+			
+		} catch (CannotGetJdbcConnectionException e) {
+			e.printStackTrace();
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+}

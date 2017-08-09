@@ -1,0 +1,43 @@
+$(document).ready(function() {
+	//显示管理菜单
+	$('.menu-item-cnt').attr("style", "display:none;");
+	$('.menu-item-cnt:eq(4)').attr("style", "display:block");
+});
+function postData() {
+	var flag = true;
+	if ($.trim($('#title').val()) == ''){
+		
+		showTips('标题不能为空',500,2);
+		flag =  false;
+	}
+	if ($.trim($('#sub_title').val()) == ''){
+		showTips('副标题不能为空',500,2);
+		flag =  false;
+	}
+	return flag;
+};
+
+/*function addQuestions() {
+	var addheight = $("#div_add_win_temp1").outerHeight(true)-55;
+	var wjheight = $("#wj").outerHeight(true);
+	var height = wjheight+addheight+"px";
+	$("#wj").css({"height":height});
+	var q = $("#div_add_win_temp1").clone().show();
+	$(q).removeAttr("id");
+	$("#questions").append(q);
+};*/
+
+function addAnswers(type, obj) {
+	var div = $(obj).parent();
+	if(type == 0 || type == 1) {
+		$(div).find(".an1").show();
+		$(div).find(".an2").hide();
+	} else if (type == 2) {
+		$(div).find(".an2").show();
+		$(div).find(".an1").hide();
+	}
+}
+
+function deleteQuestion(obj) {
+	$(obj).parent().remove();
+}

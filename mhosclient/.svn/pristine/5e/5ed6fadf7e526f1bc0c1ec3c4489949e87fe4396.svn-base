@@ -1,0 +1,396 @@
+package com.catic.mobilehos.dao.jdbc;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+
+import com.catic.mobilehos.dao.AppRegOrdersDAO;
+import com.catic.mobilehos.po.AppRegOrdersPO;
+import com.catic.mobilehos.po.PatientPO;
+
+/**
+ * 预约挂号dao层实现类
+ * 
+ * @author WANG
+ * 
+ */
+public class AppRegOrdersDAOImpl extends JdbcDaoSupport implements
+		AppRegOrdersDAO {
+
+	private Log log = LogFactory.getLog(this.getClass());
+
+	/**
+	 * 
+	 * @Title: findAppRegOrdersByParas
+	 * @Description: TODO 带条件分页查询预约挂号记录
+	 * @param @param status 预约状态
+	 * @param @param startDocDate 查询的开始就诊日期
+	 * @param @param endDocDate 查询的结束就诊日期
+	 * @param @param startCreateTime 查询的创建预约开始日期
+	 * @param @param endCreateTime 查询的创建预约结束日期
+	 * @param @param offset
+	 * @param @param length
+	 * @return List<AppRegOrdersPO> 预约挂号记录列表
+	 * @throws
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public List<AppRegOrdersPO> findAppRegOrdersByParas(String orderid,
+			String patientname, String status, java.sql.Date startDocDate,
+			java.sql.Date endDocDate, Timestamp startCreateTime,
+			Timestamp endCreateTime, int offset, int length,String type, String cardNumber, 
+			String doctorName, String departmentCode, String paid, String departmentName) {
+			List<AppRegOrdersPO> lst = null;
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select a.*, u.user_name from app_reg_orders a, users u where a.user_id = u.user_id";
+			StringBuffer sb = new StringBuffer(sql);
+			if (StringUtils.isNotBlank(orderid)) {
+				sb.append(" AND a.app_r_order_number like '%"+orderid+"%'");
+			}
+			if (StringUtils.isNotBlank(patientname)) {
+				sb.append(" AND a.patient_name like '%"+patientname+"%'");
+			}
+			if (StringUtils.isNotBlank(departmentName)) {
+				sb.append(" AND a.department_name like '%"+departmentName+"%'");
+			}
+			if (startDocDate != null) {
+				sb.append(" AND a.doctor_date >= '"+startDocDate+"'");
+			}
+			if (endDocDate != null) {
+				sb.append(" AND a.doctor_date <= '"+endDocDate+"'");
+			}
+			
+			if (startCreateTime != null) {
+				sb.append(" AND a.create_date >= '"+startCreateTime+"'");
+			}
+			if (endCreateTime != null) {
+				sb.append(" AND a.create_date <= '"+endCreateTime+"'");
+			}
+			if (StringUtils.isNotBlank(status)) {
+				sb.append(" AND a.`status` = '"+status+"'");
+			}
+			if(StringUtils.isNotBlank(cardNumber)){
+				sb.append(" AND a.`card_number` = '"+cardNumber+"'");
+			}
+			if(StringUtils.isNotBlank(doctorName)){
+				sb.append(" AND a.`doctor_name` like '%"+doctorName+"%'");
+			}
+			if(StringUtils.isNotBlank(type)){
+				sb.append(" AND a.`type` = '"+type+"'");
+			}
+			if (StringUtils.isNotBlank(departmentCode)) {
+				sb.append(" AND a.`department_id` = '"+departmentCode+"'");
+			}
+			if(StringUtils.isNotBlank(paid)){
+				sb.append(" AND a.`paid` = '"+paid+"'");
+			}
+			sb.append(" order by a.`create_date` desc");
+			sb.append(" LIMIT "+offset+" ,"+length+"" );
+			//System.out.println(departmentCode+" sql "+sb.toString());
+			lst = jt.query(sb.toString(), new BeanPropertyRowMapper(AppRegOrdersPO.class));
+			return lst;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+			
+	}
+
+	/**
+	 * 
+	 * @Title: countAppRegOrdersByParas
+	 * @Description: TODO 条件查询记录总数
+	 * @param @param status 预约状态
+	 * @param @param startDocDate 查询的开始就诊日期
+	 * @param @param endDocDate 查询的结束就诊日期
+	 * @param @param startCreateTime 查询的创建预约开始日期
+	 * @param @param endCreateTime 查询的创建预约结束日期
+	 * @return int 记录总数
+	 * @throws
+	 */
+	@Override
+	public int countAppRegOrdersByParas(String orderid, String patientname,
+			String status, java.sql.Date startDocDate,
+			java.sql.Date endDocDate, Timestamp startCreateTime,
+			Timestamp endCreateTime,String type, String cardNumber, String doctorName, 
+			String departmentCode, String paid, String departmentName) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL("select count(*) from app_reg_orders", true);
+			sql.addPara("right(status, 3)", "=", status);
+			sql.addPara("doctor_date", ">=", startDocDate);
+			sql.addPara("doctor_date", "<=", endDocDate);
+			sql.addPara("create_date", ">=", startCreateTime);
+			sql.addPara("create_date", "<=", endCreateTime);
+			if (StringUtils.isNotEmpty(patientname)) {
+				sql.addPara("patient_name", "like", "%" + patientname + "%");
+			}
+			if (StringUtils.isNotEmpty(orderid)) {
+				sql.addPara("app_r_order_number", "like", "%" + orderid + "%");
+			}
+			if (StringUtils.isNotEmpty(departmentName)) {
+				sql.addPara("department_name", "like", "%" + departmentName + "%");
+			}
+			if(StringUtils.isNotBlank(type)){
+				sql.addPara("type", "=", type);
+			}
+			if (StringUtils.isNotBlank(cardNumber)) {
+				sql.addPara("card_number", "=", cardNumber);
+			}
+			if (StringUtils.isNotBlank(doctorName)) {
+				sql.addPara("doctor_name", "like", "%" + doctorName + "%");
+			}
+			if (StringUtils.isNotBlank(departmentCode)) {
+				sql.addPara("department_id", "=", departmentCode);
+			}
+			if (StringUtils.isNotBlank(paid)) {
+				sql.addPara("paid", "=", paid);
+			}
+			String fullSQL = sql.getFullSQL().toString();
+			int c = 0;
+			//System.out.println(c+" c "+fullSQL);
+			log.debug("sql.getParas().size() = " + sql.getParas().size());
+			if (sql.getParas().size() > 0) {
+				c = jt.queryForObject(fullSQL, sql.getParas().toArray(),
+						Integer.class);
+			} else {
+				c = jt.queryForObject(fullSQL, Integer.class);
+			}
+			return c;
+		} catch (DataAccessException ex) {
+			log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	/*
+	 * (non-javadoc) <p>Title: deleteAppRegOrdersByDoctor</p> <p>Description:
+	 * </p>
+	 * 
+	 * @return
+	 * 
+	 * @see com.catic.mobilehos.dao.AppRegOrdersDAO#deleteAppRegOrdersByDoctor()
+	 */
+	@Override
+	public boolean deleteAppRegOrdersByDoctor(String doctorId) {
+		String sql = "delete from app_reg_orders where doctor_id=?";
+		int rowCount = this.getJdbcTemplate().update(sql, doctorId);
+		return rowCount > 0;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public List<PatientPO> findPatientByPatentId(String patientId) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select p.* from patients p where p.patient_id= ?";
+			List<PatientPO> list = jt.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper(PatientPO.class));
+			return list;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+		/*try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select p.* from patients p where p.patient_id= ?";
+			final List<PatientPO> patients = new ArrayList<PatientPO>();
+
+			jt.query(sql, new Object[] { patientId }, new RowCallbackHandler() {
+
+				private PatientPO getPatient(String patientId) {
+					if (patients.size() > 0) {
+						PatientPO last = patients.get(patients.size() - 1);
+						if (last.getPatientId().equals(patientId.trim())) {
+							return last;
+						} else {
+							PatientPO p = new PatientPO();
+							patients.add(p);
+							return p;
+						}
+					} else {
+						PatientPO p = new PatientPO();
+						patients.add(p);
+						return p;
+
+					}
+				}
+
+				@Override
+				public void processRow(ResultSet rs) throws SQLException {
+					String patientId = StringUtils.trim(rs
+							.getString("patient_id"));
+					PatientPO po = getPatient(patientId);
+					po.setUserId(StringUtils.trim(rs.getString("user_id")));
+					po.setPatientId(StringUtils.trim(rs.getString("patient_id")));
+					po.setName(StringUtils.trim(rs.getString("patient_name")));
+					po.setSex(rs.getInt("sex"));
+					po.setPhone(StringUtils.trim(rs.getString("phone")));
+					po.setIdentityCard(StringUtils.defaultString(StringUtils
+							.trim(rs.getString("identitycard"))));
+					po.setHomeAddress(StringUtils.trim(rs
+							.getString("home_address")));
+					po.setBirthday(rs.getDate("birthday"));
+					po.setCreateDate(rs.getTimestamp("create_date"));
+					po.setUpdateDate(rs.getTimestamp("update_date"));
+
+					PatientCardPO pc = new PatientCardPO();
+					String cardCode = StringUtils.trim(rs
+							.getString("card_code"));
+					if (cardCode != null && cardCode.length() > 0) {
+						pc.setCardCode(cardCode);
+						pc.setCardNumber(StringUtils.trim(rs
+								.getString("cardnumber")));
+						po.addPatientCard(pc);
+					}
+				}
+			});
+			return patients;
+		} catch (DataAccessException ex) {
+			log.error(null, ex);
+			throw ex;
+		}*/
+
+	}
+
+	@Override
+	public List<AppRegOrdersPO> findRegInfoByOrderId(String orderid) {
+		// TODO Auto-generated method stub
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "SELECT app_r_order_number,create_date,patient_name,department_name,"
+					+ "doctor_name,doctor_date,starttime,endtime,payable_fees,`status` ,"
+					+ "paid,IMEI FROM app_reg_orders WHERE app_r_order_number =?";
+			final List<AppRegOrdersPO> reginfo = new ArrayList<AppRegOrdersPO>();
+			jt.query(sql, new Object[] { orderid }, new RowCallbackHandler() {
+
+				@Override
+				public void processRow(ResultSet rs) throws SQLException {
+					AppRegOrdersPO apo = new AppRegOrdersPO();
+					apo.setAppRegOrderNumber(rs.getString("app_r_order_number"));
+					apo.setCreateDate(rs.getDate("create_date"));
+					apo.setPatientName(rs.getString("patient_name"));
+					apo.setDepartmentName(rs.getString("department_name"));
+					apo.setDoctorName(rs.getString("doctor_name"));
+					apo.setDoctorDate(rs.getDate("doctor_date"));
+					apo.setStartTime(rs.getTime("starttime"));
+					apo.setEndTime(rs.getTime("endtime"));
+					apo.setPayableFees(rs.getDouble("payable_fees"));
+					apo.setStatus(rs.getString("status"));
+					apo.setPaid(rs.getInt("paid"));
+					if (rs.getString("IMEI").length() >= 25) {
+						apo.setIMEI("1");
+					}else{
+						apo.setIMEI(rs.getString("IMEI"));
+					}
+					reginfo.add(apo);
+
+				}
+			});
+			return reginfo;
+		} catch (DataAccessException ex) {
+			throw ex;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public List<AppRegOrdersPO> findAppRegOrdersPOByAppRegOrderId(
+			String appRegOrderId) {
+		// TODO Auto-generated method stub
+		try {
+			String sql = "select * from app_reg_orders where app_reg_order_id = '"+appRegOrderId+"'";
+			List<AppRegOrdersPO> lis = this.getJdbcTemplate().query(sql, new BeanPropertyRowMapper(AppRegOrdersPO.class));
+			//List<AppRegOrdersPO> list = this.getJdbcTemplate().query(sql, new Object[]{appRegOrderId}, new AppRegOrdersPO());
+			return lis;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public List<AppRegOrdersPO> getCountByDepartment(AppRegOrdersPO po) {
+		StringBuffer sql = new StringBuffer("select a.department_name as departmentName,count(1) as count from app_reg_orders a, users u where a.user_id = u.user_id ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND a.create_date>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND a.create_date<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		if(StringUtils.isNotBlank(po.getType())){
+			sql.append(" AND a.type=?");
+			params.add(po.getType());
+		}
+		sql.append(" GROUP BY a.department_id ");
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<AppRegOrdersPO>(AppRegOrdersPO.class));
+	}
+
+	@Override
+	public List<AppRegOrdersPO> getCountByDate(AppRegOrdersPO po) {
+		StringBuffer sql = new StringBuffer("SELECT DATE_FORMAT(a.create_date, '%Y-%m-%d') as countDate,count(1) as count FROM app_reg_orders a, users u WHERE a.user_id = u.user_id ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND a.create_date>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND a.create_date<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		if(StringUtils.isNotBlank(po.getType())){
+			sql.append(" AND a.type=?");
+			params.add(po.getType());
+		}
+		if(StringUtils.isNotBlank(po.getDepartmentId())){
+			sql.append(" AND a.department_id=?");
+			params.add(po.getDepartmentId());
+		}
+		if(StringUtils.isNotBlank(po.getDoctorId())){
+			sql.append(" AND a.doctor_id=?");
+			params.add(po.getDoctorId());
+		}
+		sql.append(" GROUP BY DATE_FORMAT(a.create_date, '%Y-%m-%d')");
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<AppRegOrdersPO>(AppRegOrdersPO.class));
+	}
+
+	@Override
+	public List<AppRegOrdersPO> getCountByDoctor(AppRegOrdersPO po) {
+		StringBuffer sql = new StringBuffer("select a.doctor_name as doctorName,count(1) as count from app_reg_orders a, users u where a.user_id = u.user_id ");
+		List<Object> params = new ArrayList<Object>();
+		if(StringUtils.isNotBlank(po.getBeginDate())){
+			sql.append(" AND a.create_date>=?");
+			params.add(po.getBeginDate()+" 00:00:00");
+		}
+		if(StringUtils.isNotBlank(po.getEndDate())){
+			sql.append(" AND a.create_date<=?");
+			params.add(po.getEndDate()+" 23:59:59");
+		}
+		if(StringUtils.isNotBlank(po.getType())){
+			sql.append(" AND a.type=?");
+			params.add(po.getType());
+		}
+		if(StringUtils.isNotBlank(po.getDepartmentId())){
+			sql.append(" AND a.department_id=?");
+			params.add(po.getDepartmentId());
+		}
+		sql.append(" GROUP BY a.doctor_id ");
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<AppRegOrdersPO>(AppRegOrdersPO.class));
+	}
+}

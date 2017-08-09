@@ -1,0 +1,311 @@
+package com.catic.mobilehos.pay.action;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.entity.OrderQuery;
+import com.catic.mobilehos.pay.entity.OrderQueryRes;
+import com.catic.mobilehos.pay.entity.PayOrder;
+import com.catic.mobilehos.pay.util.Constant;
+
+@Controller
+@Scope("prototype")
+@SuppressWarnings("serial")
+public class OutOrderQuery extends BaseAction{
+
+	private String outTradeNo;
+	private String tradeState;
+	private  String totalFee;
+	private  String refundFee;
+	private  String refundStatus;
+	private  String refund_success_time;
+	private  String refund_id;
+		
+	private String transactionId ;//第三方交易流水号
+	private String tradeType ;//交易类型
+	private String pattern ;//交易类型
+	private String refundNo ;//退款单号
+	private String refundId ;//退款流水号
+	
+	private OrderQueryRes oqr ;
+	public HashMap<String, String> orderQuery(String outTradeNo){	
+		  try {
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httppost = null;
+			if(outTradeNo.startsWith("01")){//微信		
+				 httppost = new HttpPost(Constant.URL_WXQUERYPAY);  				 
+				}else if(outTradeNo.startsWith("2")){//支付宝
+					httppost = new HttpPost(Constant.URL_ZFBUERYPAY);  
+			}
+			   // 创建参数队列    
+	        List<NameValuePair> formparams = new ArrayList<NameValuePair>();  
+	        formparams.add(new BasicNameValuePair("tradeNo",outTradeNo));  
+	      
+	   	 UrlEncodedFormEntity  uefEntity = new UrlEncodedFormEntity(formparams, "UTF-8");  
+         httppost.setEntity(uefEntity);  
+         CloseableHttpResponse response = httpclient.execute(httppost);  
+         HttpEntity entity = response.getEntity();  
+         if (entity != null) {          
+            JSONObject obj = JSONObject.fromObject(EntityUtils.toString(entity, "UTF-8"));      
+            if(obj.getString("code").equals("0")){//成功
+            HashMap<String,String> result=new HashMap<String, String>();
+            JSONObject obj1 =JSONObject.fromObject( obj.getString("data"));
+            tradeState= obj1.getString("tradeState");
+            totalFee= obj1.getString("totalFee");
+            result.put("totalFee", totalFee);
+            result.put("tradeState", tradeState);
+            //SUCCESS—支付成功REFUND—转入退款 NOTPAY—未支付 CLOSED—已关闭 REVOKED—已撤销（刷卡支付） USERPAYING--用户支付中 PAYERROR--支付失败(其他原因，如银行返回失败)
+
+            	if(tradeState.equals("SUCCESS")){
+            		
+            	}else if(tradeState.equals("REFUND")){    
+            	  refundFee= obj1.getString("refundFee");
+                  refundStatus= obj1.getString("refundStatus");
+                  refund_success_time= obj1.getString("refund_success_time");
+                  refund_id= obj1.getString("refund_id");
+                  result.put("refundFee", refundFee);
+                  result.put("refundStatus", refundStatus);
+                  result.put("refund_success_time", refund_success_time);
+                  result.put("refund_id", refund_id);
+            	}else if(tradeState.equals("NOTPAY")){
+            		
+            	}else if(tradeState.equals("CLOSED")||tradeState.equals("REVOKED")||tradeState.equals("USERPAYING")||tradeState.equals("PAYERROR")){
+            	
+            	}else if(tradeState.equals("FAILED")){//支付宝：查询返回该订单支付失败或被关闭!!!
+            	
+            	}
+            	return result; 
+             }
+         }  
+         response.close();  
+		 httpclient.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		 	return null; 
+}
+	/**
+	 * 从第三方查询订单/退款——json
+	 * @return
+	 */
+	public void findOrderJson(){
+		try {	
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		HttpPost httppost = new HttpPost(Constant.URL_ORDER_QUERY);
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();  
+		formparams.add(new BasicNameValuePair("outTradeNo",outTradeNo));  
+		formparams.add(new BasicNameValuePair("transactionId",transactionId));  
+		formparams.add(new BasicNameValuePair("tradeType",tradeType));  
+		formparams.add(new BasicNameValuePair("pattern",pattern));  
+		formparams.add(new BasicNameValuePair("refundNo",refundNo));  
+		formparams.add(new BasicNameValuePair("refundId",refundId));  
+	    UrlEncodedFormEntity  uefEntity = new UrlEncodedFormEntity(formparams, "UTF-8");  
+        httppost.setEntity(uefEntity);  
+        CloseableHttpResponse response;
+		response = httpclient.execute(httppost);
+        HttpEntity entity = response.getEntity();  
+        if (entity != null) {          
+        	 JSONObject obj = JSONObject.fromObject(EntityUtils.toString(entity, "UTF-8"));  
+        	 JSONObject obj1 =JSONObject.fromObject( obj.getString("data"));
+        	 if(obj.getString("code").equals("0")){//查询成功
+        		 if(obj1!=null){
+        	   		 if(tradeType.equals("0")){//交易
+            			 if(pattern.equals("0")){
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            				 if(oqr!=null&&StringUtils.isNotBlank(oqr.getPayTime())){
+            					 SimpleDateFormat sdf =new SimpleDateFormat( "yyyyMMddHHmmss" );
+            					 Date date = sdf.parse(oqr.getPayTime());
+                				 sdf =new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss " );
+                				 String str = sdf.format(date);
+                				 oqr.setPayTime(str);
+            				 }          
+            			 }else if(pattern.equals("1")){//支付宝
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            			 }
+            		 }else if(tradeType.equals("1")){
+            			 if(pattern.equals("0")){
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            			 }else if(pattern.equals("1")){//支付宝
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            			 }           			
+            		 } 
+        	   		 jsonObject=JSONObject.fromObject(oqr);
+        	   		 result=resultBiz.getResult(resultBiz.SUCCESS, jsonObject.toString());
+        		 }else{
+        			 
+        		 }      		 
+        	 }else{
+        		 result=resultBiz.getResult(resultBiz.FAIL);
+        	 }
+        }else{
+        	 result=resultBiz.getResult(resultBiz.FAIL);
+        }
+		 } catch (Exception e) {
+			 result=resultBiz.getResult(resultBiz.SYSTEM_BUSY);
+			e.printStackTrace();
+		} 
+		/*if(tradeType.equals("0")){
+			 return "trade";
+		}
+		 return "refund";*/
+		jsonObj(result.toJson());
+	}
+	
+	
+	
+	
+	/**
+	 * 从第三方查询订单/退款
+	 * @return
+	 */
+	public String findOrder(){
+		try {	
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		HttpPost httppost = new HttpPost(Constant.URL_ORDER_QUERY);
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();  
+		formparams.add(new BasicNameValuePair("outTradeNo",outTradeNo));  
+		formparams.add(new BasicNameValuePair("transactionId",transactionId));  
+		formparams.add(new BasicNameValuePair("tradeType",tradeType));  
+		formparams.add(new BasicNameValuePair("pattern",pattern));  
+		formparams.add(new BasicNameValuePair("refundNo",refundNo));  
+		formparams.add(new BasicNameValuePair("refundId",refundId));  
+	    UrlEncodedFormEntity  uefEntity = new UrlEncodedFormEntity(formparams, "UTF-8");  
+        httppost.setEntity(uefEntity);  
+        CloseableHttpResponse response;
+		response = httpclient.execute(httppost);
+        HttpEntity entity = response.getEntity();  
+        if (entity != null) {          
+        	 JSONObject obj = JSONObject.fromObject(EntityUtils.toString(entity, "UTF-8"));  
+        	 JSONObject obj1 =JSONObject.fromObject( obj.getString("data"));
+        	 if(obj.getString("code").equals("0")){//查询成功
+        		 if(obj1!=null){
+        	   		 if(tradeType.equals("0")){//交易
+            			 if(pattern.equals("0")){
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            				 if(oqr!=null&&StringUtils.isNotBlank(oqr.getPayTime())){
+            					 SimpleDateFormat sdf =new SimpleDateFormat( "yyyyMMddHHmmss" );
+            					 Date date = sdf.parse(oqr.getPayTime());
+                				 sdf =new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss " );
+                				 String str = sdf.format(date);
+                				 oqr.setPayTime(str);
+            				 }          
+            			 }else if(pattern.equals("1")){//支付宝
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            			 }
+            		 }else if(tradeType.equals("1")){
+            			 if(pattern.equals("0")){
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            			 }else if(pattern.equals("1")){//支付宝
+            				 oqr = (OrderQueryRes)JSONObject.toBean(obj1,OrderQueryRes.class);
+            			 }           			
+            		 }
+        		 }
+        		 }
+        }
+		 } catch (Exception e) {
+			e.printStackTrace();
+		} 
+		if(tradeType.equals("0")){
+			 return "trade";
+		}
+		 return "refund";
+	}
+	
+	public String getOutTradeNo() {
+		return outTradeNo;
+	}
+	public void setOutTradeNo(String outTradeNo) {
+		this.outTradeNo = outTradeNo;
+	}
+	public String getTradeState() {
+		return tradeState;
+	}
+	public void setTradeState(String tradeState) {
+		this.tradeState = tradeState;
+	}
+	public String getTotalFee() {
+		return totalFee;
+	}
+	public void setTotalFee(String totalFee) {
+		this.totalFee = totalFee;
+	}
+	public String getRefundFee() {
+		return refundFee;
+	}
+	public void setRefundFee(String refundFee) {
+		this.refundFee = refundFee;
+	}
+	public String getRefundStatus() {
+		return refundStatus;
+	}
+	public void setRefundStatus(String refundStatus) {
+		this.refundStatus = refundStatus;
+	}
+	public String getRefund_success_time() {
+		return refund_success_time;
+	}
+	public void setRefund_success_time(String refund_success_time) {
+		this.refund_success_time = refund_success_time;
+	}
+	public String getRefund_id() {
+		return refund_id;
+	}
+	public void setRefund_id(String refund_id) {
+		this.refund_id = refund_id;
+	}
+	public String getTransactionId() {
+		return transactionId;
+	}
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
+	}
+	public String getTradeType() {
+		return tradeType;
+	}
+	public void setTradeType(String tradeType) {
+		this.tradeType = tradeType;
+	}
+	public String getPattern() {
+		return pattern;
+	}
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
+	public String getRefundNo() {
+		return refundNo;
+	}
+	public void setRefundNo(String refundNo) {
+		this.refundNo = refundNo;
+	}
+	public String getRefundId() {
+		return refundId;
+	}
+	public void setRefundId(String refundId) {
+		this.refundId = refundId;
+	}
+	public OrderQueryRes getOqr() {
+		return oqr;
+	}
+	public void setOqr(OrderQueryRes oqr) {
+		this.oqr = oqr;
+	}
+}

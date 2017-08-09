@@ -1,0 +1,41 @@
+package com.catic.mobilehos.service;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+import com.catic.mobilehos.po.AppRegOrdersPO;
+import com.catic.mobilehos.po.PatientPO;
+import com.catic.mobilehos.service.vo.AppRegOrdersVO;
+import com.catic.mobilehos.service.vo.Page;
+
+/**
+ * 预约挂号单服务
+ * @author xieweipeng
+ *
+ */
+public interface AppRegOrderService {
+	
+	/**
+	 * 通过可选参数查询预约挂号单
+	 * @param status
+	 * @param startDocDate
+	 * @param endDocDate
+	 * @param startCreateTime
+	 * @param endCreateTime
+	 * @param page
+	 * @param pageSize
+	 * @return
+	 */
+	Page<AppRegOrdersVO> queryAppRegOrdersByParas(String orderid,
+			String patientname,String status,
+			java.sql.Date startDocDate, java.sql.Date endDocDate,
+			Timestamp startCreateTime, Timestamp endCreateTime, int page, int pageSize,String type, 
+			String cardNumber, String doctorName, String departmentCode, String paid);
+
+	List<PatientPO> findPatientByPatentId(String patientId);
+
+	List<AppRegOrdersPO> findRegInfoByOrderId(String orderid);
+	
+	List<AppRegOrdersPO> findAppRegOrdersPOByAppRegOrderId(String appRegOrderId);
+
+}

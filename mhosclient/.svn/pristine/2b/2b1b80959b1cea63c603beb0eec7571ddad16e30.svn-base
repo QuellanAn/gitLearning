@@ -1,0 +1,164 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"
+	import="java.util.*, com.catic.mobilehos.service.vo.*"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+
+<head>
+<base href="<%=basePath%>/" />
+<title>统计分析</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link href="resources/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/index.css" />
+<link rel="stylesheet" type="text/css" href="transaction/jygl/jygl.css" />
+<script charset="utf-8" src="resources/js/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery-ui.js"></script>
+<script type="text/javascript"
+	src="resources/js/jquery/jquery.ui.datepicker-zh-CN.js"></script>
+<script src="resources/js/jquery/bootstrap.min.js"
+	type="text/javascript"></script>
+<script type="text/javascript" src="../getKey.js"></script>
+
+<script charset="utf-8" src="../statisticalAnalysis/trendAnalysis.js"></script>
+</head>
+<input type="hidden" value="${param.key}" id="key1" />
+<s:hidden value="%{#session.key}" id="key" />
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg">
+				<li class="tab-crt">趋势占比分析</li>
+				<li><a href="../statisticalAnalysis/tjfx_main.jsp">数据占比分析</a></li>
+			</ul>
+			<div class="tab-cnt">
+				<div class="f-fl left-list-wrap">
+					<div class="left-list-hd" style="height: 160px;">
+						<div style="float: left;">
+							<form id="form_query">
+								<table height="100%" style="margin-top: -3px;">
+									<tr>
+										<td valign="middle" align="left">订单类型:</td>
+										<td valign="middle" style="padding-left: 30px;" width="90px;">
+											<input type="radio" name="status" value="1"  checked="checked"
+											 />全部</td>
+										<td valign="middle" width="90px;"><input type="radio"
+											name="status" value="2"/>交易</td>
+										<td valign="middle" width="90px;"><input type="radio"
+											name="status" value="3" />退款</td>
+									</tr>
+									<tr>
+										<td valign="middle" align="left">院区:</td>
+										<td valign="middle" align="left"><select name="districtId"
+										    style="width: 130px;height: 28px;">
+											<option value="">全部</option>
+											<option value="46">南区</option>
+											<option value="53">北区</option>
+										</select></td>
+										<td valign="middle" align="left" style="padding-left: 20px;" id="jiaofei">缴费项目:</td>
+										<td valign="middle" align="left"><select name="body" id="body"
+										    style="width: 130px;height: 28px;">
+											<option value="">全部</option>
+											<option value="0">挂号费</option>
+											<option value="1">就诊费</option>
+											<option value="2">住院预交金</option>
+										</select></td>
+									</tr>
+									<tr>
+										<td valign="middle" align="left">支付方式:</td>
+										<td valign="middle" align="left"><select name="pattern"
+										    style="width: 130px;height: 28px;">
+											<option value="">全部</option>
+											<option value="0">微信</option>
+											<option value="1">支付宝</option>
+											<option value="2">银联支付</option>
+										</select></td>
+										<td valign="middle" align="left" style="padding-left: 20px;">支付场景:</td>
+										<td valign="middle" align="left"><select name="payType"
+										    style="width: 130px;height: 28px;">
+											<option value="">全部</option>
+											<option value="0">扫码支付</option>
+											<option value="1">刷卡支付</option>
+										</select></td>
+									</tr>
+									<tr>
+										<td valign="middle" align="left">订单日期:</td>
+										<td valign="middle" align="center" width="60px;"><input
+											type="radio" name="timeType" value="1" checked="checked"/>按日统计
+										</td>
+										<td valign="middle" align="center" width="60px;"><input
+											type="radio" name="timeType" value="2" />按月统计</td>
+										<td valign="middle" align="left"><input name="startdate"
+											type="text" size="16"
+											style="height: 28px; line-height: 28px;" />
+										</td>
+										<td valign="middle" width="2px;">-</td>
+										<td valign="middle" align="left"><input name="enddate"
+											type="text" size="16"
+											style="height: 28px; line-height: 28px;" />
+										</td>
+										<td valign="middle" align="center" width="90px;"  id="day"><input
+											type="radio" name="day" value="1" checked="checked"/>最近7天</td>
+										<td valign="middle" align="center" width="90px;"  id="days"><input
+											type="radio" name="day" value="2"/>最近30天</td>
+											
+										<td style="display: none;" align="center" width="90px;"  id="month"><input
+											type="radio" name="month" value="1"/>最近半年</td>
+										<td style="display: none;" align="center" width="90px;"  id="months"><input
+											type="radio" name="month" value="2"/>最近一年</td>
+										<td valign="msiddle"><button id="act_query"
+												class="save-btn">查询</button></td>
+									</tr>
+								</table>
+							</form>
+						</div>
+					</div>
+					<div id="zeFont" style="color: #999999;">注：实际总收入=交易总金额-退款总金额；实际总笔数=交易总笔数+退款总笔数；人均金额=实际总收入/实际总笔数。</div>
+					<div id="zbFont" style="color: #999999;display: none;">注：人均交易金额=交易总金额/交易总笔数。</div>
+					<div id="rjFont" style="color: #999999;display: none;">注：人均退款金额=退款总金额/退款总笔数。</div>
+									<div class="tab" role="tabpanel"
+										style="width: 1030px;margin-left: 30px;">
+										<ul class="nav nav-tabs" role="tablist">
+											<li style="width: 33%" role="presentation" class="active"><a
+												href="#Section1" aria-controls="home" role="tab"
+												id="totalMoney" data-toggle="tab"
+												style="height: 60px;text-align: center;"></a></li>
+											<li style="width: 33%" role="presentation"><a
+												href="#Section2" aria-controls="profile" role="tab"
+												id="totalCount" data-toggle="tab"
+												style="height: 60px;text-align: center;"></a></li>
+											<li style="width: 34%" role="presentation"><a
+												href="#Section3" aria-controls="messages" role="tab"
+												id="avgMoney" data-toggle="tab"
+												style="height: 60px;text-align: center;"></a></li>
+										</ul>
+										<div class="tab-content tabs">
+											<div role="tabpanel" class="tab-pane fade in active"
+												style="height: 410px;width: 1000px;" id="Section1"></div>
+											<div role="tabpanel" class="tab-pane fade"
+												style="height: 410px;width: 1000px;" id="Section2"></div>
+											<div role="tabpanel" class="tab-pane fade"
+												style="height: 410px;width: 1000px;" id="Section3"></div>
+										</div>
+									</div>
+						<div id="div_cnt_table"></div>
+					</div>
+				<div class="f-clear"></div>
+			</div>
+		</div>
+
+		<div class="f-clear"></div>
+	</div>
+</body>
+<script src="resources/js/echarts.min.js" type="text/javascript"></script>
+</html>

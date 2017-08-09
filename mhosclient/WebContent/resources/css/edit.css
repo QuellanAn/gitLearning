@@ -1,0 +1,210 @@
+﻿.tab-cnt{
+	border-bottom:1px solid #c8c8c8;
+	margin:0 16px 33px 15px;
+	width:788px;
+}
+.tab-cnt .info-wrap{
+	border:1px solid #ededed;
+	border-bottom-color:#cdcccc;
+	border-left-color:#cdcccc;
+	border-radius:4px;
+	display:inline;
+	font:16px/22px "方正兰亭黑简体","Microsoft YaHei","宋体";
+	height:214px;
+	margin-left:8px;
+	_margin-left:4px;
+	padding:11px 14px 13px;
+	width:290px;
+}
+.tab-cnt .info-hd{
+	width:290px;
+}
+.info-wrap .img-wrap{
+	background:#f5f5f5; /* 一些不支持背景渐变的浏览器 */
+    background:-moz-linear-gradient(top, #f8f8f8, #f1f1f1);
+    background:-webkit-gradient(linear, 0 0, 0 bottom, from(#f8f8f8), to(#f1f1f1));
+	background:-o-linear-gradient(top, #f8f8f8, #f1f1f1);/*Opera11*/
+	filter:progid:DXImageTransform.Microsoft.gradient(gradientType=0,startColorstr=#f8f8f8,endColorstr=#f1f1f1);
+	border:1px solid #ededed;
+	border-radius:4px;
+	color:#ccc;
+	height:158px;
+	margin-top:8px;
+	position:relative;
+	text-align:center;
+	width:288px;
+}
+.info-wrap .img-wrap .img-alt{
+	line-height:158px;
+}
+.info-wrap .img-wrap img{
+	left:0;
+	top:0;
+	position:absolute;
+}
+.tab-cnt .edit-wrap{
+	background:#fafafa;
+	border:1px solid #cdcccc;
+	border-radius:2px;
+	display:inline;
+	height:642px;
+	margin:0 8px 49px 0;
+	_margin-right:4px;
+	padding:19px 24px 27px 25px;
+	position:relative;
+	width:373px;
+}
+.edit-wrap .arrow-icon{
+	background-position:0 -253px;
+	height:24px;
+	left:-13px;
+	position:absolute;
+	top:56px;
+	width:13px;
+}
+.edit-fm{
+	width:382px;
+}
+.edit-fm li{
+	position:relative;
+	zoom:1;
+}
+.edit-fm .edit-label{
+	font:16px/31px "方正兰亭黑简体","Microsoft YaHei","宋体";
+	margin-left:9px;
+}
+.edit-fm .fm-text{
+	margin-bottom:8px;
+	width:360px;
+}
+.edit-fm .edit-select{
+	margin-bottom:8px;
+	margin-right:8px;
+	padding:6px 8px;
+	width:180px;
+}
+.edit-fm .edit-select option{
+	padding:0 8px;
+}
+.edit-fm .pmt{
+	color:#b5b5b5;
+	margin-right:8px;
+}
+.edit-fm .fm-file{
+	margin-bottom:8px;
+	width:373px;
+}
+.edit-fm .edit-textarea{
+	height:83px;
+	padding-bottom:5px;
+	padding-top:10px;
+	resize:none;
+	width:359px;
+}
+.edit-fm .article-edit{
+	border:1px solid #a0a0a0;
+	border-top-color:#b0b0b0;
+	border-radius:3px;
+	height:171px;
+	width:370px;
+}
+.article-edit .edit-tool{
+	background-position:0 -116px;
+	border-radius:3px 3px 0 0;
+	color:#2e7dcf;
+	font:12px/20px "宋体";
+	height:29px;
+	padding-top:6px;
+	width:370px;
+}
+.edit-tool li{
+	border-right:1px solid #c9c4c4;
+	float:left;
+	height:18px;
+}
+.edit-tool li .icon{
+	height:18px;
+}
+.edit-tool .b-icon{
+	background-position:0 -283px;
+	margin-left:10px;
+	width:10px;
+}
+.edit-tool .i-icon{
+	background-position:-18px -346px;
+	margin-left:13px;
+	width:7px;
+}
+.edit-tool .u-icon{
+	background-position:-13px -283px;
+	margin:0 10px 0 12px;
+	width:12px;
+}
+.edit-tool .number-icon,.edit-tool .list-icon,.edit-tool .ab-icon{
+	width:25px;
+}
+.edit-tool .number-icon{
+	background-position:0 -304px;
+	margin-left:9px;
+}
+.edit-tool .list-icon{
+	background-position:0 -325px;
+	margin:0 8px 0 9px;
+}
+.edit-tool .img-icon{
+	background-position:0 -346px;
+	margin:0 8px 0 9px;
+	width:16px;
+}
+.edit-tool .link-icon{
+	background-position:0 -367px;
+	margin-left:8px;
+	width:16px;
+}
+.edit-tool .a-icon{
+	background-position:0 -388px;
+	margin-left:10px;
+	width:24px;
+}
+.edit-tool .ab-icon{
+	background-position:0 -409px;
+	margin-left:9px;
+}
+.edit-tool .movie-icon{
+	background-position:0 -430px;
+	margin:0 15px 0 9px;
+	width:14px;
+}
+.edit-tool .border-none{
+	border-right:none;
+}
+.edit-fm .article-textarea{
+	border:none;
+	border:1px solid none;
+	height:125px;
+	padding:5px;
+	width:360px;
+}
+.btn-wrap{
+	height:35px;
+	margin:0 auto 49px;
+	width:280px;
+}
+.btn-wrap .edit-btn{
+	border:none;
+	border-radius:3px;
+	cursor:pointer;
+	font:16px "方正兰亭黑简体","Microsoft YaHei","宋体";
+	height:35px;
+	width:112px;
+}
+.btn-wrap .preview-btn{
+	background:#ccc;
+	border:1px solid #999;
+	color:#555;
+	margin-right:56px;
+}
+.btn-wrap .save-btn{
+	background:#0079ff;
+	color:#fff;
+}

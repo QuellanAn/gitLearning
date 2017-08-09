@@ -1,0 +1,44 @@
+package com.catic.mobilehos.dao;  
+
+import java.util.List;
+
+import com.catic.mobilehos.po.SelfServiceVersionPO;
+import com.catic.mobilehos.utils.Page;
+
+/**  
+ * 类说明:自助终端版本dao接口
+ * @author 朱伟权
+ * 创建时间: 2017-7-6 上午9:51:20
+ */
+public interface SelfServiceVersionDao {
+	
+	/**
+	 * 根据条件查询自助终端发布版本
+	 * @param po 查询条件
+	 * @return
+	 */
+	List<SelfServiceVersionPO> findAll(Page page, SelfServiceVersionPO po);
+	
+	/**
+	 * 根据id查询设备版本信息
+	 * @param id 版本信息id
+	 * @return 设备版本信息
+	 */
+	SelfServiceVersionPO findById(int id);
+
+	/**
+	 * 根据指定的所有id查询设备版本信息
+	 * @param ids 指定的所有id
+	 * @return 设备版本信息查询结果
+	 */
+	List<SelfServiceVersionPO> findByIds(String ids);
+	
+	/**
+	 * 激活指定的设备版本
+	 * @param ids 指定的设备版本id
+	 * @return true激活成功，false激活失败
+	 */
+	boolean activateVersions(String ids);
+
+}
+ 

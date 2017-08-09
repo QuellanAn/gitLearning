@@ -1,0 +1,16 @@
+$(document).ready(function() {
+	$('input[name=createTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+});
+
+function exportFile() {
+	var submit = function (v) {
+	    if (v == 'ok'){
+	    	document.location.href='unpaid/checkImportAction_modeDown';
+	    }
+	    else if (v == 'cancel'){
+	    	jBox.tip("操作取消", 'info');
+		    return true;
+	    }
+	};
+	$.jBox.confirm("是否导出数据？", "提示", submit);
+};

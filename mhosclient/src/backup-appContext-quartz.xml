@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<!-- 配置调度器Scheduler -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<!-- <ref bean="doctorTrigger" /> -->
+				<!-- <ref bean="roomTrigger" /> -->
+				<!-- <ref bean="deptTrigger" /> -->
+				<!-- <ref bean="deptDoctorTrigger" /> -->
+				<!-- <ref bean="appRegOrderTypeTrigger" /> -->
+	<!-- <ref bean="appRegExceptionTrigger" /> -->
+				<!-- <ref bean="roomQueueSnTrigger" /> -->
+				<!-- <ref bean="appRegPeriodTrigger" /> -->
+				<!-- <ref bean="timeTableTrigger" /> -->
+			</list>
+		</property>
+		<property name="autoStartup" value="false" />
+	</bean>
+
+	<!-- 同步医生数据 -->
+	<!-- 触发器 Trigger -->
+	<bean id="doctorTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="doctorJobDetail" />
+		<property name="cronExpression" value="0 28 17 * * ?" /><!-- 每触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="doctorJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iDoctorService" />
+		<property name="targetMethod" value="addDoctorFromHis" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步诊室数据 -->
+	<!-- 触发器 -->
+	<bean id="roomTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="roomJobDetail" />
+		<property name="cronExpression" value="0 01 16 * * ?" /><!-- 每隔1分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="roomJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iRoomService" />
+		<property name="targetMethod" value="saveRoomsFromHIS" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步科室数据 -->
+	<!-- 触发器 -->
+	<bean id="deptTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="deptJobDetail" />
+		<property name="cronExpression" value="0 58 15 * * ?" /><!-- 每隔1分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="deptJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iDepartmentService" />
+		<property name="targetMethod" value="saveDepartmentFromHis" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步部门-医生数据 -->
+	<!-- 触发器 -->
+	<bean id="deptDoctorTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="deptDoctorJobDetail" />
+		<property name="cronExpression" value="0 10 16 * * ?" /><!-- 每隔1分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="deptDoctorJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="deptDoctorService" />
+		<property name="targetMethod" value="saveDeptDocFromHIS" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步号源类型数据 -->
+	<!-- 触发器 -->
+	<bean id="appRegOrderTypeTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="appRegOrderTypeJobDetail" />
+		<property name="cronExpression" value="0 18 16 * * ?" /><!-- 每隔1分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="appRegOrderTypeJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iAppRegOrderTypeService" />
+		<property name="targetMethod" value="saveOrderTypeFromHis" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步预约异常数据 -->
+	<!-- 触发器 -->
+	<bean id="appRegExceptionTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="appRegExceptionJobDetail" />
+		<property name="cronExpression" value="0 17 * * * ?" /><!-- 每隔1分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="appRegExceptionJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iAppRegExceptionService" />
+		<property name="targetMethod" value="saveAppRegExcetion" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步诊室排队数据 -->
+	<bean id="roomQueueSnTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="roomQueueSnJobDetail" />
+		<property name="cronExpression" value="0 44 16 * * ?" /><!-- 每隔30分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="roomQueueSnJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iRoomQueueSnService" />
+		<property name="targetMethod" value="saveRoomQueueSn" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步挂号时段数据 -->
+	<bean id="appRegPeriodTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="appRegPeriodJobDetail" />
+		<property name="cronExpression" value="0 28 17 * * ?" /><!-- 每隔30分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="appRegPeriodJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iAppRegPeriodService" />
+		<property name="targetMethod" value="saveAppRegPeriod" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+
+	<!-- 同步排班表数据 -->
+	<bean id="timeTableTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="timeTableJobDetail" />
+		<property name="cronExpression" value="0 46 * * * ?" /><!-- 每隔30分钟触发一次 -->
+	</bean>
+
+	<!-- JobDetail任务详情 -->
+	<bean id="timeTableJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="iTimeTableService" />
+		<property name="targetMethod" value="saveTimetableFromHIS" />
+		<property name="concurrent" value="false" />
+		<!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启动一个新的线程 -->
+	</bean>
+</beans>
+
+

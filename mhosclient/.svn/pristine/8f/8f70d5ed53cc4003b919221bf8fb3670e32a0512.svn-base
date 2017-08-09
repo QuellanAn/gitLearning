@@ -1,0 +1,367 @@
+package com.catic.mobilehos.action;
+
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.catic.mobilehos.dao.UserDAO;
+import com.catic.mobilehos.po.PatientCardPO;
+import com.catic.mobilehos.po.PatientPO;
+import com.catic.mobilehos.po.UserPO;
+import com.catic.mobilehos.service.PatientsService;
+import com.catic.mobilehos.service.vo.Page;
+import com.catic.mobilehos.service.vo.PatientsVO;
+
+public class PatientsAction extends BaseAction{
+	private static final long serialVersionUID = 1L;
+	
+	private Page<PatientsVO> pageBean;
+	
+	private PatientsService patientsService;
+	private String startdate;
+	private Date startSQLDate;
+	private String enddate;
+	private Date endSQLDate;
+	private String startCreateTime;
+	private Timestamp startSQLCreateTime;
+	private String endCreateTime;
+	private Timestamp endSQLCreateTime;
+	private int page;
+	private final int DEFAULT_PAGESIZE = 10;
+	
+	private PatientPO patientPO;
+	private List<PatientPO> patientPOs;
+	private String patientId;
+	private List<PatientCardPO> patientCardPOs;
+	private PatientCardPO patientCardPO;
+	private List<UserPO> userPOs;
+	private UserDAO userDAO;
+	/**
+	 * 验证参数
+	 */
+	public void validateGetAppRegOrdersList() {
+
+		if (StringUtils.isNotBlank(this.startdate)) {
+			this.startSQLDate = this.toSQLDate(this.startdate);
+			if (this.startSQLDate == null) {
+				this.addFieldError("", "日期格式不正确！");
+			}
+		}
+		if (StringUtils.isNotBlank(this.enddate)) {
+			this.endSQLDate = this.toSQLDate(this.enddate);
+			if (this.endSQLDate == null) {
+				this.addFieldError("", "日期格式不正确！");
+			}
+		}
+		if (StringUtils.isNotBlank(this.startCreateTime)) {
+			this.startSQLCreateTime = this.toTimestamp(this.startCreateTime);
+			if (this.startSQLCreateTime == null) {
+				this.addFieldError("", "时间格式不正确！");
+			}
+		}
+		if (StringUtils.isNotBlank(this.endCreateTime)) {
+			this.endSQLCreateTime = this.toTimestamp(this.endCreateTime);
+			if (this.endSQLCreateTime == null) {
+				this.addFieldError("", "时间格式不正确！");
+			}
+		}
+	}
+	
+	public String getPatientsList() {
+		try {
+			String status = request.getParameter("status");
+			String cardNo = request.getParameter("cardNo");
+			String patientname = request.getParameter("patientname");
+			String phone = request.getParameter("phone");
+			String identityCard = request.getParameter("identityCard");
+			String startSQLDate = request.getParameter("startdate");
+			String endSQLDate = request.getParameter("enddate");
+			String patientSource = request.getParameter("patientSource");
+			if(StringUtils.isNotBlank(startSQLDate) && StringUtils.isNotBlank(endSQLDate)){
+				startSQLDate += " 00:00:00";
+				endSQLDate += " 23:59:59";
+			}
+			if (!StringUtils.isEmpty(patientname)) {
+				patientname=new String(patientname.getBytes("ISO-8859-1"),"utf-8");
+				patientname = java.net.URLDecoder.decode(patientname, "utf-8");
+			}
+			String type = request.getParameter("type");
+			String type1 = request.getParameter("type1");//type用于区分是建档(0)还是绑卡(1)，type1是区分跳转在线建档记录(0)还是就诊人管理(1)
+			//System.out.println(patientSource+"  "+type);
+			pageBean = patientsService.queryPatientsByParas(cardNo, patientname, phone, identityCard, startSQLDate, 
+					endSQLDate, type, page, DEFAULT_PAGESIZE, status, patientSource);
+			//System.out.println(pageBean.getCurPageData().get(0).getSourceName());
+			Map<String, String> paras = new TreeMap<String, String>();
+			paras.put("cardNo", cardNo);
+			if (!StringUtils.isEmpty(patientname)) {
+				paras.put("patientname", patientname);
+			}
+			if (!StringUtils.isNotBlank(type)) {
+				paras.put("type", type);
+			}
+			if (!StringUtils.isNotBlank(identityCard)) {
+				paras.put("identityCard", identityCard);
+			}
+			if (!StringUtils.isNotBlank(startSQLDate)) {
+				paras.put("startSQLDate", startSQLDate);
+			}
+			if (!StringUtils.isNotBlank(endSQLDate)) {
+				paras.put("endSQLDate", endSQLDate);
+			}
+			if (!StringUtils.isNotBlank(patientSource)) {
+				paras.put("patientSource", patientSource);
+			}
+			paras.put("phone", phone);
+			paras.put("status", status);
+			paras.put("type1", type1);
+			String baseUrl ;
+			if("0".equals(type1)){
+				baseUrl = "busrecord/getPatientsList";
+			}else{
+				baseUrl = "busrecord/getPatientsUserList";
+			}
+			pageBean.setQueryUrl(baseUrl, paras);
+			return SUCCESS;
+		} catch (Exception e) {
+			// TODO: handle exception
+			return ERROR;
+		}
+	}
+	/**
+	 * 显示就诊人信息
+	 */
+	public String showPatient() {
+		String patientId = request.getParameter("patientId");
+		String type = request.getParameter("type");
+		//System.out.println(patientId+"  "+appRegOrderId);
+		patientPO = patientsService.findPatientByPatentId(patientId, type);
+		//System.out.println(patientPO.getSourceName());
+		return SUCCESS;
+
+	}
+	
+	public String showPatientUser() {
+		String patientId = request.getParameter("patientId");
+		String userId = request.getParameter("userId");
+		String cardNo = request.getParameter("cardNo");
+		patientPO = patientsService.findPatientByPatentId(patientId, "");
+		patientCardPOs = patientsService.findPatientsCardByParms(userId, patientId, cardNo);
+		userPOs =  patientsService.findUserByPatientId(patientId);
+		//System.out.println(userPOs.size()+" "+userPOs.get(0).getUserName());
+		//System.out.println(patientCardPOs.size()+"  "+patientCardPOs.get(0).getCardNumber()+" s "+patientCardPOs.get(0).getPatientId());
+		return SUCCESS;
+
+	}
+	public String updatePatientOrUser() {
+		String type = request.getParameter("type");//0表示对patient的操作，1表示对微信账户操作
+		String status = request.getParameter("status");
+		String patientId = request.getParameter("patientId");
+		String userName = request.getParameter("userName");
+		patientsService.updatePatientOrUser(type, status, patientId, userName);
+		//System.out.println(type+" t "+status+" s "+patientId+" p "+userName);
+		String ret = null;
+		if("0".equals(type)){
+			ret = "updatePatient";
+		}else if("1".equals(type)){
+			ret = "updateUser";
+		}
+		return ret;
+	}
+	/**
+	 * 批量解冻
+	 * @return
+	 */
+	public String updateAllPatientOrUser() {
+		String type = request.getParameter("type");//0表示对patient的操作，1表示对微信账户操作
+		String status = "0";//status为0表示正常，为1表示冻结
+		String patientId = request.getParameter("patientId");
+		String userName = request.getParameter("userName");
+		//System.out.println(type+" t "+status+" s "+patientId+" p "+userName);
+		//批量解冻就诊人
+		if(StringUtils.isNotBlank(patientId)){
+			if(patientId.contains(",")){
+				String[] array = patientId.split(",");
+				for (int i = 0; i < array.length; i++) {
+					patientsService.updatePatientOrUser(type, status, array[i], userName);
+				}
+			}else{
+				patientsService.updatePatientOrUser(type, status, patientId, userName);
+			}
+		}
+		//批量解冻微信账号
+		if(StringUtils.isNotBlank(userName)){
+			if(userName.contains(",")){
+				String[] array = userName.split(",");
+				for (int i = 0; i < array.length; i++) {
+					//System.out.println(array[i]);
+					patientsService.updatePatientOrUser(type, status, patientId, array[i]);
+				}
+			}else{
+				//System.out.println(userName);
+				patientsService.updatePatientOrUser(type, status, patientId, userName);
+			}
+		}
+		String ret = null;
+		if("0".equals(type)){
+			ret = "updatePatient";
+		}else if("1".equals(type)){
+			ret = "updateUser";
+		}
+		return ret;
+	}
+	
+	public PatientsService getPatientsService() {
+		return patientsService;
+	}
+
+	public void setPatientsService(PatientsService patientsService) {
+		this.patientsService = patientsService;
+	}
+
+	public Page<PatientsVO> getPageBean() {
+		return pageBean;
+	}
+
+	public void setPageBean(Page<PatientsVO> pageBean) {
+		this.pageBean = pageBean;
+	}
+
+	public String getStartdate() {
+		return startdate;
+	}
+
+	public void setStartdate(String startdate) {
+		this.startdate = startdate;
+	}
+
+	public Date getStartSQLDate() {
+		return startSQLDate;
+	}
+
+	public void setStartSQLDate(Date startSQLDate) {
+		this.startSQLDate = startSQLDate;
+	}
+
+	public String getEnddate() {
+		return enddate;
+	}
+
+	public void setEnddate(String enddate) {
+		this.enddate = enddate;
+	}
+
+	public Date getEndSQLDate() {
+		return endSQLDate;
+	}
+
+	public void setEndSQLDate(Date endSQLDate) {
+		this.endSQLDate = endSQLDate;
+	}
+
+	public String getStartCreateTime() {
+		return startCreateTime;
+	}
+
+	public void setStartCreateTime(String startCreateTime) {
+		this.startCreateTime = startCreateTime;
+	}
+
+	public Timestamp getStartSQLCreateTime() {
+		return startSQLCreateTime;
+	}
+
+	public void setStartSQLCreateTime(Timestamp startSQLCreateTime) {
+		this.startSQLCreateTime = startSQLCreateTime;
+	}
+
+	public String getEndCreateTime() {
+		return endCreateTime;
+	}
+
+	public void setEndCreateTime(String endCreateTime) {
+		this.endCreateTime = endCreateTime;
+	}
+
+	public Timestamp getEndSQLCreateTime() {
+		return endSQLCreateTime;
+	}
+
+	public void setEndSQLCreateTime(Timestamp endSQLCreateTime) {
+		this.endSQLCreateTime = endSQLCreateTime;
+	}
+
+	public int getPage() {
+		return page;
+	}
+
+	public void setPage(int page) {
+		this.page = page;
+	}
+
+	public int getDEFAULT_PAGESIZE() {
+		return DEFAULT_PAGESIZE;
+	}
+
+	public PatientPO getPatientPO() {
+		return patientPO;
+	}
+
+	public void setPatientPO(PatientPO patientPO) {
+		this.patientPO = patientPO;
+	}
+
+	public List<PatientPO> getPatientPOs() {
+		return patientPOs;
+	}
+
+	public void setPatientPOs(List<PatientPO> patientPOs) {
+		this.patientPOs = patientPOs;
+	}
+
+	public String getPatientId() {
+		return patientId;
+	}
+
+	public void setPatientId(String patientId) {
+		this.patientId = patientId;
+	}
+
+	public List<PatientCardPO> getPatientCardPOs() {
+		return patientCardPOs;
+	}
+
+	public void setPatientCardPOs(List<PatientCardPO> patientCardPOs) {
+		this.patientCardPOs = patientCardPOs;
+	}
+
+	public PatientCardPO getPatientCardPO() {
+		return patientCardPO;
+	}
+
+	public void setPatientCardPO(PatientCardPO patientCardPO) {
+		this.patientCardPO = patientCardPO;
+	}
+
+	public List<UserPO> getUserPOs() {
+		return userPOs;
+	}
+
+	public void setUserPOs(List<UserPO> userPOs) {
+		this.userPOs = userPOs;
+	}
+
+	public UserDAO getUserDAO() {
+		return userDAO;
+	}
+
+	public void setUserDAO(UserDAO userDAO) {
+		this.userDAO = userDAO;
+	}
+	
+	
+}

@@ -1,0 +1,23 @@
+package com.catic.mobilehos.utils;
+
+import java.util.Date;
+
+import org.apache.commons.lang3.time.DateUtils;
+
+public abstract class CommonUtils {
+	
+	public static Date addTime(Date date, int hours, int minutes, int seconds){
+		date = DateUtils.addHours(date, hours);
+		date = DateUtils.addMinutes(date, minutes);
+		date = DateUtils.addSeconds(date, seconds);
+		return date;
+	}
+	
+	/**
+	 * 把字符串值为null的转化为空字符串，如果不是null则返回原字符串
+	 * @return 如果为null返回""，否则的返回原字符串
+	 */
+	public static String nullStringToEmpty(String str){
+		return str == null ? "" : str;
+	}
+}

@@ -1,0 +1,93 @@
+package com.catic.mobilehos.dao;
+
+import java.util.List;
+
+import com.catic.mobilehos.po.QuestionPO;
+import com.catic.mobilehos.po.QuestionnairePO;
+
+
+/**
+ * 
+ * @author dengshenghui
+ * 
+ *         调查问卷
+ * 
+ */
+public interface QuestionnaireDAO {
+
+	/**
+	 * 获取总记录数
+	 * 
+	 * @param id
+	 * @param status
+	 * @return
+	 */
+	int getCountQuestionnairePO(int id, int status, String title, String startdate, String enddate);
+
+	List<QuestionnairePO> getQuestionnairePOsbyParas(int id, int status, int offset, int pageSize, String title, String startdate, String enddate);
+
+	
+
+	int createQuestionnairePO(QuestionnairePO questionnairePO);
+
+	void submitQuestions(QuestionPO quesPO);
+/**
+ * 删除问卷
+ * @param id
+ */
+	void deleteQuestionnaire(int id);
+
+	QuestionnairePO getQuestionnaireDetail(int qnId);
+
+	/*List<QuestionPO> getQuestionsByQuestionnaireId(int qnId);*/
+	/**
+	 * 新建调查问卷
+	 * @param questionnaire
+	 * @return
+	 */
+
+	int createQuestionnaire(QuestionnairePO questionnaire);
+/**
+ * 增加问题
+ * @param question
+ */
+	void addQuestions(QuestionPO question);
+
+	/**
+	 * 根据ID查找出调查问卷
+	 * 
+	 * @param id
+	 * @return
+	 */
+//QuestionnairePO getQuestionnaire(int id);
+
+	QuestionnairePO getQuestionnaireById(int id);
+
+	List<QuestionPO> getQuestionsByQuestionnaireId(int id);
+
+	/**
+	 * 更新调查问卷
+	 * @param questionnaire
+	 */
+	void updataQuestionnaire(QuestionnairePO questionnaire);
+
+	
+	/**
+	 * 更新问题
+	 * @param question
+	 */
+	void updataQuestions(QuestionPO question);
+/**
+ * 更新时删除之前问题
+ * @param questionnaire
+ */
+	void deleteQuestions(QuestionnairePO questionnaire);
+
+
+
+	
+
+	
+	
+
+}

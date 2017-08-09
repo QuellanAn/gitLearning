@@ -1,0 +1,86 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"
+	import="java.util.*, com.catic.mobilehos.service.vo.*"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+
+<head>
+<base href="<%=basePath%>/" />
+<title>交易概览</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link href="resources/css/bootstrap.min.css" rel="stylesheet"
+	type="text/css">
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/index.css" />
+<link rel="stylesheet" type="text/css" href="transaction/jygl/jygl.css" />
+<script charset="utf-8" src="resources/js/jquery/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery-ui.js"></script>
+<script src="resources/js/jquery/bootstrap.min.js"
+	type="text/javascript"></script>
+<script type="text/javascript" src="../getKey.js"></script>
+<script charset="utf-8" src="transaction/jygl/jygl.js"></script>
+</head>
+<input type="hidden" value="${param.key}" id="key1" />
+<s:hidden value="%{#session.key}" id="key" />
+
+<input type="hidden" value="" id="zongeBefore" />
+<input type="hidden" value="" id="zongbiBefore" />
+<input type="hidden" value="" id="juneBefore" />
+<input type="hidden" value="" id="zongeAfter" />
+<input type="hidden" value="" id="zongbiAfter" />
+<input type="hidden" value="" id="juneAfter" />
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg" id="ul1">
+				<li class="tab-crt">交易概览</li>
+			</ul>
+			<div class="tab-cnt">
+				<div class="tab" role="tabpanel" style="width: 830px;margin-left: 100px;">
+					<div align="center;"
+						style="text-align: center;font-weight: bold;font-size: 18px;margin-top: -10px;">近一周交易数据及变化趋势</div>
+					<ul class="nav nav-tabs" role="tablist">
+						<li style="width: 33%" role="presentation" class="active"><a
+							href="#Section1" aria-controls="home" role="tab" id="totalMoney"
+							data-toggle="tab" onclick="totalMoney();return false;"
+							style="height: 60px;text-align: center;"></a>
+						</li>
+						<li style="width: 33%" role="presentation"><a
+							href="#Section2" aria-controls="profile" role="tab"
+							id="totalCount" data-toggle="tab"
+							onclick="totalCount();return false;"
+							style="height: 60px;text-align: center;"></a>
+						</li>
+						<li style="width: 34%" role="presentation"><a
+							href="#Section3" aria-controls="messages" role="tab"
+							id="avgMoney" data-toggle="tab"
+							onclick="avgMoney();return false;"
+							style="height: 60px;text-align: center;"></a>
+						</li>
+					</ul>
+					<div class="tab-content tabs">
+						<div role="tabpanel" class="tab-pane fade in active"
+							style="height: 410px;width: 790px;" id="Section1"></div>
+						<div role="tabpanel" class="tab-pane fade"
+							style="height: 410px;width: 790px;" id="Section2"></div>
+						<div role="tabpanel" class="tab-pane fade"
+							style="height: 410px;width: 790px;" id="Section3"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="f-clear"></div>
+		<div class="f-clear"></div>
+</body>
+<script src="resources/js/echarts.min.js" type="text/javascript"></script>
+</html>

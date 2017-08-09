@@ -1,0 +1,94 @@
+$(document).ready(function() {
+	//单选按钮点击事件
+	$("input[name='checkType']").click(function(){
+		value= $(":radio:checked").val();
+		if(value==1){
+			document.getElementById('pattern').disabled=true;
+			document.getElementById("pattern").options[0].selected=true;
+		}else{
+			document.getElementById('pattern').disabled=false;
+		}
+	
+	});
+	
+	
+	datalist_ctrl.loaddatalist("unpaid/checkBillAction_findAll");
+//查询点击事件
+	$("#act_query").click(function(e){
+		var startdate=$('input[name=startdate]').val();
+		var enddate=$('input[name=enddate]').val();
+		var billStatus=$('#billStatus').val();
+		var pattern=$('#pattern').val();
+		datalist_ctrl.loaddatalist("unpaid/checkBillAction_findAll?startdate="+startdate+"&enddate="+enddate+"&billStatus="+billStatus+"&pattern="+pattern);
+	});
+//导出
+	$("#export").click(function(e){
+		var startdate=$('#hid_startdate').val();
+		var enddate=$('#hid_enddate').val();
+		var billStatus=$('#hid_billStatus').val();
+//		window.location.href="unpaid/checkBillAction_exportExcel?startdate="+startdate+"&enddate="+enddate+"&billStatus="+billStatus;
+		window.location.href="unpaid/checkBillAction_exportCheckBill?startdate="+startdate+"&enddate="+enddate+"&billStatus="+billStatus;
+	});
+	
+	
+	
+	$('input[name=startdate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=enddate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=startCreateTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=endCreateTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+	
+});
+
+function refresh_totalcount(){
+	$("#totalcount").html($("#hid_totalcount").val());
+}
+
+
+var datalist_ctrl = {
+		
+	loaddatalist:function(url){
+			var cnt = $('#div_cnt_table');
+			$.get(url,
+			function(data, status){
+				if (data && data.msg){
+					alert(data.msg);
+				}else if (data){
+					cnt.empty();
+					cnt.append(data);
+				}
+			});
+		},
+	topage: function(url){
+		this.loaddatalist(url);
+	},	
+};
+
+
+//点击待确认
+function toConfirm(id,page,startdate,enddate,billStatus,billDate){
+	
+	if(confirm("你确定要“确认”此账单的当前状态吗？")){
+		$.post("unpaid/checkBillAction_confirm",{
+			id:id,
+			startdate:startdate,
+			enddate:enddate,
+			billStatus:billStatus,
+			pageNo:page,
+			checkTime:billDate
+		}, function(data) {
+				var cnt = $('#div_cnt_table');
+				cnt.empty();
+				cnt.append(data);			
+		});
+	}	
+}
+
+function closeDialog(id) {
+	$("#" + id).dialog("close");
+}
+
+function findDetails(createDate){
+	
+	window.location.href="unpaid/checkBillAction_toFindDetails?createDate="+createDate;
+}
+

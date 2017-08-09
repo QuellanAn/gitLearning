@@ -1,0 +1,331 @@
+package com.catic.mobilehos.dao.jdbc;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import com.catic.mobilehos.dao.DoctorDAO;
+import com.catic.mobilehos.po.DepartmentPO;
+import com.catic.mobilehos.po.DoctorPO;
+import com.catic.mobilehos.service.vo.DoctorVO;
+
+public class DoctorDAOImpl extends JdbcDaoSupport implements DoctorDAO {
+	
+	private Log log = LogFactory.getLog(this.getClass());
+
+	
+
+	@Override
+	public List<DoctorPO> findDoctorsByParas(String name,int offset,int length){
+		try{
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL("select doc.*,d.department_name,job.jobName "
+						 + "FROM doctors doc LEFT JOIN departments d ON doc.department_id=d.department_id "
+						 +" LEFT JOIN job ON doc.job=job.id "
+						 +"WHERE 1=1 ",false);
+			if (StringUtils.isNotEmpty(name)){
+				sql.addPara("doctor_name", "like",name + "%");
+			}
+			sql.addSQLPart("order by doc.doctor_id");
+			sql.setLimit(offset, length);
+			log.debug("findDoctorsByParas sql: " + sql.getFullSQL());
+			List<DoctorPO> lst = jt.query(sql.getFullSQL().toString()
+					,sql.getParas().toArray() ,new DoctorPO());
+			return lst;
+		}catch(DataAccessException ex){
+			log.error(null, ex);
+			throw ex;
+		}
+	}
+	
+	/**
+	 * 获取记录总数
+	 */
+	@SuppressWarnings("deprecation")
+	public int getDoctorCount(String name){
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL("select count(*) from doctors where 1=1", false);
+			if(StringUtils.isNotEmpty(name)){
+				sql.addPara("doctor_name", "like",name + "%");
+			}
+			
+			log.debug("countDoctors sql: " + sql.getFullSQL());
+			
+			int count = jt.queryForObject(sql.getFullSQL().toString()
+					, sql.getParas().toArray(), Integer.class);
+			return count;
+		} catch (DataAccessException e) {
+			log.error(null,e);
+			throw e;
+		}
+	}
+
+	@Override
+	public DoctorPO getDoctorPO(String docId) {
+			
+			String sql = "select doc.*, d.department_name,job.jobName "
+						 + "FROM doctors doc LEFT JOIN departments d ON doc.department_id=d.department_id "
+						 +" LEFT JOIN job ON doc.job=job.id "
+						 +" WHERE doctor_id=? ";
+			List<DoctorPO> list = getJdbcTemplate().query(sql,new Object[]{docId}, new DoctorPO());
+			if(list==null||list.size()==0){
+				return null;
+			}
+			return list.get(0);
+	}
+	
+	@Override
+	public boolean deleteDoctor(String doctorId) {
+		String sql = "delete from doctors where doctor_id=?";
+		log.info("执行"+sql);
+		int rowCount =this.getJdbcTemplate().update(sql, doctorId);
+		return rowCount>0;
+	}
+
+	@Override
+	public void updateDoctor(final DoctorPO doctor,final String doctorId) {
+		String sql = "update doctors set doctor_name=?,job=?,speciality=?"
+				+",introduction=?,hospital=? where doctor_id=?";
+		
+		log.info("执行修改id为doctorId的医生");
+		this.getJdbcTemplate().update(sql, new PreparedStatementSetter() {
+			
+			@Override
+			public void setValues(PreparedStatement pst) throws SQLException {
+				pst.setString(1,doctor.getDoctorName());
+				pst.setString(2,doctor.getJob());
+				pst.setString(3,doctor.getSpeciality());
+				pst.setString(4,doctor.getIntroduction());
+				pst.setString(5,doctor.getHospital());
+				pst.setString(6, doctorId);
+			}
+		});
+	}
+
+	/* (non-javadoc) 
+	 * <p>Title: saveDoctor</p> 
+	 * <p>Description: </p> 
+	 * @param doctorPO 
+	 * @see com.catic.mobilehos.dao.DoctorDAO#saveDoctor(com.catic.mobilehos.po.DoctorPO) 
+	*/ 
+	@Override
+	public void saveDoctor(DoctorPO doctorPO) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "INSERT INTO doctors (doctor_id, doctor_name, job"
+					+ ", speciality, introduction, hospital) VALUES (?,?,?,?,?,?)";
+			jt.update(sql,doctorPO.getDoctorId() ,doctorPO.getDoctorName(), doctorPO.getJob()
+					,doctorPO.getSpeciality(), doctorPO.getIntroduction()
+					,doctorPO.getHospital());
+		} catch (DataAccessException ex ) {
+			log.error(null,ex);
+			throw ex;
+		}
+	}
+
+	/* (non-javadoc) 
+	 * <p>Title: saveDoctorDepartment</p> 
+	 * <p>Description: </p> 
+	 * @param doctorPO 
+	 * @see com.catic.mobilehos.dao.DoctorDAO#saveDoctorDepartment(com.catic.mobilehos.po.DoctorPO) 
+	*/ 
+	@Override
+	public void saveDoctorDepartment(DoctorPO doctorPO) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "INSERT INTO department_doctors (department_id, doctor_id) VALUES (?,?)";
+			jt.update(sql, doctorPO.getDepartmentId(),doctorPO.getDoctorId());
+		} catch (DataAccessException ex ) {
+			log.error(null,ex);
+			throw ex;
+		}
+	}
+
+	/* (non-javadoc) 
+	 * <p>Title: updateDoctorDepartment</p> 
+	 * <p>Description: </p> 
+	 * @param doctorPO 
+	 * @see com.catic.mobilehos.dao.DoctorDAO#updateDoctorDepartment(com.catic.mobilehos.po.DoctorPO) 
+	*/ 
+	@Override
+	public void updateDoctorDepartment(final DoctorPO doctorPO) {
+		String sql = "update department_doctors set department_id=? where doctor_id=?";
+		this.getJdbcTemplate().update(sql, new PreparedStatementSetter() {
+			
+			@Override
+			public void setValues(PreparedStatement pst) throws SQLException {
+				pst.setString(1, doctorPO.getDepartmentId());
+				pst.setString(2, doctorPO.getDoctorId());
+			}
+		});
+	}
+
+	@Override
+	public int getDoctorCount(DoctorVO doctor) {
+		try {
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL("select count(*) from doctors where 1=1", false);
+			if(StringUtils.isNotEmpty(doctor.getDoctorName())){
+				sql.addPara("doctor_name", "like",doctor.getDoctorName() + "%");
+			}
+			if(StringUtils.isNotEmpty(doctor.getDepartmentId())){
+//				sql.addPara("department_id", "=",doctor.getDepartmentId());
+				sql.addSQLPart(" and department_id in (select d.department_id from `departments` d " +
+						"where d.parent_id="+doctor.getDepartmentId()+" || department_id="+doctor.getDepartmentId()+")");
+			}
+			if(StringUtils.isNotEmpty(doctor.getJob())){
+				sql.addPara("job", "=",doctor.getJob());
+			}
+			if(doctor.getIsExpert()==0||doctor.getIsExpert()==1){
+				sql.addPara("isExpert", "=",doctor.getIsExpert());
+			}
+			if(doctor.getStatus()>0){
+				sql.addPara("status", "=",doctor.getStatus());
+			}
+			if(StringUtils.isNotEmpty(doctor.getIntegrity())){
+				sql.addPara("integrity", "=",doctor.getIntegrity());
+			}
+			log.debug("countDoctors sql: " + sql.getFullSQL());
+			int count = jt.queryForObject(sql.getFullSQL().toString()
+					, sql.getParas().toArray(), Integer.class);
+			return count;
+		} catch (DataAccessException e) {
+			log.error(null,e);
+			throw e;
+		}
+	}
+
+	@Override
+	public List<DoctorPO> findDoctorsByParas(DoctorVO doctor, int offset,
+			int length) {
+		try{
+			JdbcTemplate jt = this.getJdbcTemplate();
+			SimpleDynamicSQL.SelectSQL sql = new SimpleDynamicSQL.SelectSQL();
+			sql.setBaseSQL("select doc.*,d.department_name,job.jobName "
+						 + "FROM doctors doc LEFT JOIN departments d ON doc.department_id=d.department_id "
+						 +" LEFT JOIN job ON doc.job=job.id "
+						 +"WHERE 1=1 ",false);
+			if(StringUtils.isNotEmpty(doctor.getDoctorName())){
+				sql.addPara("doctor_name", "like",doctor.getDoctorName() + "%");
+			}
+			if(StringUtils.isNotEmpty(doctor.getDepartmentId())){
+//				sql.addPara("doc.department_id", "=",doctor.getDepartmentId());
+				sql.addSQLPart(" and doc.department_id in (select d.department_id from `departments` d " +
+						"where d.parent_id="+doctor.getDepartmentId()+" || department_id="+doctor.getDepartmentId()+")");
+			}
+			if(StringUtils.isNotEmpty(doctor.getJob())){
+				sql.addPara("job", "=",doctor.getJob());
+			}
+			if(doctor.getIsExpert()==0||doctor.getIsExpert()==1){
+				sql.addPara("isExpert", "=",doctor.getIsExpert());
+			}
+			if(doctor.getStatus()>0){
+				sql.addPara("status", "=",doctor.getStatus());
+			}
+			if(StringUtils.isNotEmpty(doctor.getIntegrity())){
+				sql.addPara("integrity", "=",doctor.getIntegrity());
+			}
+			sql.addSQLPart("order by doc.sortNumber");
+			sql.setLimit(offset, length);
+			log.debug("findDoctorsByParas sql: " + sql.getFullSQL());
+			List<DoctorPO> lst = jt.query(sql.getFullSQL().toString()
+					,sql.getParas().toArray() ,new DoctorPO());
+			return lst;
+		}catch(DataAccessException ex){
+			log.error(null, ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public void saveOrUpdateDoctor(DoctorPO doctorPO, int type) {
+		StringBuffer sql=new StringBuffer();
+		JdbcTemplate jt = this.getJdbcTemplate();
+		if(type==0){
+			sql.append("INSERT INTO doctors (doctor_id,doctor_name,job,speciality");
+			sql.append(",introduction,isExpert,department_id,sex,code,photo,sortNumber,status,integrity) ");
+			sql.append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+			
+			jt.update(sql.toString(),doctorPO.getDoctorId(),doctorPO.getDoctorName(),doctorPO.getJob(),doctorPO.getSpeciality()
+					,doctorPO.getIntroduction(),doctorPO.getIsExpert(),doctorPO.getDepartmentId(),doctorPO.getSex(),doctorPO.getCode()
+					,doctorPO.getPhoto(),doctorPO.getSortNumber(),doctorPO.getStatus(),doctorPO.getIntegrity());
+		}else{
+			sql.append("UPDATE doctors SET doctor_name=?,job=?,speciality=?");
+			sql.append(",introduction=?,isExpert=?,department_id=?,sex=?,code=?,photo=?,sortNumber=?,status=?,integrity=? ");
+			sql.append(" WHERE doctor_id=? ");
+		
+			jt.update(sql.toString(),doctorPO.getDoctorName(),doctorPO.getJob(),doctorPO.getSpeciality()
+					,doctorPO.getIntroduction(),doctorPO.getIsExpert(),doctorPO.getDepartmentId(),doctorPO.getSex()
+					,doctorPO.getCode(),doctorPO.getPhoto(),doctorPO.getSortNumber(),doctorPO.getStatus(),doctorPO.getIntegrity(),doctorPO.getDoctorId());
+			
+		}
+	
+	}
+
+	@Override
+	public DoctorPO getDoctorDetailByCode(String code) {
+		String sql = "select doc.*, d.department_name,job.jobName "
+				 + "FROM doctors doc LEFT JOIN departments d ON doc.department_id=d.department_id "
+				 +" LEFT JOIN job ON doc.job=job.id "
+				 +" WHERE doc.code=? ";
+	List<DoctorPO> list = getJdbcTemplate().query(sql,new Object[]{code}, new DoctorPO());
+	if(list==null||list.size()==0){
+		return null;
+	}
+	return list.get(0);
+	}
+
+	public DoctorPO findByUpDown(String sortNum,String operate){
+		try{
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql="select * from doctors where 1=1 ";
+			if (StringUtils.isNotEmpty(sortNum)){
+				if(operate.equals("up")){
+					sql+="and sortNumber=(select max(sortNumber) from doctors where sortNumber<?) ";
+				}else{
+					sql+="and sortNumber=(select min(sortNumber) from doctors where sortNumber>?) ";
+				}
+			}
+			DoctorPO doctor = jt.queryForObject(sql, new DoctorPO(),sortNum);
+			return doctor;
+		}catch(DataAccessException ex){
+			log.error(null, ex);
+			throw ex;
+		}
+	}
+	
+	@Override
+	public void updateIdByOperate(final String newId,final String oldId) {
+		try{
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "update doctors set sortNumber=? where sortNumber=?";
+			jt.update(sql, newId, oldId);
+		}catch (Exception e) {
+			log.error(e);
+		}
+	}
+
+	@Override
+	public List<DoctorPO> findByExcle() {
+		String sql="select doc.*,d.department_name,job.jobName "
+				 + "FROM doctors doc LEFT JOIN departments d ON doc.department_id=d.department_id "
+				 +" LEFT JOIN job ON doc.job=job.id "
+				 +"WHERE 1=1 ";
+		List<DoctorPO> doctor = getJdbcTemplate().query(sql, new DoctorPO());
+		if (null == doctor) {
+			return new ArrayList<DoctorPO>();
+		}
+		return doctor;
+	}
+}

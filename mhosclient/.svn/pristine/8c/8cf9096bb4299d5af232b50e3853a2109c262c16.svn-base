@@ -1,0 +1,155 @@
+$(document).ready(function() {
+	$('input[name=sq_startdate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=sq_enddate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	loadUserSource();
+	$("a.selectTime:eq(0)").click();
+	
+	// “增量”和“总人数”按钮的点击监听
+	$("ul.nav-tabs li").click(function(){
+		// 按钮样式处理
+		$("ul.nav-tabs li").removeClass("active");
+		$(this).addClass("active");
+		
+		updateChart();
+	});
+	
+	$("#act_query").click(function(){
+		updateChart();
+	});
+});
+
+/**
+ * 更新显示的图表
+ */
+function updateChart(){
+//	var userType = $("input[name=userType]:checked").val();
+	var userType = $("#userType").val();
+	var beginDate = $("#beginDate").val();
+	var endDate = $("#endDate").val();
+	var userSource = $("#userSource").val();
+	var countType = $("ul.nav-tabs li.active").attr("id");// increment表示增量，allCount表示总人数
+	var myChart = echarts.init(document.getElementById('Section1'));
+	var title = "建档增量变化趋势图";
+	if(countType == "allCount"){
+		title = "建档总数变化趋势图";
+	}
+	var numText = "累计增加建档量";
+	if(countType == "allCount"){
+		numText = "当前建档总数";
+	}
+	var chartUnit = "建档量(人)";
+	myChart.showLoading({
+        text: '读取数据中...' // loading，是在读取数据的时候显示
+    });
+	$.ajax({
+		type : "post",
+		url : "userAmountStatisticsAction_getUserAmountCount",
+		data:{"userType":userType, "beginDate":beginDate, "endDate":endDate, "countType":countType, "userSource":userSource,"ajaxType":"json"},
+		dataType : "json",
+		async : true,
+		success : function(data) {
+			if(eval(data).json!=null){
+				window.setTimeout(function () { window.top.location.href = "session.jsp"; }, 100);
+				return false;
+			}
+			var num = eval(data.num);
+			$("div.divSum span.num").text(num);
+			$("div.divSum span.text").text(numText);
+			var rows = eval(data.list);
+			var arr = [];
+			var arrY = [];
+			//调用函数获取值，转换成数组模式  
+			for ( var i = 0; i < rows.length; i++) {
+				arr.push(rows[i].countDate);
+				arrY.push(rows[i].count);
+			}
+			var minValue = getyAxisMinValue(rows, "count");// 为了应对y轴数据比较大时折线波动小的问题，设置y轴最小值
+			option = {
+				title : {
+					text : title,
+					x:'center',
+					y:'bottom'
+				},
+				tooltip : {
+					trigger : 'axis',
+				},
+				toolbox : {
+					show : true,
+					feature : {
+						restore : {show: true},
+			            saveAsImage : {show: true}
+					}
+				},
+				xAxis : {
+					type : 'category',
+					boundaryGap: false,
+					splitLine : {
+						show : false
+					},
+					data : arr
+				},
+				grid : {
+					left : '3%',
+					right : '4%',
+					bottom : '12%',
+					containLabel : true
+				},
+				yAxis : {
+					name : chartUnit,
+					min : minValue
+				},
+				series : [ {
+					name : chartUnit,
+					type : 'line',
+					itemStyle : {  
+                        normal : {  
+                        	color:'#44B549',  
+                            lineStyle:{  
+                                color:'#44B549'  
+                            }  
+                        }  
+                    },
+					data : arrY
+				} ]
+			};
+			myChart.setOption(option);
+			myChart.hideLoading();
+		},error : function(errorMsg) {
+	         alert("图表请求数据失败!");
+	         myChart.hideLoading();
+		}
+	});
+}
+
+/**
+ * 加载用户来源列表
+ */
+function loadUserSource(){
+	var url = 'unpaid/payDictionaryAction_findAll?dictionaryCode='+"business_source";
+	var body = $('#userSource');
+	body.empty();
+	body.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var code = eval(data.code);
+		if(code == 0){
+			var arr1 = eval(data);
+			var arr=eval("("+arr1.data+")");
+			for (var i in arr){
+				var o = $('<option></option>').val(arr[i].codeNo).html(arr[i].codeName);
+				body.append(o.get());
+			}
+		}
+	});
+};
+
+/**
+ * 点击“最近7天”等设置时间区间
+ */
+function setSelectTime(days){
+	var beginDate = getDayAdd((-1) * (days - 1));
+	var endDate = getTodayDate();
+	$("#beginDate").val(beginDate);
+	$("#endDate").val(endDate);
+	
+	updateChart();
+}

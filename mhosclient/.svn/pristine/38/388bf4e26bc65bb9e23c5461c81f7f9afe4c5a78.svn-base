@@ -1,0 +1,110 @@
+package com.catic.mobilehos.action;  
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import net.sf.json.JSONObject;
+
+import com.catic.mobilehos.po.ItemsPO;
+import com.catic.mobilehos.service.ItemsService;
+import com.catic.mobilehos.utils.DateUtil;
+
+/**  
+ * 类说明:缴费统计action
+ * @author 朱伟权
+ * 创建时间: 2017-5-10 上午10:11:52
+ */
+@Controller
+@Scope("prototype")
+public class PaymentStatisticsAction extends com.catic.mobilehos.pay.action.BaseAction {
+
+	private static final long serialVersionUID = 1L;
+	
+	@Resource
+	private ItemsService itemsService;
+	
+	private String beginDate;// 开始日期
+	private String endDate;// 结束日期
+	
+	public String getBeginDate() {
+		return beginDate;
+	}
+
+	public void setBeginDate(String beginDate) {
+		this.beginDate = beginDate;
+	}
+
+	public String getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+
+	/**
+	 * 获取按日期统计缴费量结果
+	 */
+	public void getCountByDate(){
+		try{
+			ItemsPO itemsPO = new ItemsPO();
+			itemsPO.setBeginDate(beginDate);
+			itemsPO.setEndDate(endDate);
+			
+			// 保存统计的结果，key为统计日期#缴费状态，如“2017-05-10#0”
+			Map<String, ItemsPO> dateCountMap = new HashMap<String, ItemsPO>();
+			
+			// 查询时间区间的所有统计
+			List<ItemsPO> itemsPOs = itemsService.getCountByDate(itemsPO);
+			if(itemsPOs != null && itemsPOs.size() > 0){
+				for (ItemsPO po : itemsPOs) {
+					dateCountMap.put(po.getAdmDate() + "#" + po.getStatus(), po);
+				}
+			}
+			
+			Date sDate = DateUtil.str2Date(beginDate, "yyyy-MM-dd");
+			Date eDate = DateUtil.str2Date(endDate, "yyyy-MM-dd");
+			// 准备返回的区间统计
+			List<ItemsPO> resultList = new ArrayList<ItemsPO>();
+			List<Date> dates = DateUtil.getBetweenDates(sDate, eDate, true);
+			for (Date date : dates) {// 循环开始日期和结束日期之间的所有日期，没有统计项的默认为0
+				String tmpDate = DateUtil.date2Str(date, "yyyy-MM-dd");
+				ItemsPO successPo = dateCountMap.get(tmpDate + "#0");// 当前循环日期缴费成功的统计
+				ItemsPO failPo = dateCountMap.get(tmpDate + "#1");// 当前循环日期缴费失败的统计
+				ItemsPO po = new ItemsPO();
+				po.setAdmDate(tmpDate);
+				if(successPo == null){
+					po.setSuccessCount(0);
+				}else{
+					po.setSuccessCount(successPo.getCount());
+				}
+				if(failPo == null){
+					po.setFailCount(0);
+				}else{
+					po.setFailCount(successPo.getCount());
+				}
+				if(po != null){
+					po.setAdmDate(po.getAdmDate().substring(5));// 日期只截取月日，即“05-04”
+					resultList.add(po);
+				}
+			}
+			
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("list", resultList);
+			JSONObject json = JSONObject.fromObject(resultMap);
+			this.jsonObj(json.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
+}
+ 

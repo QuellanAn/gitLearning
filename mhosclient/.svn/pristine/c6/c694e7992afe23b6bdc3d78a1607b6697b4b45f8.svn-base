@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+ 	<!-- 启用以下包中,Spring注解的Bean -->
+	<context:annotation-config />
+	<context:component-scan base-package="com..*" />  
+	
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        
+        <property name="url"
+            value="jdbc:mysql://192.168.8.14:3306/mhos_main?useUnicode=true&amp;characterEncoding=UTF-8" />
+        <property name="username" value="root" />
+        <property name="password" value="123456" />
+        
+        
+        <!-- 初始化连接 -->
+        <property name="initialSize">
+            <value>3</value>
+        </property>
+        <!-- 最大空闲连接 -->
+        <property name="maxIdle">
+            <value>5</value>
+        </property>
+        <!-- 最小空闲连接 -->
+        <property name="minIdle">
+            <value>2</value>
+        </property>
+        <!-- 最大连接数量 -->
+        <property name="maxActive">
+            <value>10</value>
+        </property>
+        <!-- 多少毫秒检查一次连接池中空闲的连接(由于Mysql的wait_timeout) -->
+        <property name="timeBetweenEvictionRunsMillis">
+            <value>#{30 * 1000}</value>
+        </property>
+        <!-- 将空闲时间超过指定毫秒的连接断开,直到连接池中的连接数到minIdle为止 -->
+        <property name="minEvictableIdleTimeMillis">
+            <value>#{30 * 60 * 60 * 1000}</value>
+        </property>
+        <property name="validationQuery">
+            <value>SELECT 1</value>
+        </property>
+        <property name="testOnBorrow">
+            <value>true</value>
+        </property>
+    </bean>
+ 
+    
+    
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <bean id="infoCatDAO" class="com.catic.mobilehos.dao.jdbc.InfoCatDAOImpl">
+    	<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="userDAO" class="com.catic.mobilehos.dao.jdbc.UserDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="sysUsersDAO" class="com.catic.mobilehos.dao.jdbc.SysUsersDAOImpl">
+    	 <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+       
+    <bean id="rolesDAO" class="com.catic.mobilehos.dao.jdbc.RolesDAOImpl">
+    	<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="questionnaireDAO" class="com.catic.mobilehos.dao.jdbc.QuestionnaireDAOImpl">
+    	 <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="patientDAO" class="com.catic.mobilehos.dao.jdbc.PatientDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="noticeDAO" class="com.catic.mobilehos.dao.jdbc.NoticeDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="regSucNoticeDAO" class="com.catic.mobilehos.dao.jdbc.RegSucNoticeDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="departmentDAO" class="com.catic.mobilehos.dao.jdbc.DepartmentDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="doctorDAO" class="com.catic.mobilehos.dao.jdbc.DoctorDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+      <bean id="jobDAO" class="com.catic.mobilehos.dao.jdbc.JobDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="appRegDoctorsDAO" class="com.catic.mobilehos.dao.jdbc.AppRegDoctorsDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="appRegOrdersDAO" class="com.catic.mobilehos.dao.jdbc.AppRegOrdersDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="ordersPayDAO" class="com.catic.mobilehos.dao.jdbc.OrdersPayDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="payDAO" class="com.catic.mobilehos.dao.jdbc.PayDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="payCheckDAO" class="com.catic.mobilehos.dao.jdbc.PayCheckDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="reportsDAO" class="com.catic.mobilehos.dao.jdbc.ReportsDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="hospitalInfoDAO" class="com.catic.mobilehos.dao.jdbc.HospitalInfoDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="busTypeDicDAO" class="com.catic.mobilehos.dao.jdbc.BusTypeDicDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="netMsgTemplateDAO" class="com.catic.mobilehos.dao.jdbc.NetMsgTemplateDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="phoneMsgTemplateDAO" class="com.catic.mobilehos.dao.jdbc.PhoneMsgTemplateDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="htmlImagesDAO" class="com.catic.mobilehos.dao.jdbc.HtmlImagesDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="hosPubInfoDAO" class="com.catic.mobilehos.dao.jdbc.HosPubInfoDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="messageDAO" class="com.catic.mobilehos.dao.jdbc.MessageDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="wechatMenuDao" class="com.catic.mobilehos.dao.jdbc.WechatMenuDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="basicCntCfgDao" class="com.catic.mobilehos.dao.jdbc.BasicCntCfgDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="basicCntCfgImgsDao" class="com.catic.mobilehos.dao.jdbc.BasicCntCfgImgsDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="haDao" class="com.catic.mobilehos.dao.jdbc.HelpAnswerDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="cliVersionDAO" class="com.catic.mobilehos.dao.jdbc.CliVersionDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="wechatCfgDao" class="com.catic.mobilehos.dao.jdbc.WechatCfgDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+
+    <bean id="serviceEvaluationDAO" class="com.catic.mobilehos.dao.jdbc.ServiceEvaluationDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+     <bean id="serviceEvaluationHosDAO" class="com.catic.mobilehos.dao.jdbc.ServiceEvaluationHosDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+
+    <bean id="statisticsDao" class="com.catic.mobilehos.dao.jdbc.StatisticsDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+
+    
+    <bean id="departmentNameDAO" class="com.catic.mobilehos.dao.jdbc.DepartmentNameDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="specialistDao" class="com.catic.mobilehos.dao.jdbc.SpecialistDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+     <!--************支付******************* -->    
+     <bean id="payOrderDao" class="com.catic.mobilehos.pay.dao.impl.PayOrderDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    
+    <bean id="cardPayDao" class="com.catic.mobilehos.dao.jdbc.CardPayDAOImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <bean id="tradeDao" class="com.catic.mobilehos.dao.jdbc.TradeDaoImpl">
+        <property name="jdbcTemplate" ref="jdbcTemplate"></property>
+    </bean>
+    <!-- 即时通信openFire -->
+<!--     <bean id="openFireDataSource" class="org.apache.commons.dbcp.BasicDataSource" -->
+<!--         destroy-method="close"> -->
+<!--         <property name="driverClassName" value="com.mysql.jdbc.Driver" /> -->
+<!--         <property name="url" -->
+<!--             value="jdbc:mysql://192.168.100.14:3306/openfire?generateSimpleParameterMetadata=true" /> -->
+<!--         <property name="username" value="root" /> -->
+<!--         <property name="password" value="123456" /> -->
+        <!-- 初始化连接 -->
+<!--         <property name="initialSize"> -->
+<!--             <value>5</value> -->
+<!--         </property> -->
+        <!-- 最大空闲连接 -->
+<!--         <property name="maxIdle"> -->
+<!--             <value>20</value> -->
+<!--         </property> -->
+        <!-- 最小空闲连接 -->
+<!--         <property name="minIdle"> -->
+<!--             <value>5</value> -->
+<!--         </property> -->
+        <!-- 最大连接数量 -->
+<!--         <property name="maxActive"> -->
+<!--             <value>50</value> -->
+<!--         </property> -->
+        <!-- 多少毫秒检查一次连接池中空闲的连接(由于Mysql的wait_timeout) -->
+<!--         <property name="timeBetweenEvictionRunsMillis"> -->
+<!--             <value>#{30 * 1000}</value> -->
+<!--         </property> -->
+        <!-- 将空闲时间超过指定毫秒的连接断开,直到连接池中的连接数到minIdle为止 -->
+<!--         <property name="minEvictableIdleTimeMillis"> -->
+<!--             <value>#{30 * 60 * 60 * 1000}</value> -->
+<!--         </property> -->
+<!--         <property name="validationQuery"> -->
+<!--             <value>SELECT 1</value> -->
+<!--         </property> -->
+<!--         <property name="testOnBorrow"> -->
+<!--             <value>true</value> -->
+<!--         </property> -->
+<!--     </bean> -->
+    
+<!--     <bean id="openfireJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate"> -->
+<!--         <property name="dataSource" ref="openFireDataSource" /> -->
+<!--     </bean> -->
+<!--     <bean id="openFireUserDAO" class="com.catic.mobilehos.dao.jdbc.OpenFireUserDAOImpl"> -->
+<!--         <property name="jdbcTemplate" ref="openfireJdbcTemplate"></property> -->
+<!--     </bean> -->
+<!-- 	<bean id="openFireGroupDAO" class="com.catic.mobilehos.dao.jdbc.OpenFireGroupDAOImpl"> -->
+<!-- 		 <property name="jdbcTemplate" ref="openfireJdbcTemplate"></property> -->
+<!-- 	</bean> -->
+
+</beans>
+
+

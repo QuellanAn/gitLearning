@@ -1,0 +1,820 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+
+import com.catic.mobilehos.pay.dao.IPayOrderDao;
+import com.catic.mobilehos.pay.entity.PayOrder;
+import com.catic.mobilehos.pay.entity.TransFlow;
+import com.catic.mobilehos.utils.Page;
+
+
+
+public class PayOrderDaoImpl  extends JdbcDaoSupport implements IPayOrderDao {
+
+	
+	//保存
+	public boolean save(final PayOrder payOrder){
+		String sql="INSERT INTO pay_order(orderId,orderCode,cardNo,pattern,payType,out_trade_no,body,total_fee,time_start,creatDate,attach,payStatus,patientName,patientId,deviceInfo,isCancel) VALUES (?,?,?,?,?,?,?,?,NOW(),NOW(),?,?,?,?,?,?)";
+		int count=this.getJdbcTemplate().update(sql,
+				 new PreparedStatementSetter() {
+			@Override
+			public void setValues(PreparedStatement preparedStatement)
+					throws SQLException {
+				preparedStatement.setString(1, payOrder.getOrderId());
+				preparedStatement.setString(2, payOrder.getOrderCode());
+				preparedStatement.setString(3, payOrder.getCardNo());
+				preparedStatement.setInt(4, payOrder.getPattern());
+				preparedStatement.setInt(5, payOrder.getPayType());
+				preparedStatement.setString(6, payOrder.getOut_trade_no());
+				preparedStatement.setString(7,
+						payOrder.getBody());
+				preparedStatement.setInt(8,
+						payOrder.getTotal_fee());
+				preparedStatement.setString(9,
+						payOrder.getAttach());
+				preparedStatement.setInt(10,
+						payOrder.getPayStatus());
+				preparedStatement.setString(11,
+						payOrder.getPatientName());
+				preparedStatement.setString(12,
+						payOrder.getPatientId());
+				preparedStatement.setString(13,
+						payOrder.getDeviceInfo());
+				preparedStatement.setInt(14,
+						payOrder.getIsCancel());
+			}
+		});
+		if(count>0){
+			return true;
+		}
+		return false;
+	}
+	
+	//查询
+	@SuppressWarnings("unchecked")
+	public List<PayOrder> findAll(PayOrder po,Page page){
+		String sql="";
+		if(page==null){
+		 sql="SELECT count(0) as count FROM pay_order WHERE 1=1 ";
+		}else{
+		 sql="SELECT orderId,orderCode,cardNo,unpaid_id,patientName,pattern,payType,out_trade_no,body,actualPay,time_start,time_expire,payStatus,attach,creatDate,total_fee/100.0 AS fee,hisStatus FROM pay_order WHERE 1=1 ";	
+		}
+		StringBuffer sb=new StringBuffer(sql);
+		List<Object> params=new ArrayList<Object>();
+		if(po.getPayStatus()!=null){
+			sb.append(" AND payStatus=?");
+			params.add(po.getPayStatus());
+		}
+		if(po.getPattern()!=null){
+			sb.append(" AND pattern=?");
+			params.add(po.getPattern());
+		}
+		if(StringUtils.isNotBlank(po.getPatientName())){
+			sb.append(" AND patientName like ?");
+			params.add(po.getPatientName()+"%");
+		}
+		if(StringUtils.isNotBlank(po.getOrderId())){
+			sb.append(" AND orderId like ?");
+			params.add(po.getOrderId()+"%");
+		}
+		if(StringUtils.isNotBlank(po.getStartdate())){
+			sb.append(" AND time_start>?");
+			params.add(po.getStartdate());
+		}
+		if(StringUtils.isNotBlank(po.getEnddate())){
+			sb.append(" AND time_start<?");
+			params.add(po.getEnddate()+"23:59:59");
+		}
+		if(StringUtils.isNotBlank(po.getOut_trade_no())){
+			sb.append(" AND out_trade_no like ?");
+			params.add(po.getOut_trade_no()+"%");
+		}
+		if(StringUtils.isNotBlank(po.getOrderCode())){
+			sb.append(" AND orderCode like ?");
+			params.add(po.getOrderCode()+"%");
+		}
+		if(StringUtils.isNotBlank(po.getHisTransId())){
+			sb.append(" AND hisTransId like ?");
+			params.add(po.getHisTransId()+"%");
+		}
+		if(page!=null){
+			sb.append(" ORDER BY time_start DESC");	
+			sb.append(" LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+	
+		List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+		return polist;
+	}
+	
+	
+	    //通过itemId和payStatus查询
+		@SuppressWarnings("unchecked")
+		public List<PayOrder> findByIS(String itemId,String payStatus){
+			String  sql="SELECT orderId,itemId,pattern,payType,out_trade_no,body,total_fee/100.0 AS total_fee ,time_start,payStatus,attach FROM pay_order WHERE 1=1 ";	
+
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(StringUtils.isNotBlank(itemId)){
+				sb.append(" AND itemId=?");
+				params.add(itemId);
+			
+			}
+			if(StringUtils.isNotBlank(payStatus)){
+				sb.append(" AND payStatus=?");
+				params.add(payStatus);
+			
+			}			
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;
+		}
+		
+		
+		   //通过orderId查询
+		@SuppressWarnings("unchecked")
+		public PayOrder findByOrderId(String orderId){
+			String  sql="SELECT payStatus,po.orderId,po.orderCode,hisStatus,po.hisTransId,po.deviceInfo,cardNo,unpaid_id,patientName,yq.name as districtName" +
+					",accountName,patternName,paySceneName,out_trade_no,body,po.actualPay,time_start,time_expire,payStatusName,attach,creatDate,updateTime,total_fee/100.0 AS fee " +
+					"FROM pay_order po left join pay_yqinfo yq on po.districtId=yq.yqId WHERE po.orderId=?";	
+			List<Object> params=new ArrayList<Object>();
+			params.add(orderId);
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql, params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			if(polist!=null){
+				return polist.get(0);	
+			}
+			return null;	
+		}
+		
+		@SuppressWarnings("unchecked")
+		public PayOrder findByTradeNo(String tradeNo){
+			String  sql="SELECT orderId,orderCode,cardNo,hisTransId,hisStatus,isCancel,unpaid_id,patientName,pattern,payType,out_trade_no,body,actualPay,time_start,time_expire,payStatus,attach,creatDate,updateTime,total_fee/100.0 AS fee FROM pay_order WHERE out_trade_no=?";	
+			List<Object> params=new ArrayList<Object>();
+			params.add(tradeNo);
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql, params.toArray(),new BeanPropertyRowMapper(PayOrder.class));			
+			if(polist!=null&&polist.size()>0){				
+				return polist.get(0);	
+			}
+			return null;	
+		}
+		
+		@SuppressWarnings("unchecked")
+		public PayOrder findByNoAndCode(String tradeNo,String orderCode){
+			String  sql="SELECT orderId,orderCode,cardNo,unpaid_id,patientName,pattern,payType,out_trade_no,body,actualPay,time_start,time_expire,payStatus,attach,creatDate,total_fee/100.0 AS fee FROM pay_order WHERE out_trade_no=? And orderCode=?";	
+			List<Object> params=new ArrayList<Object>();
+			params.add(tradeNo);
+			params.add(orderCode);
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql, params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			if(polist!=null){
+				return polist.get(0);	
+			}
+			return null;	
+		}
+		
+		@SuppressWarnings("unchecked")
+		public List<PayOrder>  findRefund(PayOrder po,Page page){
+			String  sql="";
+			if(page==null){
+				 sql="SELECT count(0) as count FROM pay_order WHERE  refundNo IS NOT NULL";	
+			}else{
+				 sql="SELECT orderId,out_trade_no,actualPay,refundNo,refundFee/100.0 AS refundFee ,patientName,pattern,payType,updateTime,refundType,operatorName,total_fee/100.0 AS total_fee FROM pay_order WHERE  refundNo IS NOT NULL ";
+			}
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){//订单号
+				sb.append(" AND out_trade_no LIKE ?");
+				params.add(po.getOut_trade_no()+"%");
+			}
+			if(StringUtils.isNotBlank(po.getRefundNo())){//退款流水号
+				sb.append(" AND refundNo LIKE ?");
+				params.add(po.getRefundNo()+"%");
+			}
+			if(po.getRefundType()!=null){//退款类型
+				sb.append(" AND refundType=?");
+				params.add(po.getRefundType());
+			}
+			if(po.getPattern()!=null){//支付方式
+				sb.append(" AND pattern=?");
+				params.add(po.getPattern());
+			}
+			if(StringUtils.isNotBlank(po.getPatientName())){//病人姓名
+				sb.append(" AND patientName like ?");
+				params.add(po.getPatientName()+"%");
+			}
+			if(page!=null){
+				sb.append(" ORDER BY updateTime DESC");	
+				sb.append(" LIMIT ?,?");
+				params.add(page.getFirstIndex());
+				params.add(page.getPageSize());
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			
+			return polist;	
+		}
+		
+		@SuppressWarnings("unchecked")
+		public List<PayOrder>  findRefundDetails(PayOrder po){
+			String sql="SELECT po.*,refundFee/100.0 AS refundFee,total_fee/100.0 AS total_fee,pbd.outStatus,pbd.hisStatus  FROM pay_order po LEFT JOIN pay_bill_detail pbd ON po.orderId=pbd.orderId  WHERE  refundNo IS NOT NULL ";
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){//订单号
+				sb.append(" AND out_trade_no=?");
+				params.add(po.getOut_trade_no());
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;
+		}
+		
+		/**
+		 * 支付成功更新订单状态
+		 * @param po
+		 * @return Boolean
+		 */
+		public Boolean updatePayStatus(PayOrder po){
+			String sql="UPDATE pay_order SET updateTime=NOW()";
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(StringUtils.isNotBlank(po.getTime_expire())){
+				 sb.append(" ,time_expire=?");
+				 params.add(po.getTime_expire());
+			}
+			if(po.getPayStatus()!=null){
+				sb.append(" ,payStatus=?");
+				 params.add(po.getPayStatus());
+			}
+			if(po.getActualPay()!=null){
+				 sb.append(",actualPay=?");
+				 params.add(po.getActualPay());
+			}
+			if(StringUtils.isNotBlank(po.getOrderCode())){
+				 sb.append(",orderCode=?");
+				 params.add(po.getOrderCode());
+			}
+			if(po.getIsCancel()!=null){
+				 sb.append(",isCancel=?");
+				 params.add(po.getIsCancel());
+			}
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){//商户订单号
+				sb.append(" WHERE out_trade_no=?");
+				params.add(po.getOut_trade_no());
+			}else{
+				sb.append(" WHERE 1=1");
+			}
+			int count =this.getJdbcTemplate().update(sb.toString(),params.toArray());
+			if(count>0){
+				return true;
+			}
+			return false;
+			
+		}
+		
+		/**
+		 * 增加退账信息
+		 * @param po
+		 * @return Boolean
+		 */
+		public Boolean saveRefund(PayOrder po){
+			String sql="UPDATE pay_order SET refundReason=?,refundNo=?,refundFee=?,updateTime=NOW(),refundType=?,operatorId=?,operatorName=?,payStatus=? WHERE 1=1";
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+		    params.add(po.getRefundReason());
+			params.add(po.getRefundNo());
+			params.add(po.getRefundFee());
+			params.add(po.getRefundType());
+			params.add(po.getOperatorId());
+			params.add(po.getOperatorName());
+			params.add(po.getPayStatus());
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){
+				sb.append(" AND out_trade_no=?");
+				params.add(po.getOut_trade_no());
+			}
+			int count =this.getJdbcTemplate().update(sb.toString(),params.toArray());
+			if(count>0){
+				return true;
+			}
+			return false;
+			
+		}
+		
+		
+		/**
+		 * 保存his交易流水号
+		 * @param po
+		 * @return Boolean
+		 */
+		public Boolean saveHisTransId(PayOrder po){
+			String sql="UPDATE pay_order SET updateTime=NOW() ";
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(StringUtils.isNotBlank(po.getHisTransId())){
+				sb.append(",hisTransId=?");
+				params.add(po.getHisTransId());
+			}
+			if(po.getPayStatus()!=null){
+				sb.append(",payStatus=?");
+				params.add(po.getPayStatus());
+			}
+			if(po.getHisStatus()!=null){
+				sb.append(",hisStatus=?");
+				params.add(po.getHisStatus());
+			}			
+			sb.append(" WHERE payStatus IN(1,2)");
+		/*	params.add(po.getHisTransId());
+			params.add(po.getPayStatus());*/
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){
+				sb.append(" AND out_trade_no=?");
+				params.add(po.getOut_trade_no());
+			}
+			if(StringUtils.isNotBlank(po.getOrderCode())){
+				sb.append(" AND orderCode=?");
+				params.add(po.getOrderCode());
+			}
+			int count =this.getJdbcTemplate().update(sb.toString(),params.toArray());
+			if(count>0){
+				return true;
+			}
+			return false;			
+		}
+		/**
+		 * 更改支付状态
+		 * @param po
+		 * @return Boolean
+		 */
+		public Boolean alterPayStautus(Integer  payStatus,String outTradeNO) throws Exception{
+			String sql="UPDATE pay_order SET payStatus=? WHERE out_trade_no=?";				
+			List<Object> params=new ArrayList<Object>();
+			params.add(payStatus);
+			params.add(outTradeNO);
+			int count =this.getJdbcTemplate().update(sql,params.toArray());
+			if(count>0){
+				return true;
+			}
+			return false;			
+		}
+		
+		/**
+		 * 根据交易结束日期/更新日期查询
+		 * @param date
+		 * @return
+		 * @throws Exception
+		 */
+		public List<PayOrder> findByDate(String date,Integer payStatus,String upDate) throws Exception{
+			String sql="SELECT out_trade_no,actualPay FROM pay_order WHERE 1=1";
+			StringBuilder sb=new StringBuilder(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(StringUtils.isNotBlank(date)){
+				sb.append(" AND time_expire LIKE ?");
+				params.add(date+"%");
+			}
+			if(payStatus!=null){
+				sb.append(" AND payStatus=?");
+				params.add(payStatus);
+			}
+			if(StringUtils.isNotBlank(upDate)){
+				sb.append(" updateTime LIKE ?");
+				params.add(upDate+"%");
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;			
+		}		
+		public List<PayOrder> findAllByPL(PayOrder po,Page page){
+			String sql="";
+			if(page==null){
+			 sql="SELECT count(0) as count FROM pay_order po left join pay_yqinfo yq on po.districtId=yq.yqId WHERE 1=1 ";
+			}else{
+			 sql="SELECT orderId,hisTransId,orderCode,cardNo,unpaid_id,patientName,pattern,patternName,paySceneName,accountName,payStatusName,payType,out_trade_no,body,actualPay,time_start,time_expire," +
+			 		"payStatus,attach,creatDate,total_fee/100.0 AS fee,hisStatus,deviceInfo,assetAccount,districtId,yq.name as districtName " +
+			 		"FROM pay_order po left join pay_yqinfo yq on po.districtId=yq.yqId WHERE 1=1 ";	
+			}
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(po.getPayStatus()!=null){
+				sb.append(" AND payStatus=?");
+				params.add(po.getPayStatus());
+			}
+			if(po.getPattern()!=null){
+				sb.append(" AND pattern=?");
+				params.add(po.getPattern());
+			}
+			if(StringUtils.isNotBlank(po.getBody())){
+				sb.append(" AND body = ?");
+				params.add(po.getBody());				
+			}
+			if(po.getPayType()!=null){
+				sb.append(" AND payType=?");
+				params.add(po.getPayType());
+			}
+			if(StringUtils.isNotBlank(po.getAssetAccount())){
+				sb.append(" AND assetAccount=?");
+				params.add(po.getAssetAccount());
+			}
+			if(po.getPayScene()!=null){
+				sb.append(" AND payScene=?");
+				params.add(po.getPayScene());
+			}
+			if(po.getCardNo()!=null){
+				sb.append(" AND cardNo like ?");
+				params.add("%"+po.getCardNo()+"%");
+			}
+			if(po.getDistrictId()!=null){
+				sb.append(" AND districtId = ?");
+				params.add(po.getDistrictId());
+			}
+			if(StringUtils.isNotBlank(po.getStartdate())){
+				sb.append(" AND creatDate>?");
+				params.add(po.getStartdate());
+			}
+			if(StringUtils.isNotBlank(po.getEnddate())){
+				sb.append(" AND creatDate<?");
+				params.add(po.getEnddate()+"23:59:59");
+			}
+			
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){
+				sb.append(" AND out_trade_no like ?");
+				params.add(po.getOut_trade_no()+"%");
+			}
+			if(StringUtils.isNotBlank(po.getHisTransId())){
+				sb.append(" AND hisTransId like ?");
+				params.add(po.getHisTransId()+"%");
+			}
+			if(StringUtils.isNotBlank(po.getOrderCode())){
+				sb.append(" AND orderCode like ?");
+				params.add(po.getOrderCode()+"%");
+			}
+			if(page!=null){
+				sb.append(" ORDER BY creatDate DESC");	
+				sb.append(" LIMIT ?,?");
+				params.add(page.getFirstIndex());
+				params.add(page.getPageSize());
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;
+		}
+		
+		public List<TransFlow> findAllByPlFlow(TransFlow tf, Page page) {
+			String sql="";
+			if(page==null){
+			 sql="SELECT count(0) as count from pay_transactionflow tf INNER JOIN pay_order po on tf.outTradeNo=po.out_trade_no left JOIN pay_yqinfo yq on yq.yqId=po.districtId WHERE 1=1 ";
+			}else{
+			 sql="SELECT orderId,outTradeNo,transType,tf.transactionId,cardNo,patientName,patternName,paySceneName,accountName,payStatusName,payType,amount,transTime,creatDate,districtId,yq.name as districtName" +
+			 		" from pay_transactionflow tf INNER JOIN pay_order po on tf.outTradeNo=po.out_trade_no left JOIN pay_yqinfo yq on yq.yqId=po.districtId WHERE 1=1";
+			}
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(tf.getTransType()!=null){
+				sb.append(" AND tf.transType=?");
+				params.add(tf.getTransType());
+			}
+			if(tf.getPattern()!=null){
+				sb.append(" AND po.pattern=?");
+				params.add(tf.getPattern());
+			}
+			if(tf.getPayType()!=null){
+				sb.append(" AND po.payType=?");
+				params.add(tf.getPayType());
+			}
+			if(tf.getDistrictId()!=null){
+				sb.append(" AND po.districtId = ?");
+				params.add(tf.getDistrictId());
+			}
+			if(StringUtils.isNotBlank(tf.getAccount())){
+				sb.append(" AND po.assetAccount=?");
+				params.add(tf.getAccount());
+			}
+			if(tf.getPayScene()!=null){
+				sb.append(" AND po.payScene=?");
+				params.add(tf.getPayScene());
+			}
+			if(StringUtils.isNotBlank(tf.getStartdate())){
+				sb.append(" AND po.creatDate>?");
+				params.add(tf.getStartdate());
+			}
+			if(StringUtils.isNotBlank(tf.getEnddate())){
+				sb.append(" AND po.creatDate<?");
+				params.add(tf.getEnddate()+"23:59:59");
+			}
+			if(page!=null){
+				sb.append(" ORDER BY po.creatDate DESC");	
+				sb.append(" LIMIT ?,?");
+				params.add(page.getFirstIndex());
+				params.add(page.getPageSize());
+			}
+		
+			List<TransFlow> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(TransFlow.class));
+			return polist;
+		}
+		
+		/**
+		 * 用于交易概览中查询近七天数据
+		 * timeExpire：交易时间
+		 */
+		public PayOrder findByTimeExpire(String timeExpire) {
+			String  sql="SELECT COALESCE(sum(actualPay),0)/100 as totalMoney,count(1) as totalCount,COALESCE(avg(actualPay),0)/100 as avgMoney FROM pay_order where date(creatDate) = ? and payStatus=1 ";	
+			List<Object> params=new ArrayList<Object>();
+			params.add(timeExpire);
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql, params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			if(polist!=null){
+				return polist.get(0);	
+			}
+			return null;	
+		}
+		
+		/**
+		 * 用于交易概览中查询近七天的上七天数据
+		 */
+		public PayOrder findByNearTime() {
+			String  sql="select COALESCE(sum(py.actualPay),0)/100 as totalMoney,COALESCE(count(1),0) as totalCount,COALESCE(avg(py.actualPay),0)/100 as avgMoney from pay_order py where date_sub(date(CURDATE()-7),INTERVAL 6 DAY)<=py.creatDate and py.payStatus=1 ";	
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql,new BeanPropertyRowMapper(PayOrder.class));
+			if(polist!=null){
+				return polist.get(0);	
+			}
+			return null;	
+		}
+		
+		/**
+		 * 用于统计分析获取饼图
+		 */
+		public List<PayOrder> findByStatistical(PayOrder po) {
+			List<Object> params=new ArrayList<Object>();
+			String  sql="select ";	
+			if(StringUtils.isNotBlank(po.getAnalysisType())){
+				if(po.getAnalysisType().equals("1")){
+					sql+="CASE when py.districtId=46 then '南区' when py.districtId=53 then '北区' end as analysisType,";
+				}else if(po.getAnalysisType().equals("2")){
+					sql+="accountName as analysisType, ";
+//					sql+="CASE when py.pattern=0 then '微信支付' when py.pattern=1 then '支付宝支付' when py.pattern=3 then '银联支付' end as analysisType,";
+				}else if(po.getAnalysisType().equals("3")){
+					sql+="patternName as analysisType, ";
+//					sql+="CASE when py.payType=0 then '扫码支付' when py.payType=1 then '刷卡支付' end as analysisType,";
+				}else if(po.getAnalysisType().equals("4")){
+					sql+="paySceneName as analysisType, ";
+				}else{
+					sql+="body as analysisType,";
+				}
+			}
+			sql+="sum(py.actualPay)/100 as totalMoney,COALESCE(count(1),0) as totalCount from pay_order py where (py.payStatus=1 or py.payStatus=2 or py.payStatus=3)";
+			if(StringUtils.isNotBlank(po.getStime())){
+				sql+=" and date(creatDate)>=? ";
+				params.add(po.getStime());
+			}
+			if(StringUtils.isNotBlank(po.getEtime())){
+				sql+=" and date(creatDate)<=? ";
+				params.add(po.getEtime()+"23:59:59");
+			}
+			if(StringUtils.isNotBlank(po.getAnalysisType())){
+				if(po.getAnalysisType().equals("1")){
+					sql+=" and py.districtId is not null";
+				}else if(po.getAnalysisType().equals("2")){
+					sql+=" and py.accountName is not null";
+				}else if(po.getAnalysisType().equals("3")){
+					sql+=" and py.patternName is not null";
+				}else if(po.getAnalysisType().equals("4")){
+					sql+=" and py.paySceneName is not null";
+				}else{
+					sql+=" and py.body is not null";
+				}
+				sql+=" GROUP BY analysisType";
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql,params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;	
+		}
+		
+		//统计分析查询
+		public PayOrder selectOfStatisticalByPay(PayOrder po){
+			List<Object> params=new ArrayList<Object>();
+			String sql="select COALESCE(sum(po.actualPay),0)/100 as totalMoney, COALESCE(count(po.orderId),0) as totalCount, COALESCE(avg(po.actualPay),0)/100 as avgMoney from pay_order po where (po.payStatus=1 or po.payStatus=2 or po.payStatus=3) ";
+			if(StringUtils.isNotBlank(po.getStime())){
+				if(po.getTimeType().equals("1")){
+					sql+=" and date(po.creatDate)=? ";
+					params.add(po.getStime());
+				}else if(po.getTimeType().equals("2")){
+					sql+=" and date_format(po.creatDate,'%Y-%m')=? ";
+					params.add(po.getStime());
+				}
+			}
+			if(po.getDistrictId()!=null){
+				sql+=" and po.districtId=? ";
+				params.add(po.getDistrictId());
+			}
+			if(po.getPayScene()!=null){
+				sql+=" and po.payScene=? ";
+				params.add(po.getPayScene());
+			}
+			if(po.getPattern()!=null){
+				sql+=" and po.pattern=? ";
+				params.add(po.getPattern());
+			}
+			if(StringUtils.isNotBlank(po.getBody())){
+				sql+=" and po.body=?";
+				params.add(po.getBody());
+			}
+			if(StringUtils.isNotBlank(po.getAssetAccount())){
+				sql+=" AND assetAccount=?";
+				params.add(po.getAssetAccount());
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql,params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			if(polist!=null){
+				return polist.get(0);	
+			}
+			return null;		
+		}
+
+		public PayOrder selectOfStatisticalByRefund(PayOrder po) {
+			List<Object> params=new ArrayList<Object>();
+			String sql="select COALESCE(sum(pr.refundFee),0) as totalMoney,COALESCE(count(pr.id),0) as totalCount, COALESCE(avg(pr.refundFee),0) as avgMoney from pay_order po left join pay_refund pr on po.out_trade_no=pr.tradeNo " +
+					"where po.payStatus=3 and pr.refundStatus =3";
+			if(StringUtils.isNotBlank(po.getStime())){
+				if(po.getTimeType().equals("1")){
+					sql+=" and date(pr.refundTime)=? ";
+					params.add(po.getStime());
+				}else if(po.getTimeType().equals("2")){
+					sql+=" and date_format(pr.refundTime,'%Y-%m')=? ";
+					params.add(po.getStime());
+				}
+			}
+			if(po.getDistrictId()!=null){
+				sql+=" and po.districtId=? ";
+				params.add(po.getDistrictId());
+			}
+			if(po.getPayScene()!=null){
+				sql+=" and po.payScene=? ";
+				params.add(po.getPayScene());
+			}
+			if(po.getPattern()!=null){
+				sql+=" and po.pattern=? ";
+				params.add(po.getPattern());
+			}
+			if(StringUtils.isNotBlank(po.getBody())){
+				sql+=" and po.body=?";
+				params.add(po.getBody());
+			}
+			if(StringUtils.isNotBlank(po.getAssetAccount())){
+				sql+=" AND assetAccount=?";
+				params.add(po.getAssetAccount());
+			}
+			List<PayOrder> polist=this.getJdbcTemplate().query(sql,params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			if(polist!=null){
+				return polist.get(0);	
+			}
+			return null;	
+		}
+		
+		public List<PayOrder> selectOfStatisticalList(PayOrder po,Page page){
+			String sql="";
+			if(page==null){
+				if(po.getPayStatus().equals("1")){
+					
+				}else if(po.getPayStatus().equals("2")){
+					sql="SELECT count(0) as count FROM pay_order po WHERE 1=1 ";
+				}else if(po.getPayStatus().equals("3")){
+					sql="SELECT count(0) as count FROM pay_order WHERE 1=1 ";
+				}
+			}else{
+				if(po.getPayStatus().equals("1")){
+					
+				}else if(po.getPayStatus().equals("2")){
+					sql="select date_format(po.time_expire,'%Y-%m') as time_ex, sum(po.actualPay) as totalMoney, count(po.orderId) as totalCount, avg(po.actualPay) as avgMoney from pay_order po " +
+					 		"where (po.payStatus=1 or po.payStatus=2 or po.payStatus=3) ";
+				}else if(po.getPayStatus().equals("3")){
+					
+				}
+			}
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(po.getTimeType().equals("1")){
+				sb.append(" and po.date(po.time_expire)>=?");
+				params.add(po.getStime());
+				sb.append(" and po.date(po.time_expire)<=?");
+				params.add(po.getEtime());
+			}else if(po.getTimeType().equals("2")){
+				sb.append(" and po.date_format(po.time_expire,'%Y-%m')>=?");
+				params.add(po.getStime());
+				sb.append(" and po.date_format(po.time_expire,'%Y-%m')<=?");
+				params.add(po.getEtime());
+			}
+			if(po.getDistrictId()!=null){
+				sb.append(" and po.districtId=? ");
+				params.add(po.getDistrictId());
+			}
+			if(po.getPayScene()!=null){
+				sql+=" and po.payScene=? ";
+				params.add(po.getPayType());
+			}
+			if(po.getPattern()!=null){
+				sb.append(" and po.pattern=? ");
+				params.add(po.getPattern());
+			}
+			if(StringUtils.isNotBlank(po.getBody())){
+				sb.append(" and po.body=?");
+				params.add(po.getBody());
+			}
+			if(StringUtils.isNotBlank(po.getAssetAccount())){
+				sql+=" AND assetAccount=?";
+				params.add(po.getAssetAccount());
+			}
+			if(page!=null){
+				sb.append(" ORDER BY time_start DESC");	
+				sb.append(" LIMIT ?,?");
+				params.add(page.getFirstIndex());
+				params.add(page.getPageSize());
+			}
+		
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;
+		}
+		//gds
+		@Override
+		public List<PayOrder> findAllPayOrRecharge(PayOrder po, Page page, String redirectType) {
+			String sql="";
+			if(page==null){
+				 sql="SELECT count(0) as count FROM pay_order po left join pay_yqinfo yq on po.districtId=yq.yqId WHERE 1=1 ";
+				}else{
+				 sql="SELECT orderId,hisTransId,orderCode,cardNo,unpaid_id,patientName,patternName,paySceneName,accountName,payStatusName,payType,out_trade_no,body,actualPay,time_start,time_expire," +
+				 		"payStatus,attach,creatDate,total_fee/100.0 AS fee,hisStatus,deviceInfo,assetAccount,districtId,yq.name as districtName " +
+				 		"FROM pay_order po left join pay_yqinfo yq on po.districtId=yq.yqId WHERE 1=1 ";	
+				}
+			StringBuffer sb=new StringBuffer(sql);
+			List<Object> params=new ArrayList<Object>();
+			if(po.getPayStatus()!=null){
+				sb.append(" AND payStatus=?");
+				params.add(po.getPayStatus());
+			}
+			if(po.getPattern()!=null){
+				sb.append(" AND pattern=?");
+				params.add(po.getPattern());
+			}
+			if(StringUtils.isNotBlank(po.getBody())){
+				sb.append(" AND body like ?");
+				params.add(po.getBody());
+			}else{
+				if("0".equals(redirectType)){ 
+					sb.append(" AND body like '%就诊卡充值%'");//充值记录
+				}else{
+					sb.append(" AND body not like '%就诊卡充值%'");//缴费记录
+				}
+			}
+			if(po.getPayType()!=null){
+				sb.append(" AND payType=?");
+				params.add(po.getPayType());
+			}
+			if(po.getCardNo()!=null){
+				sb.append(" AND cardNo like ?");
+				params.add("%"+po.getCardNo()+"%");
+			}
+			if(po.getDistrictId()!=null){
+				sb.append(" AND districtId = ?");
+				params.add(po.getDistrictId());
+			}
+			if(StringUtils.isNotBlank(po.getStartdate())){
+				sb.append(" AND creatDate>?");
+				params.add(po.getStartdate());
+			}
+			if(StringUtils.isNotBlank(po.getEnddate())){
+				sb.append(" AND creatDate<?");
+				params.add(po.getEnddate()+"23:59:59");
+			}
+			
+			if(StringUtils.isNotBlank(po.getOut_trade_no())){
+				sb.append(" AND out_trade_no like ?");
+				params.add(po.getOut_trade_no()+"%");
+			}
+			if(StringUtils.isNotBlank(po.getHisTransId())){
+				sb.append(" AND hisTransId like ?");
+				params.add(po.getHisTransId()+"%");
+			}
+			if(StringUtils.isNotBlank(po.getOrderCode())){
+				sb.append(" AND orderCode like ?");
+				params.add(po.getOrderCode()+"%");
+			}
+			
+			if(StringUtils.isNotBlank(po.getPatientName())){
+				sb.append(" AND patientName like ?");
+				params.add(po.getPatientName()+"%");
+			}
+			if(StringUtils.isNotBlank(po.getCardNo())){
+				sb.append(" AND cardNo like ?");
+				params.add(po.getCardNo()+"%");
+			}
+			if(po.getPayScene()!=null){
+				sb.append(" AND payScene=?");
+				params.add(po.getPayScene());
+			}
+			if(page!=null){
+				sb.append(" ORDER BY creatDate DESC");	
+				sb.append(" LIMIT ?,?");
+				params.add(page.getFirstIndex());
+				params.add(page.getPageSize());
+			}
+			//System.out.println(sb.toString());
+			List<PayOrder> polist=this.getJdbcTemplate().query(sb.toString(), params.toArray(),new BeanPropertyRowMapper(PayOrder.class));
+			return polist;
+		}
+}

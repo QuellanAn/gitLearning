@@ -1,0 +1,122 @@
+package com.catic.mobilehos.pay.biz.impl;
+
+
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.catic.mobilehos.pay.biz.BaseBiz;
+import com.catic.mobilehos.pay.biz.IPayOrderBiz;
+import com.catic.mobilehos.pay.dao.IPayOrderDao;
+import com.catic.mobilehos.pay.entity.PayOrder;
+import com.catic.mobilehos.utils.Page;
+
+
+
+public class PayOrderBizImpl  implements  IPayOrderBiz{
+	protected IPayOrderDao payOrderDao;
+    
+	//保存
+	public boolean savePayOrder(PayOrder payOrder){
+		return payOrderDao.save(payOrder);
+	}
+	
+	public List<PayOrder> findAll(PayOrder po,Page page){
+		return payOrderDao.findAll(po,page);
+	}
+
+	@Override
+	public List<PayOrder> findByIS(String itemId, String payStatus){
+		// TODO Auto-generated method stub
+		return payOrderDao.findByIS(itemId, payStatus);
+	}
+	
+	public PayOrder findByOrderId(String orderId){
+		return payOrderDao.findByOrderId(orderId);
+	}
+	
+	
+	@Override
+	public PayOrder findByTradeNo(String tradeNo) {
+		// TODO Auto-generated method stub
+		return payOrderDao.findByTradeNo(tradeNo);
+	}
+	
+	@Override
+	public PayOrder  findByNoAndCode(String tradeNo,String orderCode) {
+		// TODO Auto-generated method stub
+		return payOrderDao.findByNoAndCode(tradeNo, orderCode);
+	}
+	
+	
+	
+	@Override
+	public Boolean updatePayStatus(PayOrder po) {
+		// TODO Auto-generated method stub
+		return payOrderDao.updatePayStatus(po);
+	}
+	
+	@Override
+	public Boolean saveRefund(PayOrder po) {
+		// TODO Auto-generated method stub
+		return payOrderDao.saveRefund(po);
+	}
+	
+	@Override
+	public Boolean saveHisTransId(PayOrder po) {
+		// TODO Auto-generated method stub
+		return payOrderDao.saveHisTransId(po);
+	}
+	
+	
+	@Override
+	public Boolean alterPayStautus(Integer payStatus, String outTradeNO)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return payOrderDao.alterPayStautus(payStatus, outTradeNO);
+	}
+	
+	@Override
+	public List<PayOrder> findByDate(String date, Integer payStatus,
+			String upDate) throws Exception {
+		// TODO Auto-generated method stub
+		return payOrderDao.findByDate(date, payStatus, upDate);
+	}
+	
+	
+	public IPayOrderDao getPayOrderDao() {
+		return payOrderDao;
+	}
+
+	public void setPayOrderDao(IPayOrderDao payOrderDao) {
+		this.payOrderDao = payOrderDao;
+	}
+
+	@Override
+	public List<PayOrder> findAllByPL(PayOrder po, Page page) {
+		return payOrderDao.findAllByPL(po, page);
+	}
+
+	@Override
+	public List<PayOrder> findAllByPlFlow(PayOrder po, Page page) {
+		return payOrderDao.findAllByPlFlow(po, page);
+	}
+
+	@Override
+	public PayOrder findByTimeExpire(String timeExpire) {
+		return payOrderDao.findByTimeExpire(timeExpire);
+	}
+
+	public PayOrder findByNearTime(){
+		return payOrderDao.findByNearTime();
+	}
+
+	
+
+	
+
+
+	
+
+}

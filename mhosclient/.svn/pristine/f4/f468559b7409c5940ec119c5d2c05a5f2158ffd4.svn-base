@@ -1,0 +1,56 @@
+package com.catic.mobilehos.pay.action;
+
+import java.util.List;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.entity.PayDictionary;
+import com.catic.mobilehos.pay.entity.PayType;
+/**
+ * 
+ * @author Administrator
+ *
+ */
+@Controller
+@Scope("prototype")
+@SuppressWarnings("serial")
+public class PayDictionaryAction extends BaseAction{
+
+	private String dictionaryCode;
+	private PayDictionary payDictionary;
+	private List<PayDictionary> payDictionaryList;
+	
+	/**
+	 * 查询所有
+	 */
+	public void findAll(){
+		try {
+			payDictionaryList= payDictionaryBiz.findAll(dictionaryCode);
+			if(payDictionaryList!=null&&payDictionaryList.size()>0){
+				jsonArray=JSONArray.fromObject(payDictionaryList);
+				result=resultBiz.getResult(resultBiz.SUCCESS, jsonArray.toString());
+			}else{
+				result=resultBiz.getResult(resultBiz.FAIL, jsonArray.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			result=resultBiz.getResult(resultBiz.SYSTEM_BUSY, jsonArray.toString());
+		}finally{
+			jsonObj(result.toJson());
+		}
+	}
+	
+	public String getDictionaryCode() {
+		return dictionaryCode;
+	}
+
+	public void setDictionaryCode(String dictionaryCode) {
+		this.dictionaryCode = dictionaryCode;
+	}
+	
+	
+}

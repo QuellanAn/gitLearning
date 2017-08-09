@@ -1,0 +1,109 @@
+package com.catic.mobilehos.pay.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.catic.mobilehos.pay.dao.BaseDao;
+import com.catic.mobilehos.pay.dao.ICheckRecordDao;
+import com.catic.mobilehos.pay.entity.CheckRecord;
+import com.catic.mobilehos.utils.Page;
+@Repository("checkRecordDao")
+public class CheckRecordDaoImpl extends BaseDao implements ICheckRecordDao {
+
+	public List<CheckRecord> findAll(Page page, CheckRecord check)
+			throws Exception {
+		String sql;
+		if(page==null){
+			sql="SELECT COUNT(cr.crId) AS count FROM pay_check_record cr left join pay_order po on cr.transactionNum=po.out_trade_no where 1=1 ";
+		}else{
+			sql="select cr.*,pa.accountName as accName from pay_check_record cr left join pay_order po on cr.transactionNum=po.out_trade_no left join pay_account pa on cr.account=pa.accountCode where 1=1";
+		}
+		List<Object> param=new ArrayList<Object>();
+		sql=addParasToSQL(check,sql,param);
+		sql += " order by cr.executionTime asc ";
+		if(page!=null){
+			sql+=" LIMIT ?,?";
+			param.add(page.getFirstIndex());
+			param.add(page.getPageSize());
+		}
+		List<CheckRecord> list=jdbc.query(sql,param.toArray(),new BeanPropertyRowMapper(CheckRecord.class));
+		return list;
+	}
+	
+	private String addParasToSQL(CheckRecord check,String sql,List<Object> lstArgs){
+		if(check!=null){
+			if (check.getRecordType()!=null){
+				sql += " and cr.recordType = ?";
+				lstArgs.add(check.getRecordType());
+			}
+			if (StringUtils.isNotBlank(check.getAccount())){
+				sql += " and cr.account = ?";
+				lstArgs.add(check.getAccount());
+			}
+			if(StringUtils.isNotBlank(check.getStartdate())){
+				sql += " AND cr.executionTime>?";
+				lstArgs.add(check.getStartdate());
+			}
+			if(StringUtils.isNotBlank(check.getEnddate())){
+				sql += " AND cr.executionTime<?";
+				lstArgs.add(check.getEnddate()+"23:59:59");
+			}
+			if(StringUtils.isNotBlank(check.getTransactionNum())){
+				sql += " AND cr.transactionNum like ?";
+				lstArgs.add("%"+check.getTransactionNum()+"%");
+			}
+			/*if(StringUtils.isNotBlank(check.getOrderCode())){
+				sql += " AND po.orderCode like ?";
+				lstArgs.add("%"+check.getOrderCode()+"%");
+			}
+			if(StringUtils.isNotBlank(check.getHisTransId())){
+				sql += " AND po.hisStatus like ?";
+				lstArgs.add("%"+check.getHisTransId()+"%");
+			}*/
+		}
+		return sql;
+	}
+	public Boolean save(CheckRecord check)throws Exception {
+		String sql="INSERT INTO pay_check_record(checkTime,transactionNum,executionTime,taskState,operator,tradeType,recordType,managerStatus,remark,account) VALUES(?,?,NOW(),?,?,?,?,?,?,?)";
+		List<Object>params=new ArrayList<Object>();
+		params.add(check.getCheckTime());
+		params.add(check.getTransactionNum());
+		params.add(check.getTaskState());
+		params.add(check.getOperator());
+		params.add(check.getTradeType());
+		params.add(check.getRecordType());
+		params.add(check.getManagerStatus());
+		params.add(check.getRemark());
+		params.add(check.getAccount());
+		int count=jdbc.update(sql,params.toArray());
+		if(count>0){
+			return true;
+		}
+		return false;
+		
+	}
+	
+	public CheckRecord find(Integer transType,String transactionNum) throws Exception{
+		String sql="SELECT * FROM pay_check_record WHERE 1=1 ";
+		List<Object> params=new ArrayList<Object>();
+		StringBuilder sb=new StringBuilder(sql);
+		if(StringUtils.isNotBlank(transactionNum)){
+			sb.append(" AND transactionNum=?");
+			params.add(transactionNum);
+		}
+		if(transType!=null){
+			sb.append(" AND tradeType=? ");
+			params.add(transType);
+		}
+		List<CheckRecord> list=jdbc.query(sb.toString(),params.toArray(),new BeanPropertyRowMapper(CheckRecord.class));
+		if(list!=null&&list.size()>0){
+			return list.get(0);
+		}
+		return null;
+		
+	}
+}

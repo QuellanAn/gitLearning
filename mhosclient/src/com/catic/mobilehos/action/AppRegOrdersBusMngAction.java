@@ -1,0 +1,380 @@
+package com.catic.mobilehos.action;
+
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.catic.mobilehos.po.AppRegOrdersPO;
+import com.catic.mobilehos.po.CardPayPO;
+import com.catic.mobilehos.po.PatientPO;
+import com.catic.mobilehos.service.AppRegOrderService;
+import com.catic.mobilehos.service.CardPayService;
+import com.catic.mobilehos.service.vo.AppRegOrdersVO;
+import com.catic.mobilehos.service.vo.Page;
+
+/**
+ * 后台预约挂号记录管理
+ * 
+ * @author xieweipeng
+ * 
+ */
+public class AppRegOrdersBusMngAction extends BaseAction {
+
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 预约号
+	 */
+	private String orderid;
+	/**
+	 * 就诊人
+	 */
+	private String patientname;
+
+	/**
+	 * 预约挂号单状态
+	 */
+	private String status;
+
+	/**
+	 * 查询的开始日期
+	 */
+	private String startdate;
+
+	/**
+	 * 查询的开始日期
+	 */
+	private Date startSQLDate;
+
+	/**
+	 * 查询的结束日期
+	 */
+	private String enddate;
+
+	/**
+	 * 查询的结束日期
+	 */
+	private Date endSQLDate;
+
+	/**
+	 * 查询的开始创建时间
+	 */
+	private String startCreateTime;
+
+	/**
+	 * 查询的开始创建时间
+	 */
+	private Timestamp startSQLCreateTime;
+
+	/**
+	 * 查询的结束创建时间
+	 */
+	private String endCreateTime;
+
+	/**
+	 * 查询的结束创建时间
+	 */
+	private Timestamp endSQLCreateTime;
+
+	/**
+	 * 当前页
+	 */
+	private int page;
+
+	/**
+	 * 缺省页大小
+	 */
+	private final int DEFAULT_PAGESIZE = 10;
+
+	private Page<AppRegOrdersVO> pageBean;
+
+	private AppRegOrderService appRegOrderService;
+	private CardPayService cardPayService;
+	private List<PatientPO> patientPOs;
+	private String patientId;
+	private List<AppRegOrdersPO> aropo;
+	private PatientPO patientPO;
+	private CardPayPO cardPayPO;
+	
+	public String getPatientId() {
+		return patientId;
+	}
+
+	public void setPatientId(String patientId) {
+		this.patientId = patientId;
+	}
+
+	
+	public PatientPO getPatientPO() {
+		return patientPO;
+	}
+
+	public void setPatientPO(PatientPO patientPO) {
+		this.patientPO = patientPO;
+	}
+
+	public List<AppRegOrdersPO> getAropo() {
+		return aropo;
+	}
+
+	public void setAropo(List<AppRegOrdersPO> aropo) {
+		this.aropo = aropo;
+	}
+
+	public List<PatientPO> getPatientPOs() {
+		return patientPOs;
+	}
+
+	public void setPatientPOs(List<PatientPO> patientPOs) {
+		this.patientPOs = patientPOs;
+	}
+
+	public AppRegOrderService getAppRegOrderService() {
+		return appRegOrderService;
+	}
+
+	public void setAppRegOrderService(AppRegOrderService appRegOrderService) {
+		this.appRegOrderService = appRegOrderService;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getStartdate() {
+		return startdate;
+	}
+
+	public void setStartdate(String startdate) {
+		this.startdate = startdate;
+	}
+
+	public String getEnddate() {
+		return enddate;
+	}
+
+	public void setEnddate(String enddate) {
+		this.enddate = enddate;
+	}
+
+	public String getStartCreateTime() {
+		return startCreateTime;
+	}
+
+	public void setStartCreateTime(String startCreateTime) {
+		this.startCreateTime = startCreateTime;
+	}
+
+	public String getEndCreateTime() {
+		return endCreateTime;
+	}
+
+	public void setEndCreateTime(String endCreateTime) {
+		this.endCreateTime = endCreateTime;
+	}
+
+	public int getPage() {
+		return page;
+	}
+
+	public void setPage(int page) {
+		this.page = page;
+	}
+
+	public Page<AppRegOrdersVO> getPageBean() {
+		return pageBean;
+	}
+
+	public void setPageBean(Page<AppRegOrdersVO> pageBean) {
+		this.pageBean = pageBean;
+	}
+
+	public String getOrderid() {
+		return orderid;
+	}
+
+	public void setOrderid(String orderid) {
+		this.orderid = orderid;
+	}
+
+	public String getPatientname() {
+		return patientname;
+	}
+
+	public void setPatientname(String patientname) {
+		this.patientname = patientname;
+	}
+	public CardPayPO getCardPayPO() {
+		return cardPayPO;
+	}
+
+	public void setCardPayPO(CardPayPO cardPayPO) {
+		this.cardPayPO = cardPayPO;
+	}
+	public CardPayService getCardPayService() {
+		return cardPayService;
+	}
+
+	public void setCardPayService(CardPayService cardPayService) {
+		this.cardPayService = cardPayService;
+	}
+
+	/**
+	 * 验证参数
+	 */
+	public void validateGetAppRegOrdersList() {
+
+		if (StringUtils.isNotBlank(this.startdate)) {
+			this.startSQLDate = this.toSQLDate(this.startdate);
+			if (this.startSQLDate == null) {
+				this.addFieldError("", "日期格式不正确！");
+			}
+		}
+		if (StringUtils.isNotBlank(this.enddate)) {
+			this.endSQLDate = this.toSQLDate(this.enddate);
+			if (this.endSQLDate == null) {
+				this.addFieldError("", "日期格式不正确！");
+			}
+		}
+		if (StringUtils.isNotBlank(this.startCreateTime)) {
+			this.startSQLCreateTime = this.toTimestamp(this.startCreateTime);
+			if (this.startSQLCreateTime == null) {
+				this.addFieldError("", "时间格式不正确！");
+			}
+		}
+		if (StringUtils.isNotBlank(this.endCreateTime)) {
+			this.endSQLCreateTime = this.toTimestamp(this.endCreateTime);
+			if (this.endSQLCreateTime == null) {
+				this.addFieldError("", "时间格式不正确！");
+			}
+		}
+	}
+
+	/**
+	 * 按条件查询预约挂号记录
+	 * 
+	 * @return 返回分页数据
+	 */
+	public String getAppRegOrdersList() {
+		try {
+			if (StringUtils.isBlank(this.status)) {
+				this.status = null;
+			}
+			String cardNumber = request.getParameter("cardNumber");
+			String doctorName = request.getParameter("doctorName");
+			String departmentCode = request.getParameter("departmentCode");
+			String departmentName = request.getParameter("departmentName");
+			String paid = request.getParameter("paid");
+			String regSource = request.getParameter("regSource");
+			if (!StringUtils.isEmpty(doctorName)) {
+				doctorName=new String(doctorName.getBytes("ISO-8859-1"),"utf-8");
+				doctorName = java.net.URLDecoder.decode(doctorName, "utf-8");
+			}
+			if (!StringUtils.isEmpty(patientname)) {
+				patientname=new String(patientname.getBytes("ISO-8859-1"),"utf-8");
+				patientname = java.net.URLDecoder.decode(patientname, "utf-8");
+				//patientname=new String(patientname.getBytes("8859_1"),"GB2312"); 
+			}
+			if (!StringUtils.isEmpty(departmentName)) {
+				departmentName=new String(departmentName.getBytes("ISO-8859-1"),"utf-8");
+				departmentName = java.net.URLDecoder.decode(departmentName, "utf-8");
+			}
+			if (!StringUtils.isEmpty(orderid)) {
+				orderid=new String(orderid.getBytes("ISO-8859-1"),"utf-8");
+				orderid = java.net.URLDecoder.decode(orderid, "utf-8");
+			}
+			String type = request.getParameter("type");
+			//System.out.println("**"+regSource);
+			pageBean = appRegOrderService.queryAppRegOrdersByParas(orderid,
+					patientname, status, startSQLDate, endSQLDate,
+					startSQLCreateTime, endSQLCreateTime, page,
+					DEFAULT_PAGESIZE, type,cardNumber,doctorName,departmentCode,paid,departmentName, regSource);
+			//System.out.println(pageBean.getCurPageData().get(0).getRegSourceName()+"  "+pageBean.getCurPageData().get(0).getPaidName());
+			Map<String, String> paras = new TreeMap<String, String>();
+			if (!StringUtils.isEmpty(patientname)) {
+				paras.put("patientname", patientname);
+			}
+			if (!StringUtils.isEmpty(orderid)) {
+				paras.put("orderid", orderid);
+			}
+			paras.put("regSource", regSource);
+			paras.put("type", type);
+			paras.put("paid", paid);
+			paras.put("departmentCode", departmentCode);
+			paras.put("cardNumber", cardNumber);
+			paras.put("doctorName", doctorName);
+			paras.put("departmentName", departmentName);
+			if(StringUtils.isNotBlank(status)){
+				paras.put("status", status);
+			}
+			paras.put("startdate", this.startdate);
+			paras.put("enddate", this.enddate);
+			paras.put("startCreateTime", this.startCreateTime);
+			paras.put("endCreateTime", this.endCreateTime);
+			String baseUrl;
+			if("0".equals(type)){
+				 baseUrl = "busrecord/appreg/getAppRegOrdersList";
+			}else{
+				 baseUrl = "busrecord/appreg/getAppRegOrdersRegistList";
+			}
+			pageBean.setQueryUrl(baseUrl, paras);
+			return SUCCESS;
+		} catch (Exception e) {
+			log.error(null, e);
+			return ERROR;
+		}
+
+	}
+
+	/**
+	 * 显示就诊人信息
+	 */
+	public String showPatient() {
+		patientPOs = appRegOrderService.findPatientByPatentId(patientId);
+		String appRegOrderId = request.getParameter("appRegOrderId");
+		//System.out.println(patientId+"  "+appRegOrderId);
+		aropo =appRegOrderService.findAppRegOrdersPOByAppRegOrderId(appRegOrderId);
+		//System.out.println(aropo.get(0).getSourceName());
+		List<PatientPO> list = appRegOrderService.findPatientByPatentId(aropo.get(0).getPatientId());
+		if(list.size() > 0){
+			patientPO = list.get(0);
+		}else{
+			patientPO=null;
+		}
+		
+		cardPayPO = cardPayService.findCardPayPOByCPId(appRegOrderId);
+		//System.out.println("ReceiptNo  "+cardPayPO.getPayFee());
+		return SUCCESS;
+
+	}
+	/**
+	 * 显示预约号信息
+	 */
+	public String showRegInfo(){
+		aropo =appRegOrderService.findRegInfoByOrderId(orderid);
+		return SUCCESS;
+	}
+	/**
+	 * 查询
+	 * @return
+	 */
+	public String findAppRegOrdersPOByAppRegOrderId(){
+		String appRegOrderId = request.getParameter("appRegOrderId");
+		aropo =appRegOrderService.findAppRegOrdersPOByAppRegOrderId(appRegOrderId);
+		List<PatientPO> list = appRegOrderService.findPatientByPatentId(aropo.get(0).getPatientId());
+		if(list.size() > 0){
+			patientPO = list.get(0);
+		}else{
+			patientPO=null;
+		}
+		return SUCCESS;
+	}
+}

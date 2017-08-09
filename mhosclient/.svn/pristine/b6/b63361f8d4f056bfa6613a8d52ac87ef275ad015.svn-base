@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<!-- dao层 -->
+	<bean id="iAppRegOrderTypeDao" class="com.catic.mobilehos.dao.synchronize.IAppRegOrderTypeDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+	<bean id="iAppRegExcetionDao" class="com.catic.mobilehos.dao.synchronize.IAppRegExceptionDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+	<bean id="iDepartmentDao" class="com.catic.mobilehos.dao.synchronize.IDepartmentImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+	<bean id="deptDocDao" class="com.catic.mobilehos.dao.synchronize.IDepartmentDoctorDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+
+	<bean id="iDoctorDao" class="com.catic.mobilehos.dao.synchronize.IDoctorDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+
+	<bean id="iRoomDao" class="com.catic.mobilehos.dao.synchronize.IRoomDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+
+	<bean id="iRoomQueueSnDao" class="com.catic.mobilehos.dao.synchronize.IRoomQueueSnDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+
+	<bean id="iAppRegPeriodDao" class="com.catic.mobilehos.dao.synchronize.IAppRegPeriodDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+
+	<bean id="iTimeTableDao" class="com.catic.mobilehos.dao.synchronize.TimetableDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+
+	<!-- service层 -->
+	<bean id="iAppRegOrderTypeService" class="com.catic.mobilehos.service.synchronize.AppRegOrderTypeServiceImpl">
+		<property name="appRegOrderTypeDao" ref="iAppRegOrderTypeDao"></property>
+	</bean>
+	<bean id="iDepartmentService" class="com.catic.mobilehos.service.synchronize.IDepartmentServiceImpl">
+		<property name="iDepartmentDao" ref="iDepartmentDao"></property>
+	</bean>
+
+	<bean id="iAppRegExceptionService" class="com.catic.mobilehos.service.synchronize.IAppRegExceptionServiceImpl">
+		<property name="iAppRegExceptionDao" ref="iAppRegExcetionDao"></property>
+	</bean>
+
+	<bean id="deptDoctorService" class="com.catic.mobilehos.service.synchronize.IDepartmentDoctorServiceImpl">
+		<property name="deptDocDao" ref="deptDocDao"></property>
+	</bean>
+
+	<bean id="iDoctorService" class="com.catic.mobilehos.service.synchronize.IDoctorServiceImpl">
+		<property name="iDoctorDao" ref="iDoctorDao"></property>
+	</bean>
+
+	<bean id="iRoomService" class="com.catic.mobilehos.service.synchronize.RoomServiceImpl">
+		<property name="roomDao" ref="iRoomDao"></property>
+	</bean>
+
+	<bean id="iRoomQueueSnService" class="com.catic.mobilehos.service.synchronize.IRoomQueueSnServiceImpl">
+		<property name="roomQueueSnDao" ref="iRoomQueueSnDao"></property>
+	</bean>
+
+	<bean id="iAppRegPeriodService" class="com.catic.mobilehos.service.synchronize.AppRegPeriodServiceImpl">
+		<property name="iAppRegPeriodDao" ref="iAppRegPeriodDao"></property>
+	</bean>
+
+	<bean id="iTimeTableService" class="com.catic.mobilehos.service.synchronize.ITimeTableServiceImpl">
+		<property name="iTimeTableDao" ref="iTimeTableDao"></property>
+	</bean>
+
+	<!-- 事务配置 -->
+	<bean id="synchronizeTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<tx:advice id="synchronizeTxAdvice" transaction-manager="synchronizeTxManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+			<tx:method name="add*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="scnServicesPointcut" expression="execution(* com.catic.mobilehos.service.synchronize.*.*(..))" />
+		<aop:advisor advice-ref="synchronizeTxAdvice" pointcut-ref="scnServicesPointcut" />
+	</aop:config>
+
+</beans>
+
+

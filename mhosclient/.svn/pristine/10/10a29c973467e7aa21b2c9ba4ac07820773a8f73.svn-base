@@ -1,0 +1,44 @@
+package com.catic.mobilehos.pay.biz.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.catic.mobilehos.pay.biz.BaseBiz;
+import com.catic.mobilehos.pay.biz.IAccountConfigBiz;
+import com.catic.mobilehos.pay.entity.Account;
+import com.catic.mobilehos.utils.Page;
+
+@Service("accountConfigBiz")
+public class AccountConfigBizImpl extends BaseBiz implements IAccountConfigBiz{
+
+	@Override
+	public Boolean save(Account account) throws Exception {
+		
+		return accountConfigDao.save(account);
+	}
+
+	@Override
+	public List<Account> findAll(Page page) throws Exception {
+		return accountConfigDao.findAll(page);
+	}
+
+	@Override
+	public Boolean delete(String accountCode) throws Exception {
+		
+		return accountConfigDao.delete(accountCode);
+	}
+
+	@Override
+	public Boolean modify(Account account) throws Exception {
+		
+		return accountConfigDao.modify(account);
+	}
+
+	@Override
+	public Account findByCode(String code) throws Exception {
+		
+		return accountConfigDao.findByCode(code);
+	}
+
+}

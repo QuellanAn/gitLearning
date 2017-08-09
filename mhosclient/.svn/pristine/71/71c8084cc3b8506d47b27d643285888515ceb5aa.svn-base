@@ -1,0 +1,95 @@
+package com.catic.mobilehos.dao.jdbc;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import com.catic.mobilehos.dao.PatientDAO;
+import com.catic.mobilehos.po.PatientCardPO;
+import com.catic.mobilehos.po.PatientPO;
+
+public class PatientDAOImpl extends JdbcDaoSupport implements PatientDAO{
+	
+	private Log log = LogFactory.getLog(this.getClass());
+	
+	/**
+	 * 
+	 * @Title: findPatientsByUserId 
+	 * @Description: TODO 根据会员ID获取就诊人列表
+	 * @param @param userId 会员ID
+	 * @return List<PatientPO> 就诊人列表 
+	 * @throws
+	 */
+	@Override
+	public List<PatientPO> findPatientsByUserId(String userId) {
+		try{
+			JdbcTemplate jt = this.getJdbcTemplate();
+			String sql = "select p.*, pc.card_code, pc.cardnumber from patients p left join patient_cards pc "
+					+ " on p.patient_id = pc.patient_id where p.user_id=?";
+			
+			final List<PatientPO> patients = new ArrayList<PatientPO>();
+			
+			jt.query(sql, new Object[]{userId}, new RowCallbackHandler(){
+				
+				private PatientPO getPatient(String patientId){
+					if (patients.size() > 0){
+						PatientPO last = patients.get(patients.size()-1);
+						if (last.getPatientId().equals(patientId.trim())){
+							return last;
+						}else{
+							PatientPO p = new PatientPO();
+							patients.add(p);
+							return p;
+						}
+					}else{
+						PatientPO p = new PatientPO();
+						patients.add(p);
+						return p;
+
+					}
+				}
+				
+				@Override
+				public void processRow(ResultSet rs) throws SQLException {
+					String patientId = StringUtils.trim(rs.getString("patient_id")); 
+					PatientPO po = getPatient(patientId);
+					po.setUserId(StringUtils.trim(rs.getString("user_id")));
+					po.setPatientId(StringUtils.trim(rs.getString("patient_id")));
+					/*po.setName(StringUtils.trim(rs.getString("patient_name")));
+					po.setSex(rs.getInt("sex"));*/
+					po.setPhone(StringUtils.trim(rs.getString("phone")));
+					po.setIdentityCard(StringUtils.defaultString(StringUtils.trim(rs.getString("identitycard"))));
+					po.setHomeAddress(StringUtils.trim(rs.getString("home_address")));
+					po.setBirthday(rs.getDate("birthday"));
+					po.setCreateDate(rs.getTimestamp("create_date"));
+					po.setUpdateDate(rs.getTimestamp("update_date"));
+					
+					PatientCardPO pc = new PatientCardPO();
+					String cardCode = StringUtils.trim(rs.getString("card_code"));
+					if (cardCode != null && cardCode.length() > 0){
+						pc.setCardCode(cardCode);
+						pc.setCardNumber(StringUtils.trim(rs.getString("cardnumber")));
+						/*po.addPatientCard(pc);*/
+					}
+				}
+			});
+			
+			return patients;
+		}catch(DataAccessException ex){
+			log.error(null, ex);
+			throw ex;
+		}
+		
+	}
+	
+	
+	
+
+}

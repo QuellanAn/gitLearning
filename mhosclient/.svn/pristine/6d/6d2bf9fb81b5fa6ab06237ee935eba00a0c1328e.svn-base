@@ -1,0 +1,88 @@
+package com.catic.mobilehos.dao.jdbc;  
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+
+import com.catic.mobilehos.dao.SelfServiceVersionDao;
+import com.catic.mobilehos.po.SelfServiceVersionPO;
+import com.catic.mobilehos.utils.Page;
+
+/**  
+ * 类说明:自助终端版本dao接口实现
+ * @author 朱伟权
+ * 创建时间: 2017-7-6 上午10:18:13
+ */
+public class SelfServiceVersionDaoImpl extends JdbcDaoSupport implements SelfServiceVersionDao {
+
+	@Override
+	public List<SelfServiceVersionPO> findAll(Page page, SelfServiceVersionPO po) {
+		StringBuffer sql;
+		if(page == null){
+			sql = new StringBuffer(" SELECT COUNT(0) AS count ");
+		}else{
+			sql = new StringBuffer("select sv.id,sv.upgrade_type upgradeType,sv.facility_type facilityType,sv.version_code versionCode," +
+					" sv.version_name versionName,sv.content,sv.activation_status activationStatus,sv.activation_time activationTime,sv.file_path filePath ");
+		}
+		sql.append(" from selfservice_version sv where 1=1 ");
+		List<Object> params = new ArrayList<Object>();
+		if(po != null){
+			if(StringUtils.isNotBlank(po.getUpgradeType())){
+				sql.append(" AND sv.upgrade_type=? ");
+				params.add(po.getUpgradeType());
+			}
+			if(StringUtils.isNotBlank(po.getFacilityType())){
+				sql.append(" AND sv.facility_type=? ");
+				params.add(po.getFacilityType());
+			}
+			if(StringUtils.isNotBlank(po.getVersionName())){
+				sql.append(" and sv.version_name like ? ");
+				params.add("%" + po.getVersionName() + "%");
+			}
+			if(StringUtils.isNotBlank(po.getActivationStatus())){
+				sql.append(" AND sv.activation_status=? ");
+				params.add(po.getActivationStatus());
+			}
+			if(StringUtils.isNotBlank(po.getBeginDate())){
+				sql.append(" AND sv.activation_time>=?");
+				params.add(po.getBeginDate()+" 00:00:00");
+			}
+			if(StringUtils.isNotBlank(po.getEndDate())){
+				sql.append(" AND sv.activation_time<=?");
+				params.add(po.getEndDate()+" 23:59:59");
+			}
+		}
+		sql.append(" order by sv.activation_time desc ");
+		if(page != null){
+			sql.append(" LIMIT ?,?");
+			params.add(page.getFirstIndex());
+			params.add(page.getPageSize());
+		}
+		return getJdbcTemplate().query(sql.toString(), params.toArray(), new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class));
+	}
+
+	@Override
+	public SelfServiceVersionPO findById(int id) {
+		String sql = "select * from selfservice_version pt where id=? ";
+		SelfServiceVersionPO po = getJdbcTemplate().queryForObject(sql, new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class),id);
+		return po;
+	}
+
+	@Override
+	public List<SelfServiceVersionPO> findByIds(String ids) {
+		String sql = "select * from selfservice_version pt where id in(" + ids + ") ";
+		List<SelfServiceVersionPO> list = getJdbcTemplate().query(sql, new BeanPropertyRowMapper<SelfServiceVersionPO>(SelfServiceVersionPO.class));
+		return list;
+	}
+
+	@Override
+	public boolean activateVersions(String ids) {
+		String sql = "update selfservice_version set activation_status='1', activation_time=now() where activation_status='0' and id in(" + ids + ")";
+		return getJdbcTemplate().update(sql) > 0;
+	}
+
+}
+ 

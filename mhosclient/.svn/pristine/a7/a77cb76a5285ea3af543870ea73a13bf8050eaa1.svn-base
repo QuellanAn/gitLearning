@@ -1,0 +1,171 @@
+package com.catic.mobilehos.action;  
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.action.BaseAction;
+import com.catic.mobilehos.pay.entity.PayDictionary;
+import com.catic.mobilehos.pay.entity.PayTerminal;
+import com.catic.mobilehos.utils.Page;
+
+/**  
+ * 类说明:自助设备管理action
+ * @author 朱伟权
+ * 创建时间: 2017-6-23 上午11:23:39
+ */
+@Controller
+@Scope("prototype")
+public class SelfServiceManageAction extends BaseAction {
+	
+	private static final long serialVersionUID = 1L;
+	private PayTerminal payTer;
+	private List<PayTerminal> ptlist;
+	private String id;
+	
+	/**
+	 * 查询终端设备
+	 * @return
+	 */
+	public String findAllInfo(){
+		try {
+			if(StringUtils.isBlank(pageNo)){
+				pageNo="1";
+			}
+			ptlist=payTerBiz.findAll(page, payTer);
+			if(ptlist!=null&&ptlist.size()>0){
+				page=new Page(Integer.parseInt(pageNo), 10, ptlist.get(0).getCount());
+				ptlist=payTerBiz.findAll(page, payTer);
+				replaceFacilityType(ptlist);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return SUCCESS;
+	}
+	
+	/**
+	 * 跳转到添加页面
+	 * @return
+	 */
+	public String toSave(){
+		return "toSave";
+	}
+	
+	/**
+	 * 跳转到更新页面
+	 * @return
+	 */
+	public String toUpdate(){
+		try {
+			payTer=payTerBiz.findById(Integer.parseInt(id));
+			request.setAttribute("yqlist", yQConfigBiz.findAllyq());
+			request.setAttribute("facilityTypeList", payDictionaryBiz.findAll("facility_type"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+		return "toUpdate";
+	}
+	
+	/**
+	 * 保存/更新终端信息
+	 * @return
+	 */
+	public String saveOrUpdate(){
+		try {
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			payTer.setCreateTime(this.toTimestamp(format.format(new Date())));
+			if(StringUtils.isBlank(id)){
+				payTerBiz.insert(payTer);
+			}else{
+				payTer.setId(Integer.parseInt(id));
+				payTerBiz.modify(payTer);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "saveUpdate";
+	}
+	
+	/**
+	 * 删除终端
+	 * @return
+	 */
+	public String delete(){
+		try {
+			payTerBiz.delete(Integer.parseInt(id));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "delete";
+	}
+	
+	/**
+	 * 查看终端详情
+	 * @return
+	 */
+	public String toDetail(){
+		try {
+			payTer = payTerBiz.findById(Integer.parseInt(id));
+			List<PayTerminal> list = new ArrayList<PayTerminal>();
+			list.add(payTer);
+			replaceFacilityType(list);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "detail";
+	}
+	
+	/**
+	 * 替换设备类型的code为名称
+	 * @throws Exception
+	 */
+	private void replaceFacilityType(List<PayTerminal> ptlist) throws Exception{
+		if(ptlist != null && ptlist.size() > 0){
+			Map<String, String> map = new HashMap<String, String>();
+			List<PayDictionary> list = payDictionaryBiz.findAll("facility_type");
+			if(list != null && list.size() > 0){
+				for (PayDictionary payDictionary : list) {
+					map.put(payDictionary.getCodeNo(), payDictionary.getCodeName());
+				}
+			}
+			
+			for (PayTerminal payTerminal : ptlist) {
+				payTerminal.setFacilityType(map.get(payTerminal.getFacilityType()));
+			}
+		}
+	}
+	
+	public PayTerminal getPayTer() {
+		return payTer;
+	}
+
+	public void setPayTer(PayTerminal payTer) {
+		this.payTer = payTer;
+	}
+
+	public List<PayTerminal> getPtlist() {
+		return ptlist;
+	}
+
+	public void setPtlist(List<PayTerminal> ptlist) {
+		this.ptlist = ptlist;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+}
+ 

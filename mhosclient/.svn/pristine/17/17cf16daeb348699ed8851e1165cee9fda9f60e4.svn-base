@@ -1,0 +1,178 @@
+$(document).ready(function() {
+   
+	datalist_ctrl.loaddatalist();
+	loadinfocats();
+	$("#act_query").click(function(e){
+		datalist_ctrl.loaddatalist();
+	});
+		
+	$('input[name=startdate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=enddate]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=startCreateTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('input[name=endCreateTime]').datepicker({ dateFormat: 'yy-mm-dd' });
+});
+
+function refresh_totalcount(){
+	$("#totalcount").html($("#hid_totalcount").val());
+}
+
+
+var datalist_ctrl = {
+		
+	loaddatalist:function(){
+			var cnt = $('#div_cnt_table');	
+			var jyType=$('#jyType').val();
+			var payType=$('#payType').val();
+			var body=$('#body').val();
+			var startdate=$('input[name=startdate]').val();	
+			var enddate=$('input[name=enddate]').val();
+			var status=$('#status').val();
+			var pattern=$('#pattern').val();
+			var districtId=$('#districtId').val();
+			
+			var out_trade_no=$('#out_trade_no').val();
+			var orderCode=$('#orderCode').val();
+			var hisTransId=$('#hisTransId').val();
+			var refundOrder=$('#refundOrder').val();
+			var otherOrder=$('#otherOrder').val();
+			$.post('unpaid/payOrderAction_findAllByPlFlow',{
+				jyType:jyType,
+				payType:payType,
+				startdate:startdate,
+				enddate:enddate,
+				status:status,
+				pattern:pattern,
+				districtId:districtId,
+				out_trade_no:out_trade_no,
+				hisTransId:hisTransId,
+				orderCode:orderCode,
+				refundOrder:refundOrder,
+				body:body,
+				otherOrder:otherOrder
+					},
+		      	function(data, status){
+				if (data && data.msg){
+					alert(data.msg);
+				}else if (data){
+					cnt.empty();
+					cnt.append(data);
+				}
+			});
+		},
+	topage: function(url){
+		this.loaddatalist(url);
+	},
+	loaddatalist1:function(pageNo,jyType,payType,startdate,enddate,status,pattern,districtId,out_trade_no,hisTransId,orderCode,body,refundOrder,otherOrder){
+		var cnt = $('#div_cnt_table');
+		$.post('unpaid/payOrderAction_findAllByPlFlow',{
+			jyType:jyType,
+			startdate:startdate,
+			enddate:enddate,
+			status:status,
+			pattern:pattern,
+			districtId:districtId,
+			out_trade_no:out_trade_no,
+			hisTransId:hisTransId,
+			orderCode:orderCode,
+			body:body,
+			refundOrder:refundOrder,
+			otherOrder:otherOrder,
+			pageNo:pageNo
+				},
+	      	function(data, status){
+			if (data && data.msg){
+				alert(data.msg);
+			}else if (data){
+				cnt.empty();
+				cnt.append(data);
+			}
+		});
+	},
+		
+		
+};
+
+
+function showImg(orderId){
+	$.post("unpaid/wXPayAction_findImg",{
+		orderId:orderId
+	}, function(data) {
+		$("#showPatients").html(data);
+		$("#showPatients").dialog({
+		    width: 800,
+		    height:600
+		}).dialog("open");
+	}, "html");
+}
+
+
+//显示缴费明细
+function showPayInfo(billNum,name,money,attach){
+	$.post("unpaid/wXPayAction_toPay",{
+		billNum:billNum
+	}, function(data) {
+		$("#showPatients").html(data);
+		$("#showPatients").dialog({
+		    width: 800,
+		    height:600
+		}).dialog("open");
+	}, "html");
+}
+
+function closeDialog(id) {
+	$("#" + id).dialog("close");
+}
+
+
+function refund(){
+	
+	window.location.href="payorder/refund.jsp";
+}
+
+function toRefund(orderId,pattern,outTradeNo){		
+	window.location.href="unpaid/payOrderAction_findDetails?flag=1&orderId="+orderId;
+}
+
+function toSelect(orderId){		
+	window.location.href="unpaid/payOrderAction_findDetails?orderId="+orderId;
+}
+
+function loadinfocats(){
+	var url = "unpaid/allYqJson";
+	var dis = $('#districtId');
+	dis.empty();
+	dis.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var jarr = eval(data);
+		for (var i in jarr){
+			var o = $('<option></option>').val(jarr[i].yqId).html(jarr[i].name);
+			dis.append(o.get());
+		}
+	});
+}
+
+/**
+ * 导出交易流水
+ */
+function exportTransflow(){
+	var jyType=$('#jyType').val();
+	var payType=$('#payType').val();
+	var body=$('#body').val();
+	var startdate=$('input[name=startdate]').val();	
+	var enddate=$('input[name=enddate]').val();
+	var status=$('#status').val();
+	var pattern=$('#pattern').val();
+	var districtId=$('#districtId').val();
+	
+	var url = "unpaid/payOrderAction_exportTransflow?1=1";
+	url += "&jyType=" + jyType;
+	url += "&payType=" + payType;
+	url += "&body=" + body;
+	url += "&startdate=" + startdate;
+	url += "&enddate=" + enddate;
+	url += "&status=" + status;
+	url += "&pattern=" + pattern;
+	url += "&districtId=" + districtId;
+	
+	document.location.href = url;
+}

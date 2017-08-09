@@ -1,0 +1,182 @@
+package com.catic.mobilehos.action;  
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.ServletActionContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.action.BaseAction;
+import com.catic.mobilehos.pay.entity.PayDictionary;
+import com.catic.mobilehos.pay.entity.PayTerminal;
+import com.catic.mobilehos.po.SelfServiceLogPO;
+import com.catic.mobilehos.service.SelfServiceLogService;
+import com.catic.mobilehos.utils.Page;
+
+/**  
+ * 类说明:自助终端日志action
+ * @author 朱伟权
+ * 创建时间: 2017-6-27 上午10:05:00
+ */
+@Controller
+@Scope("prototype")
+public class SelfServiceLogAction extends BaseAction {
+	
+	private static final long serialVersionUID = 1L;
+	@Resource(name="selfServiceLogService")
+	private SelfServiceLogService selfServiceLogService;
+	
+	private List<SelfServiceLogPO> logList;
+	private SelfServiceLogPO po;
+	
+	private File log;
+	private String logFileName;
+	
+	/**
+	 * 查询自助终端日志
+	 * @return
+	 */
+	public String findAllInfo(){
+		try {
+			if(StringUtils.isBlank(pageNo)){
+				pageNo="1";
+			}
+			logList = selfServiceLogService.findAll(page, po);
+			if(logList != null && logList.size() > 0){
+				page = new Page(Integer.parseInt(pageNo), 10, logList.get(0).getCount());
+				logList=selfServiceLogService.findAll(page, po);
+				replaceFacilityType(logList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return SUCCESS;
+	}
+	
+	/**
+	 * 上传日志接口
+	 */
+	public void uploadLog(){
+		JSONObject result = new JSONObject();
+		try{
+			// 日志类型
+			String logType = request.getParameter("logType");
+			// 终端设备号
+			String deviceInfo = request.getParameter("deviceInfo");
+			if(StringUtils.isBlank(logType) || StringUtils.isBlank(deviceInfo)){
+				result.put("end", "error");
+				result.put("message", "参数有误");
+				jsonObj(result.toString());
+				return;
+			}
+			if(log == null){
+				result.put("end", "error");
+				result.put("message", "上传文件为空");
+				jsonObj(result.toString());
+				return;
+			}
+			
+			// 验证终端编号
+			PayTerminal payTerminal = payTerBiz.findByCode(deviceInfo);
+			if(payTerminal == null || "4".equals(payTerminal.getFacilityStatus())){
+				result.put("end", "error");
+				result.put("message", "终端不存在");
+				jsonObj(result.toString());
+				return;
+			}
+			
+			// 保存日志文件
+			String root = ServletActionContext.getServletContext().getRealPath("/upload");
+			File folder = new File(root);
+			// 如果文件夹不存在，则创建
+			if(!folder.exists()){
+				folder.mkdirs();
+			}
+			File saveFile = new File(root, logFileName);
+	        FileUtils.copyFile(log, saveFile);
+	        
+	        // 保存日志上传记录
+	        po = new SelfServiceLogPO();
+	        po.setLogType(logType);
+	        po.setFacilityId(deviceInfo);
+	        po.setLogFileName(logFileName);
+	        po.setLogPath("/upload/" + logFileName);
+			boolean saveResult = selfServiceLogService.save(po);
+			if(saveResult){
+				result.put("end", "ok");
+				result.put("message", "上传成功");
+			}else{
+				result.put("end", "error");
+				result.put("message", "上传失败，请重新尝试");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("end", "error");
+			result.put("message", "上传出现异常，请重新尝试");
+		}
+		jsonObj(result.toString());
+	}
+	
+	/**
+	 * 替换设备类型的code为名称
+	 * @throws Exception
+	 */
+	private void replaceFacilityType(List<SelfServiceLogPO> loglist) throws Exception{
+		if(loglist != null && loglist.size() > 0){
+			Map<String, String> map = new HashMap<String, String>();
+			List<PayDictionary> list = payDictionaryBiz.findAll("facility_type");
+			if(list != null && list.size() > 0){
+				for (PayDictionary payDictionary : list) {
+					map.put(payDictionary.getCodeNo(), payDictionary.getCodeName());
+				}
+			}
+			
+			for (SelfServiceLogPO po : loglist) {
+				po.setFacilityType(map.get(po.getFacilityType()));
+			}
+		}
+	}
+
+	public List<SelfServiceLogPO> getLogList() {
+		return logList;
+	}
+
+	public void setLogList(List<SelfServiceLogPO> logList) {
+		this.logList = logList;
+	}
+
+	public SelfServiceLogPO getPo() {
+		return po;
+	}
+
+	public void setPo(SelfServiceLogPO po) {
+		this.po = po;
+	}
+	
+	public File getLog() {
+		return log;
+	}
+
+	public void setLog(File log) {
+		this.log = log;
+	}
+
+	public String getLogFileName() {
+		return logFileName;
+	}
+
+	public void setLogFileName(String logFileName) {
+		this.logFileName = logFileName;
+	}
+
+}
+ 

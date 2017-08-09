@@ -1,0 +1,41 @@
+package com.catic.mobilehos.pay.biz;
+
+import java.util.List;
+
+import com.catic.mobilehos.pay.entity.PayOrder;
+import com.catic.mobilehos.utils.Page;
+
+public interface IPayOrderBiz {
+
+	public boolean savePayOrder(PayOrder payOrder);
+	
+	public List<PayOrder> findAll(PayOrder po,Page page);
+	
+	public List<PayOrder> findByIS(String itemId,String payStatus);
+	
+	public PayOrder findByOrderId(String orderId);
+	
+	public PayOrder findByTradeNo(String tradeNo);
+	
+	public PayOrder findByNoAndCode(String tradeNo,String orderCode) ;
+	
+	public Boolean updatePayStatus(PayOrder po);
+	
+	public Boolean saveRefund(PayOrder po);
+	
+	public Boolean saveHisTransId(PayOrder po);
+	
+	public Boolean alterPayStautus(Integer payStatus,String outTradeNO) throws Exception;
+	
+	public List<PayOrder> findByDate(String date,Integer payStatus,String upDate) throws Exception;
+	
+	public List<PayOrder> findAllByPL(PayOrder po,Page page);
+	
+	public List<PayOrder> findAllByPlFlow(PayOrder po, Page page);
+	
+	public PayOrder findByTimeExpire(String timeExpire);
+	
+	public PayOrder findByNearTime();
+	
+	public List<PayOrder> findByStatistical(PayOrder po);
+}

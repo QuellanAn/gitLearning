@@ -1,0 +1,56 @@
+body,p,ul li,ol li,h1,h2,h3,h4,h5,dl,dl dt,dl dd,ul,ul li,ol li,input{
+	margin:0;
+	padding:0;
+}
+body{
+	font:normal 14px/36px "方正黑体简体","Microsoft YaHei","宋体";
+}
+a{
+	text-decoration:none;
+}
+a:hover{
+	text-decoration:underline;
+}
+img{
+	border:none;
+}
+ul li,ol li{
+	list-style-type:none;
+}
+.f-fl{
+	float:left;
+}
+.f-fr{
+	float:right;
+}
+.f-ib{
+	display:inline-block;
+	*display:inline;
+	zoom:1;
+}
+.f-clear{
+	clear:both;
+	height:0;
+	overflow:hidden;
+}
+.f-fz-12{
+	font-size:12px;
+}
+.f-oh{
+	overflow:hidden;
+}
+.color-red{
+	color:#f00;
+}
+.cursor-pointer{
+	cursor:pointer;
+}
+.text-ellipsis{
+	overflow:hidden;
+	text-overflow:ellipsis;
+	word-wrap:normal;
+	white-space:nowrap;
+}
+.f-pr{
+	position:relative;
+}

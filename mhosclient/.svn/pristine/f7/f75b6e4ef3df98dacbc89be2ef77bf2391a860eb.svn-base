@@ -1,0 +1,41 @@
+.cnt-wrap .tab-cnt{
+	border:1px solid #cdcccc;
+	border-radius:4px;
+	height:786px;
+	margin:0 23px 30px 124px;
+	padding:20px 30px 20px 16px;
+	width:722px;
+}
+.tab-cnt .introduct-p{
+	font:16px/25px "方正兰亭黑简体","Microsoft YaHei","宋体";
+	margin-bottom:19px;	
+	overflow:hidden;
+}
+.tab-cnt .address-link{
+	color:#017afe;
+	text-decoration:underline;
+}
+.tab-cnt .img-label{
+	margin-top:86px;
+}
+.tab-cnt .img-wrap{
+	font:16px "方正兰亭黑简体","Microsoft YaHei","宋体";
+	margin-bottom:37px;
+	padding:5px 0;
+}
+.tab-cnt .hospital-img{
+	border:1px solid #e5e5e5;
+	border-radius:5px;
+	height:160px;
+	padding:5px;
+	width:290px;
+}
+.tab-cnt .hospital-img img{
+	max-height:160px;
+	max-width:290px;
+	_height: expression(( this.height > 160)?160:true );
+	_width: expression(this.width >290 &&this.width >this.height ? 290 :true);
+}
+.tab-cnt .text-indent{
+	text-indent:32px;
+}

@@ -1,0 +1,42 @@
+package com.catic.mobilehos.pay.biz;
+
+import java.io.InputStream;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.catic.mobilehos.pay.entity.CheckBill;
+import com.catic.mobilehos.pay.entity.CheckBillDetails;
+import com.catic.mobilehos.utils.Page;
+
+public interface ICheckBillBiz {
+
+	public List<CheckBill> findAll(CheckBill checkBill,Page page) throws Exception;
+	
+	public InputStream saveExport(List<CheckBill> list,List<CheckBillDetails> lcbd) throws Exception;
+	
+    public Double  totalAmount(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	public Integer  totalNumber(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	
+	public Double  totalRefund(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	public Integer  totalRefundNum(String billDate,Integer status,Integer pattern)throws Exception;
+	
+	public Boolean updateStatus(String id, Integer status)throws Exception;
+	
+	public List<CheckBill> findAll_WeChat(CheckBill checkBill,Page page) throws Exception;
+	
+	public List<CheckBill> findAll_AliPay(CheckBill checkBill,Page page) throws Exception;
+	
+	/**
+	 * 导出对账记录
+	 * @param checkBillList 准备导出的总对账记录
+	 * @param detailList 准备导出的对账详情记录
+	 * @param request HttpServletRequest
+	 * @param response HttpServletResponse
+	 */
+	public void exportCheckBill(List<CheckBill> checkBillList, List<CheckBillDetails> detailList, HttpServletRequest request, HttpServletResponse response);
+}

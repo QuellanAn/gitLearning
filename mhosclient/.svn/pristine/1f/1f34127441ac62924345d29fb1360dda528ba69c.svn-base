@@ -1,0 +1,329 @@
+package com.catic.mobilehos.pay.biz.impl;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import jxl.Workbook;
+import jxl.format.Alignment;
+import jxl.format.Colour;
+import jxl.format.UnderlineStyle;
+import jxl.format.VerticalAlignment;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.springframework.stereotype.Service;
+
+import com.catic.mobilehos.pay.biz.BaseBiz;
+import com.catic.mobilehos.pay.biz.ICheckBillBiz;
+import com.catic.mobilehos.pay.entity.CheckBill;
+import com.catic.mobilehos.pay.entity.CheckBillDetails;
+import com.catic.mobilehos.utils.CommonUtils;
+import com.catic.mobilehos.utils.ExportExcel;
+import com.catic.mobilehos.utils.ExportExcel.CustomHeaderInterf;
+import com.catic.mobilehos.utils.Page;
+
+
+@Service("checkBillBiz")
+public class CheckBillBizImpl extends BaseBiz implements ICheckBillBiz{
+	@Override
+	public List<CheckBill> findAll(CheckBill checkBill,Page page) throws Exception{
+		
+		return checkBillDao.findAll(checkBill,page);
+	}
+	@Override
+	public InputStream saveExport(List<CheckBill> list,List<CheckBillDetails> lcbd) throws Exception{
+		ByteArrayOutputStream baos=new ByteArrayOutputStream();
+		if(list!=null){
+			saveOnOutputStram(list,baos);
+		}
+		if(lcbd!=null){
+			saveOnOutputStram1(lcbd,baos);
+		}
+		return new ByteArrayInputStream(baos.toByteArray());
+	}
+
+	private void saveOnOutputStram(List<CheckBill> list,OutputStream os) throws Exception{
+		WritableWorkbook wwb=Workbook.createWorkbook(os);
+		WritableSheet ws=wwb.createSheet("sheet", 0);
+		WritableFont wf=new WritableFont(WritableFont.ARIAL,WritableFont.DEFAULT_POINT_SIZE, WritableFont.NO_BOLD,false,UnderlineStyle.NO_UNDERLINE,Colour.BLACK);
+		WritableCellFormat wcf=new WritableCellFormat(wf);
+		wcf.setAlignment(Alignment.CENTRE);
+		wcf.setVerticalAlignment(VerticalAlignment.CENTRE);
+		ws.getSettings().setDefaultColumnWidth(17);
+		
+		ws.addCell(new jxl.write.Label(0,0,"账单日期",wcf));
+		ws.addCell(new jxl.write.Label(1,0,"订单总数(笔)",wcf));
+		ws.addCell(new jxl.write.Label(2,0,"支付金额(元)",wcf));
+		ws.addCell(new jxl.write.Label(3,0,"第三方平台(元)",wcf));
+		ws.addCell(new jxl.write.Label(4,0,"HIS平台(元)",wcf));
+		ws.addCell(new jxl.write.Label(5,0,"对账日期",wcf));
+		ws.addCell(new jxl.write.Label(6,0,"对账状态",wcf));
+		ws.addCell(new jxl.write.Label(7,0,"操作",wcf));
+		for(int i=0;i<list.size();i++){	
+			int j=0;
+			ws.addCell(new jxl.write.Label(j,i+1,list.get(i).getBillDate(),wcf));
+			ws.addCell(new jxl.write.Label(j+1,i+1,list.get(i).getTotal()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+2,i+1,list.get(i).getAmount()+"",wcf));
+		/*	ws.addCell(new jxl.write.Label(j+3,i+1,list.get(i).getHisAmount()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+4,i+1,list.get(i).getOutAmout()+"",wcf));*/
+			ws.addCell(new jxl.write.Label(j+5,i+1,list.get(i).getCreateTime(),wcf));
+			if(list.get(i).getBillStatus()==0){
+				ws.addCell(new jxl.write.Label(j+6,i+1,"正常",wcf));	
+			}else{
+				ws.addCell(new jxl.write.Label(j+6,i+1,"异常",wcf));	
+			}
+			if(list.get(i).getStatus()==0){
+				ws.addCell(new jxl.write.Label(j+7,i+1,"待确认",wcf));
+			}else{
+				ws.addCell(new jxl.write.Label(j+7,i+1,"确认",wcf));
+			}
+			
+		}
+		wwb.write();
+		wwb.close();
+	}
+	
+	
+	private void saveOnOutputStram1(List<CheckBillDetails> list,OutputStream os) throws Exception{
+		WritableWorkbook wwb=Workbook.createWorkbook(os);
+		WritableSheet ws=wwb.createSheet("sheet", 0);
+		WritableFont wf=new WritableFont(WritableFont.ARIAL,WritableFont.DEFAULT_POINT_SIZE, WritableFont.NO_BOLD,false,UnderlineStyle.NO_UNDERLINE,Colour.BLACK);
+		WritableCellFormat wcf=new WritableCellFormat(wf);
+		wcf.setAlignment(Alignment.CENTRE);
+		wcf.setVerticalAlignment(VerticalAlignment.CENTRE);
+		ws.getSettings().setDefaultColumnWidth(17);
+		
+		ws.addCell(new jxl.write.Label(0,0,"订单号",wcf));
+		ws.addCell(new jxl.write.Label(1,0,"支付流水号",wcf));
+		ws.addCell(new jxl.write.Label(2,0,"缴费金额(元)",wcf));
+		ws.addCell(new jxl.write.Label(3,0,"支付方式",wcf));
+		ws.addCell(new jxl.write.Label(4,0,"支付类型",wcf));
+		ws.addCell(new jxl.write.Label(5,0,"第三方支付",wcf));
+		ws.addCell(new jxl.write.Label(6,0,"支付平台",wcf));
+		ws.addCell(new jxl.write.Label(7,0,"HIS方",wcf));
+		ws.addCell(new jxl.write.Label(8,0,"对账状态",wcf));
+		ws.addCell(new jxl.write.Label(9,0,"失败原因",wcf));
+		for(int i=0;i<list.size();i++){	
+			int j=0;
+			ws.addCell(new jxl.write.Label(j,i+1,list.get(i).getOut_trade_no(),wcf));
+			ws.addCell(new jxl.write.Label(j+1,i+1,list.get(i).getOut_trade_no()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+2,i+1,list.get(i).getActualPay()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+3,i+1,list.get(i).getPattern()+"",wcf));
+			ws.addCell(new jxl.write.Label(j+4,i+1,list.get(i).getPayType()+"",wcf));
+			if(list.get(i).getOutStatus()!=null&&list.get(i).getOutStatus()==0){
+				ws.addCell(new jxl.write.Label(j+5,i+1,"成功",wcf));	
+			}else{
+				ws.addCell(new jxl.write.Label(j+5,i+1,"失败",wcf));	
+			}
+			if(list.get(i).getPayType()!=null&&list.get(i).getPayType()==0){
+				ws.addCell(new jxl.write.Label(j+6,i+1,"成功",wcf));
+			}else{
+				ws.addCell(new jxl.write.Label(j+6,i+1,"失败",wcf));
+			}
+			if(list.get(i).getHisStatus()!=null&&list.get(i).getHisStatus()==0){
+				ws.addCell(new jxl.write.Label(j+7,i+1,"成功",wcf));
+			}else{
+				ws.addCell(new jxl.write.Label(j+7,i+1,"失败",wcf));
+			}
+			
+			ws.addCell(new jxl.write.Label(j+8,i+1,list.get(i).getFailReason(),wcf));
+		}
+		wwb.write();
+		wwb.close();
+	}
+
+	@Override
+	public Double totalAmount(String billDate, Integer status,Integer pattern) throws Exception {
+		return checkBillDao.totalAmount(billDate, status,pattern);
+	}
+
+	@Override
+	public Integer totalNumber(String billDate, Integer status,Integer pattern)
+			throws Exception {
+		return checkBillDao.totalNumber(billDate, status,pattern);
+	}
+
+	@Override
+	public Double totalRefund(String billDate, Integer status,Integer pattern) throws Exception {
+		return checkBillDao.totalRefund(billDate, status,pattern);
+	}
+	@Override
+	public Integer totalRefundNum(String billDate, Integer status,
+			Integer pattern) throws Exception {
+		return checkBillDao.totalRefundNum(billDate, status, pattern);
+	}
+	
+	@Override
+	public Boolean updateStatus(String id, Integer status)
+			throws Exception {
+		return checkBillDao.updateStatus(id, status);
+	}
+	@Override
+	public List<CheckBill> findAll_WeChat(CheckBill checkBill, Page page)
+			throws Exception {
+		return checkBillDao.findAll_WeChat(checkBill, page);
+	}
+	@Override
+	public List<CheckBill> findAll_AliPay(CheckBill checkBill, Page page)
+			throws Exception {
+		return checkBillDao.findAll_AliPay(checkBill, page);
+	}
+	
+	@Override
+	public void exportCheckBill(List<CheckBill> checkBillList, HttpServletRequest request, HttpServletResponse response) {
+		List<List<Object>> list = getExportCheckBillDataList(checkBillList);
+		String fileName = "总对账表";
+		CustomHeaderInterf headerInterf = getCustomHeaderInterf();
+		ExportExcel.excelOutWithCustomHeader(headerInterf, list, fileName, 2, request, response);
+	}
+	
+	/**
+	 * 获取自定义表头实现对象
+	 * @return
+	 */
+	private CustomHeaderInterf getCustomHeaderInterf() {
+		CustomHeaderInterf interf = new CustomHeaderInterf() {
+			
+			@Override
+			public void dealCustomHeader(HSSFSheet sheet, HSSFCellStyle style) {
+				Row row = sheet.createRow(0);
+				style.setBorderBottom(HSSFCellStyle.BORDER_THIN); // 下边框    
+				style.setBorderLeft(HSSFCellStyle.BORDER_THIN);// 左边框    
+				style.setBorderTop(HSSFCellStyle.BORDER_THIN);// 上边框    
+				style.setBorderRight(HSSFCellStyle.BORDER_THIN);// 右边框
+				
+				CellRangeAddress cra=new CellRangeAddress(0, 1, 0, 0);        
+		        //在sheet里增加合并单元格  
+		        sheet.addMergedRegion(cra);  
+		        Cell cell_1 = row.createCell(0); 
+		        cell_1.setCellValue("账单日期");
+		        
+		        CellRangeAddress cra2=new CellRangeAddress(0, 0, 1, 3);        
+		        sheet.addMergedRegion(cra2);  
+		        Cell cell_2 = row.createCell(1);
+		        cell_2.setCellValue("支付平台");
+		        
+		        CellRangeAddress cra3=new CellRangeAddress(0, 0, 4, 6);        
+		        sheet.addMergedRegion(cra3);
+		        Cell cell_3 = row.createCell(4);  
+		        cell_3.setCellValue("第三方支付平台");
+		        
+		        CellRangeAddress cra4=new CellRangeAddress(0, 0, 7, 9);        
+		        sheet.addMergedRegion(cra4);  
+		        Cell cell_4 = row.createCell(7);  
+		        cell_4.setCellValue("HIS支付平台");
+		        
+		        CellRangeAddress cra5=new CellRangeAddress(0, 1, 10, 10);        
+		        sheet.addMergedRegion(cra5);  
+		        Cell cell_5 = row.createCell(10);  
+		        cell_5.setCellValue("对账时间");
+		        
+		        CellRangeAddress cra6=new CellRangeAddress(0, 1, 11, 11);        
+		        sheet.addMergedRegion(cra6);  
+		        Cell cell_6 = row.createCell(11);  
+		        cell_6.setCellValue("对账状态");
+		        
+		        cell_1.setCellStyle(style);
+		        cell_2.setCellStyle(style);
+		        cell_3.setCellStyle(style);
+		        cell_4.setCellStyle(style);
+		        cell_5.setCellStyle(style);
+		        cell_6.setCellStyle(style);
+		        
+		        Row row2 = sheet.createRow(1);
+		        String[] columns = new String[]{"订单总数(笔)", "交易总金额(笔)", "退款总金额(笔)"};
+		        Cell cell = null;
+		        for(int i = 0; i < 3; i++){
+		        	for(int j = 0; j < columns.length; j++){
+		        		cell = row2.createCell((j + 1) + i * columns.length);  
+		        		cell.setCellValue(columns[j]);// 单元格的值
+		        		cell.setCellStyle(style);// 单元格样式
+		        	}
+		        }
+		        
+			}
+		};
+		return interf;
+	}
+	
+	/**
+	 * 根据对账记录list获取准备导出的数据list
+	 * @param checkBillList 对账记录list
+	 * @return 准备导出的数据list
+	 */
+	private List<List<Object>> getExportCheckBillDataList(List<CheckBill> checkBillList){
+		List<List<Object>> list = new ArrayList<List<Object>>();
+		if(checkBillList != null && checkBillList.size() > 0){
+			for (CheckBill checkBill : checkBillList) {
+				List<Object> rowDataList = new ArrayList<Object>();
+				// 账单日期
+				rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getBillDate()));
+				if(checkBill.getTotal_w() != null){
+					// 支付平台-订单总数(笔)
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getTotal_w()));
+					// 支付平台-交易总金额(元)
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getAmount_w()));
+					// 支付平台-退款总金额(元)
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getRefund_amount_w()));
+					// 第三方支付平台-订单总数(笔)
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getW_total()));
+					// 第三方支付平台-交易总金额(元)
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getW_amount()));
+					// 第三方支付平台-退款总金额(元)
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getW_refund_amount()));
+				}else if(checkBill.getTotal_a() != null){
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getTotal_a()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getAmount_a()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getRefund_amount_a()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getA_total()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getA_amount()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getA_refund_amount()));
+				}else{
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getTotal()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getAmount()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getRefund_amount()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getTotal_out()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getAmount_out()));
+					rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getRefund_amount_out()));
+				}
+				// HIS支付平台-订单总数(笔)
+				rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getTotal()));
+				// HIS支付平台-交易总金额(元)
+				rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getAmount()));
+				// HIS支付平台-退款总金额(元)
+//				rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getOutAmout()));
+				rowDataList.add(CommonUtils.nullStringToEmpty(""));
+				// 对账时间
+				rowDataList.add(CommonUtils.nullStringToEmpty(checkBill.getCreateTime()));
+				// 对账状态
+				if(checkBill.getBillStatus() == null){// 应对值为null的情况
+					rowDataList.add("");
+	            }else if(checkBill.getBillStatus() == 0){
+					rowDataList.add("正常");
+	            }else if(checkBill.getBillStatus() == 1){
+	            	rowDataList.add("异常");
+	            }else{
+	            	rowDataList.add("");
+	            }
+				
+				list.add(rowDataList);
+			}
+		}
+		return list;
+	}
+
+}

@@ -1,0 +1,228 @@
+package com.catic.mobilehos.action;  
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.catic.mobilehos.pay.action.BaseAction;
+import com.catic.mobilehos.pay.entity.PayDictionary;
+import com.catic.mobilehos.pay.entity.PayTerminal;
+import com.catic.mobilehos.po.SelfServiceVersionPO;
+import com.catic.mobilehos.service.SelfServiceVersionService;
+import com.catic.mobilehos.utils.Page;
+
+/**  
+ * 类说明:自助设备升级管理action
+ * @author 朱伟权
+ * 创建时间: 2017-7-6 上午9:01:24
+ */
+@Controller
+@Scope("prototype")
+public class SelfServiceUpgradeAction extends BaseAction {
+	
+	private static final long serialVersionUID = 1L;
+
+	@Resource
+	private SelfServiceVersionService selfServiceVersionService;
+	
+	private List<SelfServiceVersionPO> versionList;
+	private List<PayTerminal> ptlist;
+	private SelfServiceVersionPO po;
+	private PayTerminal payTer;
+	private String id;
+	private String upgradeType;// 升级类型，0为主程序升级，1为守护程序升级
+	
+	/**
+	 * 查询自助终端发布版本
+	 * @return
+	 */
+	public String findAllInfo(){
+		try {
+			if(StringUtils.isBlank(pageNo)){
+				pageNo="1";
+			}
+			versionList = selfServiceVersionService.findAll(page, po);
+			if(versionList != null && versionList.size() > 0){
+				page = new Page(Integer.parseInt(pageNo), 10, versionList.get(0).getCount());
+				versionList=selfServiceVersionService.findAll(page, po);
+				Map<String, String> facilityTypeMap = getFacilityTypeMap();
+				if(versionList != null && versionList.size() > 0){
+					for (SelfServiceVersionPO version : versionList) {
+						version.setFacilityType(facilityTypeMap.get(version.getFacilityType()));
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return SUCCESS;
+	}
+	
+	/**
+	 * 查询自助终端当前版本
+	 * @return
+	 */
+	public String findFacilityVersion(){
+		try {
+			if(StringUtils.isBlank(pageNo)){
+				pageNo="1";
+			}
+			ptlist = payTerBiz.findFacilityVersion(page, payTer);
+			if(ptlist != null && ptlist.size() > 0){
+				page = new Page(Integer.parseInt(pageNo), 10, ptlist.get(0).getCount());
+				ptlist=payTerBiz.findFacilityVersion(page, payTer);
+				Map<String, String> facilityTypeMap = getFacilityTypeMap();
+				if(ptlist != null && ptlist.size() > 0){
+					for (PayTerminal terminal : ptlist) {
+						terminal.setFacilityType(facilityTypeMap.get(terminal.getFacilityType()));
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "facilityVersion";
+	}
+	
+	/**
+	 * 查看终端版本详情
+	 * @return
+	 */
+	public String toFacilityVersionDetail(){
+		try {
+			payTer = payTerBiz.findById(Integer.parseInt(id));
+			Map<String, String> facilityTypeMap = getFacilityTypeMap();
+			if(payTer != null){
+				payTer.setFacilityType(facilityTypeMap.get(payTer.getFacilityType()));
+			}
+			String master_version_id = payTer.getMaster_version_id();
+			String daemon_version_id = payTer.getDaemon_version_id();
+			if(!StringUtils.isBlank(master_version_id)){
+				// 主程序版本信息
+				request.setAttribute("master", selfServiceVersionService.findById(Integer.parseInt(master_version_id)));
+			}
+			if(!StringUtils.isBlank(daemon_version_id)){
+				// 守护程序版本信息
+				request.setAttribute("daemon", selfServiceVersionService.findById(Integer.parseInt(daemon_version_id)));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "facilityVersionDetail";
+	}
+	
+	/**
+	 * 跳转到查看历史升级记录页面
+	 * @return
+	 */
+	public String toVersionHistory(){
+		try {
+			request.setAttribute("id", id);
+			request.setAttribute("upgradeType", upgradeType);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "versionHistory";
+	}
+	
+	/**
+	 * 历史升级记录列表
+	 * @return
+	 */
+	public String versionHistoryList(){
+		try {
+			payTer = payTerBiz.findById(Integer.parseInt(id));
+			po = new SelfServiceVersionPO();
+			po.setFacilityType(payTer.getFacilityType());
+			po.setUpgradeType(upgradeType);
+			if(StringUtils.isBlank(pageNo)){
+				pageNo="1";
+			}
+			versionList = selfServiceVersionService.findAll(page, po);
+			if(versionList != null && versionList.size() > 0){
+				page = new Page(Integer.parseInt(pageNo), 10, versionList.get(0).getCount());
+				versionList=selfServiceVersionService.findAll(page, po);
+				Map<String, String> facilityTypeMap = getFacilityTypeMap();
+				if(versionList != null && versionList.size() > 0){
+					for (SelfServiceVersionPO version : versionList) {
+						version.setFacilityType(facilityTypeMap.get(version.getFacilityType()));
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "versionHistoryList";
+	}
+	
+	/**
+	 * 获取key为code，value为名称的设备类型map
+	 * @throws Exception
+	 */
+	private Map<String, String> getFacilityTypeMap() throws Exception{
+		Map<String, String> map = new HashMap<String, String>();
+		List<PayDictionary> list = payDictionaryBiz.findAll("facility_type");
+		if(list != null && list.size() > 0){
+			for (PayDictionary payDictionary : list) {
+				map.put(payDictionary.getCodeNo(), payDictionary.getCodeName());
+			}
+		}
+		return map;
+	}
+	
+	public List<SelfServiceVersionPO> getVersionList() {
+		return versionList;
+	}
+
+	public void setVersionList(List<SelfServiceVersionPO> versionList) {
+		this.versionList = versionList;
+	}
+
+	public SelfServiceVersionPO getPo() {
+		return po;
+	}
+
+	public void setPo(SelfServiceVersionPO po) {
+		this.po = po;
+	}
+
+	public PayTerminal getPayTer() {
+		return payTer;
+	}
+
+	public void setPayTer(PayTerminal payTer) {
+		this.payTer = payTer;
+	}
+
+	public List<PayTerminal> getPtlist() {
+		return ptlist;
+	}
+
+	public void setPtlist(List<PayTerminal> ptlist) {
+		this.ptlist = ptlist;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getUpgradeType() {
+		return upgradeType;
+	}
+
+	public void setUpgradeType(String upgradeType) {
+		this.upgradeType = upgradeType;
+	}
+
+}
+ 

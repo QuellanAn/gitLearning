@@ -1,0 +1,172 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"
+	import="java.util.*, com.catic.mobilehos.service.vo.*"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+
+<head>
+<base href="<%=basePath%>/" />
+<title>资金账户配置</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link href="resources/css/bootstrap.min.css" rel="stylesheet"
+	type="text/css">
+<link rel="stylesheet" href="resources/css/smoothness/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/global.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+<link rel="stylesheet" type="text/css" href="resources/css/index.css" />
+<script charset="utf-8" src="resources/js/jquery/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="resources/js/jquery/jquery-ui.js"></script>
+<script src="resources/js/jquery/bootstrap.min.js"
+	type="text/javascript"></script>
+<script type="text/javascript" src="../getKey.js"></script>
+<script  charset="utf-8" src="transaction/jygl/jygl.js"></script>
+<style type="text/css">
+.demo {
+	padding: 1em 0;
+}
+
+a:hover,a:focus {
+	outline: none;
+	text-decoration: none;
+}
+
+.tab .nav-tabs {
+	border: 1px solid #44B549;
+}
+
+.tab .nav-tabs li {
+	margin: 0;
+}
+
+.tab .nav-tabs li a {
+	font-size: 14px;
+	color: #999898;
+	background: #fff;
+	margin: 0;
+	/* padding: 20px 25px; */
+	border-radius: 0;
+	border: none;
+	border-right: 1px solid #ddd;
+	text-transform: uppercase;
+	position: relative;
+}
+
+.tab .nav-tabs li a:hover {
+	border-top: none;
+	border-bottom: none;
+	border-right-color: #ddd;
+}
+
+.tab .nav-tabs li.active a,.tab .nav-tabs li.active a:hover {
+	color: #fff;
+	border: none;
+	background: #44B549;
+	border-right: 1px solid #ddd;
+}
+
+/* .tab .nav-tabs li.active a:before {
+	content: "";
+	width: 58%;
+	height: 4px;
+	background: #fff;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	margin: 0 auto;
+} */
+
+.tab .nav-tabs li.active a:after {
+	content: "";
+	border-top: 10px solid #44B549;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	position: absolute;
+	bottom: -10px;
+	left: 43%;
+}
+
+.tab .tab-content {
+	font-size: 13px;
+	color: #999898;
+	line-height: 25px;
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #44B549;
+	border-top: none;
+}
+
+.tab .tab-content h3 {
+	font-size: 24px;
+	color: #999898;
+	margin-top: 0;
+}
+
+@media only screen and (max-width: 480px) {
+	.tab .nav-tabs li {
+		width: 100%;
+		text-align: center;
+	}
+	.tab .nav-tabs li.active a,.tab .nav-tabs li.active a:after,.tab .nav-tabs li.active a:hover
+		{
+		border: none;
+	}
+}
+</style>
+</head>
+<input type="hidden" value="${param.key}" id="key1" />
+<s:hidden value="%{#session.key}" id="key" />
+<body>
+	<div class="cnt-wrap">
+		<s:include value="../../menus.jsp"></s:include>
+		<div class="right-cnt-wrap f-fl">
+			<ul class="tab-wrap bg" id="ul1">
+				<li class="tab-crt">交易概览</li>
+			</ul>
+		</div>
+
+		<div class="demo">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-offset-3 col-lg-6">
+						<div class="tab" role="tabpanel"
+							style="width: 930px;margin-left: -280px;">
+							<span style="color: #44B549;">|</span>&nbsp;&nbsp;&nbsp;<span style="font-weight: bold;">累计数据和趋势</span>
+							<ul class="nav nav-tabs" role="tablist">
+								<li style="width: 33%" role="presentation" class="active"><a
+									href="#Section1" aria-controls="home" role="tab" id="totalMoney"
+									data-toggle="tab" style="height: 60px;text-align: center;"></a>
+								</li>
+								<li style="width: 33%" role="presentation"><a
+									href="#Section2" aria-controls="profile" role="tab" id="totalCount"
+									data-toggle="tab" style="height: 60px;text-align: center;"></a>
+								</li>
+								<li style="width: 34%" role="presentation"><a
+									href="#Section3" aria-controls="messages" role="tab" id="avgMoney"
+									data-toggle="tab" style="height: 60px;text-align: center;"></a>
+								</li>
+							</ul>
+							<div class="tab-content tabs">
+								<div role="tabpanel" class="tab-pane fade in active"
+									style="height: 410px;width: 830px;" id="Section1"></div>
+								<div role="tabpanel" class="tab-pane fade" 
+									style="height: 410px;width: 830px;" id="Section2"></div>
+								<div role="tabpanel" class="tab-pane fade" 
+									style="height: 410px;width: 830px;" id="Section3"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="resources/js/echarts.min.js" type="text/javascript"></script>
+</html>

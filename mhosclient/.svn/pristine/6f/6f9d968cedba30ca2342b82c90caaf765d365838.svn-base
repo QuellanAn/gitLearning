@@ -1,0 +1,11 @@
+package com.catic.mobilehos.pay.biz;
+
+import java.util.List;
+
+import com.catic.mobilehos.pay.entity.PayType;
+
+public interface IPayTypeBiz {
+	
+	public List<PayType> findAll() throws Exception ;
+
+}

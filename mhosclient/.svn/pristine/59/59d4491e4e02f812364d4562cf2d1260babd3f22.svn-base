@@ -1,0 +1,159 @@
+var setting = {
+	data : {
+		simpleData : {
+			enable : true,
+			idKey : "id",
+			pIdKey : "pId",
+			rootPId : 0
+		// 根节点
+		}
+	},
+	view : {
+		selectedMulti : false,
+		fontCss : {
+			'color' : 'black'
+		}
+	},
+	callback : {// 回调函数
+		onClick : function(event, treeId, treeNode) {// 点击事件的触发函数
+			$("#upgradeType").val(treeNode.value);
+			$("#act_query").click();
+		}
+	}
+};
+
+$(document).ready(function() {
+	$('#beginDate').datepicker({ dateFormat: 'yy-mm-dd' });
+	$('#endDate').datepicker({ dateFormat: 'yy-mm-dd' });
+	// 加载设备类型
+	loadFacilityType();
+	datalist_ctrl.loaddatalist("selfService/selfServiceUpgradeAction_findAllInfo?pageNo="+$("#hid_pageNo").val());
+
+	$("#act_query").click(function(e) {
+		var paras = $("#form_query").serialize();
+		var pageNo=$("#hid_pageNo").val();
+		var url = "selfService/selfServiceUpgradeAction_findAllInfo?pageNo="+pageNo+"&" + paras;
+		datalist_ctrl.loaddatalist(url);
+		return false;
+	});
+
+	var zNodes = [ { name: "升级类型", open: true, children: [ { name: "主程序升级",value:"0" }, { name: "守护程序升级",value:"1" }] } ];
+	$.fn.zTree.init($("#treeDemo"), setting, zNodes);
+
+});
+
+function refresh_unpubcount() {
+	$("#totalcount").html($("#hid_totalcount").val());
+	$("#treeDemoDiv").height($("#tb_cnt").height());
+}
+
+var datalist_ctrl = {
+
+	loaddatalist : function(url) {
+		var cnt = $('#div_cnt_table');
+		$.post(url, function(data, status) {
+			if (data && data.msg) {
+				alert(data.msg);
+			} else if (data) {
+				cnt.empty();
+				cnt.append(data);
+			}
+		});
+	},
+
+	loaddatalist_post : function(url, paras) {
+		var cnt = $('#div_cnt_table');
+		$.post(url, paras, function(data, status) {
+			if (data && data.msg) {
+				alert(data.msg);
+			} else if (data) {
+				cnt.empty();
+				cnt.append(data);
+			}
+		});
+	},
+	topage : function(url) {
+		this.loaddatalist(url);
+	}
+};
+
+/**
+ * 加载设备类型
+ */
+function loadFacilityType(){
+	var url = 'unpaid/payDictionaryAction_findAll?dictionaryCode='+"facility_type";
+	var body = $('#facilityType');
+	body.empty();
+	body.append("<option value=''>全部</option>");
+	$.get(url , function(data, status){
+		var arr1 = eval(data);
+        var arr=eval("("+arr1.data+")");
+		for (var i in arr){
+			var o = $('<option></option>').val(arr[i].codeNo).html(arr[i].codeName);
+			body.append(o.get());
+		}
+	});
+};
+
+/**
+ * 全选
+ */
+function selectAll() {  
+    if ($("#selectAll").attr("checked")) {  
+        $("input[name='xzsj']").attr("checked", true);  
+    } else {  
+        $("input[name='xzsj']").attr("checked", false);  
+    }  
+} 
+
+/**
+ * 激活
+ */
+function activate(){
+	var xzsj=new Array();
+	$('input[name="xzsj"]:checked').each(function(){ 
+		 xzsj.push($(this).val()); 
+	}); 
+	if(xzsj.length != 0){
+		$.ajax({
+			type : "post",
+			url : "selfService/selfServiceUpgradeAction_checkActivate",
+			data:{"xzsj":xzsj.toString()},
+			dataType : "json",
+			async : false,
+			success : function(data) {
+				// 需要激活的个数
+				var needActivateCount = data.result;
+				if(needActivateCount > 0){
+					var submit = function (v, h, f) {
+					    if (v == 'ok') {
+				    		$.post("selfService/selfServiceUpgradeAction_activateVersions",
+							{"xzsj":xzsj.toString()},
+							function success(data,status){
+								if(data.result){
+									jBox.tip("激活成功", 'info');
+									window.setTimeout(function() {
+										$("#act_query").click();
+									}, 500);
+								}else{
+									jBox.tip("激活失败，请重新尝试", 'info');
+								}
+							});
+					    }else if (v == 'cancel') {
+//					    	jBox.tip("取消", 'info');
+					    }
+
+					    return true; //close
+					};
+					$.jBox.confirm("确定激活选择的设备版本("+needActivateCount+"个需要激活)吗？", "提示", submit)
+				}else{
+					jBox.tip("勾选的设备版本没有需要激活的", 'info');
+				}
+			},error : function(errorMsg) {
+				jBox.tip("请求失败，请重新尝试", 'info');
+			}
+		});
+	}else{
+		jBox.tip("请勾选需要激活的设备版本", 'info');
+	}
+}

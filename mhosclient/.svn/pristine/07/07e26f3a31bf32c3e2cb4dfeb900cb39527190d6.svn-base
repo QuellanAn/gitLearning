@@ -1,0 +1,39 @@
+package com.catic.mobilehos.po;
+
+public class PatientCardPO {
+	
+	private String patientId;
+	
+	private String cardCode;
+	
+	private String cardNumber;
+	
+
+	public String getPatientId() {
+		return patientId;
+	}
+
+	public void setPatientId(String patientId) {
+		this.patientId = patientId;
+	}
+
+	public String getCardCode() {
+		return cardCode;
+	}
+
+	public void setCardCode(String cardCode) {
+		this.cardCode = cardCode;
+	}
+
+	public String getCardNumber() {
+		return cardNumber;
+	}
+
+	public void setCardNumber(String cardNumber) {
+		this.cardNumber = cardNumber;
+	}
+
+	
+	
+
+}

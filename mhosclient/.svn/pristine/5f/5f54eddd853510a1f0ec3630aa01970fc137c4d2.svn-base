@@ -1,0 +1,191 @@
+package com.catic.mobilehos.po;
+
+import java.sql.Timestamp;
+
+public class PatientPO {
+
+	private Integer id;
+	private String userId;
+
+	private String patientId;
+
+	private String patientName;
+	private String cardType;
+	private String cardNo;
+
+	private int sexCode;
+	private String sex;
+
+	private String identityCard;
+
+	private String phone;
+
+	private String homeAddress;
+
+	private java.sql.Date birthday;
+
+	private String hisId;
+	private Integer IDTypeCode;
+	private String IDTypeDesc;
+
+	private Timestamp createDate;
+
+	private Timestamp updateDate;
+	
+	private String orderStatus;
+	
+	private String canal;
+	
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getPatientId() {
+		return patientId;
+	}
+
+	public void setPatientId(String patientId) {
+		this.patientId = patientId;
+	}
+
+	public String getPatientName() {
+		return patientName;
+	}
+
+	public void setPatientName(String patientName) {
+		this.patientName = patientName;
+	}
+
+	public String getCardType() {
+		return cardType;
+	}
+
+	public void setCardType(String cardType) {
+		this.cardType = cardType;
+	}
+
+	public String getCardNo() {
+		return cardNo;
+	}
+
+	public void setCardNo(String cardNo) {
+		this.cardNo = cardNo;
+	}
+
+	public int getSexCode() {
+		return sexCode;
+	}
+
+	public void setSexCode(int sexCode) {
+		this.sexCode = sexCode;
+	}
+
+	public String getSex() {
+		return sex;
+	}
+
+	public void setSex(String sex) {
+		this.sex = sex;
+	}
+
+	public String getIdentityCard() {
+		return identityCard;
+	}
+
+	public void setIdentityCard(String identityCard) {
+		this.identityCard = identityCard;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getHomeAddress() {
+		return homeAddress;
+	}
+
+	public void setHomeAddress(String homeAddress) {
+		this.homeAddress = homeAddress;
+	}
+
+	public java.sql.Date getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(java.sql.Date birthday) {
+		this.birthday = birthday;
+	}
+
+	public String getHisId() {
+		return hisId;
+	}
+
+	public void setHisId(String hisId) {
+		this.hisId = hisId;
+	}
+
+	public Integer getIDTypeCode() {
+		return IDTypeCode;
+	}
+
+	public void setIDTypeCode(Integer iDTypeCode) {
+		IDTypeCode = iDTypeCode;
+	}
+
+	public String getIDTypeDesc() {
+		return IDTypeDesc;
+	}
+
+	public void setIDTypeDesc(String iDTypeDesc) {
+		IDTypeDesc = iDTypeDesc;
+	}
+
+	public Timestamp getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Timestamp createDate) {
+		this.createDate = createDate;
+	}
+
+	public Timestamp getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Timestamp updateDate) {
+		this.updateDate = updateDate;
+	}
+
+	public String getOrderStatus() {
+		return orderStatus;
+	}
+
+	public void setOrderStatus(String orderStatus) {
+		this.orderStatus = orderStatus;
+	}
+
+	public String getCanal() {
+		return canal;
+	}
+
+	public void setCanal(String canal) {
+		this.canal = canal;
+	}
+
+}

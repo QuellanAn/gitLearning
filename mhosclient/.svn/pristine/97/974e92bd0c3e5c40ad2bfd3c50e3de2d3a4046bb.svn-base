@@ -1,0 +1,14 @@
+package com.catic.mobilehos.service;
+import com.catic.mobilehos.service.vo.Page;
+import com.catic.mobilehos.service.vo.ServiceEvaluationHosVO;
+public interface ServiceEvaluationHosService {
+	
+	Page<ServiceEvaluationHosVO> findListByParas(String doctorName,String departmentCode,String overallEvaluation,java.sql.Date startDate,
+			java.sql.Date endDate,int page, int pageSize);
+	
+		
+	ServiceEvaluationHosVO  findServiceEvaluationHosById(Integer serviceEvaluationId);
+	
+	ServiceEvaluationHosVO  statisticEvaluateHos(String departmentCode,java.sql.Date startDate,
+			java.sql.Date endDate);
+}

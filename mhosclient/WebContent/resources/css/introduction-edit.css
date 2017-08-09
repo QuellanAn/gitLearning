@@ -1,0 +1,57 @@
+.cnt-wrap .tab-cnt{
+	background:#fafafa;
+	border:1px solid #cdcccc;
+	border-radius:4px;
+	margin:0 23px 30px 24px;
+	padding:23px 0 0 25px;
+	width:743px;
+}
+.introduction-fm{
+	font:16px/32px "������ͤ�ڼ���","Microsoft YaHei","����";
+}
+.introduction-fm li{
+	min-height:35px;
+	padding-top:5px;
+	position:relative;
+	zoom:1;
+}
+.introduction-fm .introduction-label{
+	text-align:right;
+	width:93px;
+}
+.introduction-fm .fm-text{
+	width:605px;
+}
+.introduction-fm .phone-text1{
+	width:143px;
+}
+.introduction-fm .phone-text2{
+	margin-left:11px;
+	width:207px;
+}
+.introduction-fm .introduction-textarea1,.introduction-fm .introduction-textarea2{
+	padding-bottom:3px;
+	padding-top:3px;
+	resize:none;
+}
+.introduction-fm .introduction-textarea1{
+	height:70px;
+	margin-bottom:10px;
+}
+.introduction-fm .introduction-textarea2{
+	height:131px;
+	margin-bottom:10px;
+}
+
+.introduction-fm .introduction-textarea3{
+	height:70px;
+	margin-bottom:10px;
+}
+.introduction-fm .introduction-pmt{
+	color:#b5b5b5;
+	font:16px/32px "������ͤ�ڼ���","Microsoft YaHei","����";
+	margin-left:93px;
+}
+.introduction-fm .fm-file{
+	width:605px;
+}

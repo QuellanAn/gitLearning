@@ -1,0 +1,41 @@
+package com.catic.mobilehos.pay.biz.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.catic.mobilehos.pay.biz.BaseBiz;
+import com.catic.mobilehos.pay.biz.ICheckImportBiz;
+import com.catic.mobilehos.pay.entity.CheckImport;
+import com.catic.mobilehos.utils.Page;
+
+@Service("checkImportBiz")
+public class CheckImportBizImpl extends BaseBiz implements ICheckImportBiz{
+
+	/**
+	 * 查询对账单导入列表
+	 */
+	@Override
+	public List<CheckImport> findAll(Page page, CheckImport checkImport)
+			throws Exception {
+		return checkImportDao.findAll(page, checkImport);
+	}
+
+	/**
+	 * 查询详情
+	 */
+	@Override
+	public CheckImport findDetails(String iid)
+			throws Exception {
+		return checkImportDao.findDetails(iid);
+	}
+
+	/**
+	 * 插入
+	 */
+	@Override
+	public int save(CheckImport ci) throws Exception {
+		return checkImportDao.save(ci);
+	}
+
+}
